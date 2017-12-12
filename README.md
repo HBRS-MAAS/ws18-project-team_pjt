@@ -7,6 +7,15 @@
 [![Smells](https://sonarcloud.io/api/badges/measure?key=project-awesomebakery&metric=code_smells)](https://sonarcloud.io/dashboard?id=project-awesomebakery)
 [![Bugs](https://sonarcloud.io/api/badges/measure?key=project-awesomebakery&metric=bugs)](https://sonarcloud.io/dashboard?id=project-awesomebakery)
 
+# Just-A-Bakery Status:
+[![Build Status](https://travis-ci.org/HBRS-MAAS/project-just_a_bakery.svg?branch=master)](https://travis-ci.org/HBRS-MAAS/project-just_a_bakery)
+[![Quality Gate](https://sonarcloud.io/api/badges/gate?key=project-just_a_bakery)](https://sonarcloud.io/dashboard?id=project-just_a_bakery)
+[![Coverage](https://sonarcloud.io/api/badges/measure?key=project-just_a_bakery&metric=coverage)](https://sonarcloud.io/dashboard?id=project-just_a_bakery)
+[![Lines](https://sonarcloud.io/api/badges/measure?key=project-just_a_bakery&metric=ncloc)](https://sonarcloud.io/dashboard?id=project-just_a_bakery)
+[![Coverage](https://sonarcloud.io/api/badges/measure?key=project-just_a_bakery&metric=function_complexity)](https://sonarcloud.io/dashboard?id=project-just_a_bakery)
+[![Lines](https://sonarcloud.io/api/badges/measure?key=project-just_a_bakery&metric=duplicated_lines_density)](https://sonarcloud.io/dashboard?id=project-just_a_bakery)
+
+
 
 # MAAS Project - Team Name 
 
