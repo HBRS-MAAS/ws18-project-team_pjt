@@ -1,3 +1,13 @@
+# AwesomeBakery Status:
+
+[![Build Status](https://travis-ci.org/HBRS-MAAS/project-awesomebakery.svg?branch=master)](https://travis-ci.org/HBRS-MAAS/project-awesomebakery)
+[![Quality Gate](https://sonarcloud.io/api/badges/gate?key=project-awesomebakery)](https://sonarcloud.io/dashboard?id=project-awesomebakery)
+[![Coverage](https://sonarcloud.io/api/badges/measure?key=project-awesomebakery&metric=coverage)](https://sonarcloud.io/dashboard?id=project-awesomebakery)
+[![Lines](https://sonarcloud.io/api/badges/measure?key=project-awesomebakery&metric=ncloc)](https://sonarcloud.io/dashboard?id=project-awesomebakery)
+[![Smells](https://sonarcloud.io/api/badges/measure?key=project-awesomebakery&metric=code_smells)](https://sonarcloud.io/dashboard?id=project-awesomebakery)
+[![Bugs](https://sonarcloud.io/api/badges/measure?key=project-awesomebakery&metric=bugs)](https://sonarcloud.io/dashboard?id=project-awesomebakery)
+
+
 # MAAS Project - Team Name 
 
 Add a brief description of your project. Make sure to keep this README updated, particularly on how to run your project from the **command line**.
