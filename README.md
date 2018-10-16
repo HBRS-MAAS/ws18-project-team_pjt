@@ -1,4 +1,4 @@
-# MAAS Project - Team Name 
+# MAAS Project - <Team Name>
 
 Add a brief description of your project. Make sure to keep this README updated, particularly on how to run your project from the **command line**.
 
@@ -10,7 +10,7 @@ Add a brief description of your project. Make sure to keep this README updated, 
 * JADE v.4.5.0
 * ...
 
-## Howto run
+## How to run
 Just install gradle and run:
 
     gradle run
