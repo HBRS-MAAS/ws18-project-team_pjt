@@ -5,7 +5,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'application'
 
-mainClassName = 'maas.Start'
+mainClassName = 'org.yourteamname.Start'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -22,4 +22,3 @@ repositories {
     //testCompile 'junit:junit:4.12.+'
     //testCompile 'org.mockito:mockito-core:1.10.+'
 }
-
