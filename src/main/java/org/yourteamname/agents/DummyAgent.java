@@ -15,7 +15,7 @@ import jade.lang.acl.ACLMessage;
 public class DummyAgent extends Agent {
 	protected void setup() {
 	// Printout a welcome message
-		System.out.println("Hello! Dummy-agent "+getAID().getName()+" is ready. test");
+		System.out.println("Hello! Dummy-agent "+getAID().getName()+" is ready. testcommit");
 
         try {
  			Thread.sleep(3000);
