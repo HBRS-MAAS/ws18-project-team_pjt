@@ -1,10 +1,13 @@
-# MAAS Project - <Team Name>
+# MAAS Project - team_pjt
+
+[![Build Status](https://travis-ci.org/HBRS-MAAS/ws18-project-team_pjt.svg?branch=master)](https://travis-ci.org/HBRS-MAAS/ws18-project-team_pjt)
 
 Add a brief description of your project. Make sure to keep this README updated, particularly on how to run your project from the **command line**.
 
 ## Team Members
-* Name1 LastName1 - [@githubusername](https://github.com/username)
-* Name2 LastName2 - [@githubusername](https://github.com/username)
+* Pascal Maczey - [@Dr4gonbl4de](https://github.com/Dr4gonbl4de)
+* Jan Löffelsender - [@janl1992](https://github.com/janl1992)
+* Thomas Wiktorin - [@twiktorin](https://github.com/twiktorin)
 
 ## Dependencies
 * JADE v.4.5.0
