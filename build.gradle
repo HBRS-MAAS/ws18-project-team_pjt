@@ -5,7 +5,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'application'
 
-mainClassName = 'org.yourteamname.Start'
+mainClassName = 'org.team_pjt.Start'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
