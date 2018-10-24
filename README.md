@@ -1,6 +1,8 @@
 # MAAS Project - team_pjt
 
-[![Build Status](https://travis-ci.org/HBRS-MAAS/ws18-project-team_pjt.svg?branch=master)](https://travis-ci.org/HBRS-MAAS/ws18-project-team_pjt)
+Master Branch [![Build Status](https://travis-ci.org/HBRS-MAAS/ws18-project-team_pjt.svg?branch=master)](https://travis-ci.org/HBRS-MAAS/ws18-project-team_pjt)
+
+Develop Branch [![Build Status](https://travis-ci.org/HBRS-MAAS/ws18-project-team_pjt.svg?branch=develop)](https://travis-ci.org/HBRS-MAAS/ws18-project-team_pjt)
 
 Add a brief description of your project. Make sure to keep this README updated, particularly on how to run your project from the **command line**.
 
