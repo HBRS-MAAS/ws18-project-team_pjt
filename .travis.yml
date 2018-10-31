@@ -5,4 +5,4 @@ group: stable
 dist: trusty
 os: linux
 script:
-    - gradle run
+  - gradle run

@@ -9,7 +9,7 @@ Add a brief description of your project. Make sure to keep this README updated, 
 ## Team Members
 * Pascal Maczey - [@Dr4gonbl4de](https://github.com/Dr4gonbl4de)
 * Jan Löffelsender - [@janl1992](https://github.com/janl1992)
-* Thomas Wiktorin - [@twiktorin](https://github.com/twiktorin)
+* Maximilian Mensingn - [@madmax2012](https://github.com/madmax2012)
 
 ## Dependencies
 * JADE v.4.5.0
