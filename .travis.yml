@@ -4,3 +4,5 @@ jdk:
 group: stable
 dist: trusty
 os: linux
+script:
+    - gradle run
