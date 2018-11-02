@@ -15,13 +15,15 @@ import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.ShutdownPlatform;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import org.team_pjt.Objects.Clock;
 
 
 @SuppressWarnings("serial")
 public class SystemClockAgent extends Agent {
-	private String systemClock = "<000:00>";
+	private Clock systemClock;
 
 	protected void setup() {
+		this.systemClock = new Clock();
 		addBehaviour(new updateClock(this, 1000));
 
         try {
@@ -65,19 +67,7 @@ public class SystemClockAgent extends Agent {
 
 		@Override
 		protected void onTick() {
-		int day = Integer.parseInt(systemClock.substring(1, 4));
-		int hour = Integer.parseInt(systemClock.substring(5, 7));
-
-		hour++;
-		if (hour % 24 == 0) {
-			hour = 0;
-			day++;
-		}
-
-		systemClock = "<" + String.format("%1$" + 3 + "s", day).replace(' ', '0') + ":" +
-				String.format("%1$" + 2 + "s", hour).replace(' ', '0') + ">";
-		System.out.println(systemClock);
-		myAgent.addBehaviour(new notifyClockUpdate());
+			systemClock.incr();
 		}
 	}
 
@@ -90,15 +80,19 @@ public class SystemClockAgent extends Agent {
 			AMSAgentDescription[] evalAgents;
 			try {
 				evalAgents = AMSService.search(myAgent, new AMSAgentDescription(), sc);
-				ACLMessage msg = new ACLMessage(ACLMessage.PROPAGATE);
-				msg.setConversationId("clock-notification");
-				msg.setContent(systemClock);
-				for (int i = 0; i < evalAgents.length; ++i) {
-					msg.addReceiver(evalAgents[i].getName());
-				}
 			} catch (FIPAException e) {
 				e.printStackTrace();
+				return;
 			}
+
+			ACLMessage msg = new ACLMessage(ACLMessage.PROPAGATE);
+			msg.setConversationId("clock-update");
+			msg.setContent(systemClock.toString());
+
+			for (AMSAgentDescription agent : evalAgents) {
+				msg.addReceiver(agent.getName());
+			}
+			myAgent.send(msg);
 		}
 	}
 }
