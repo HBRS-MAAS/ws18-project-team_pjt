@@ -14,6 +14,7 @@ import jade.domain.FIPANames;
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.ShutdownPlatform;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 
 @SuppressWarnings("serial")
@@ -76,6 +77,7 @@ public class SystemClockAgent extends Agent {
 		systemClock = "<" + String.format("%1$" + 3 + "s", day).replace(' ', '0') + ":" +
 				String.format("%1$" + 2 + "s", hour).replace(' ', '0') + ">";
 		System.out.println(systemClock);
+		myAgent.addBehaviour(new notifyClockUpdate());
 		}
 	}
 
@@ -88,10 +90,15 @@ public class SystemClockAgent extends Agent {
 			AMSAgentDescription[] evalAgents;
 			try {
 				evalAgents = AMSService.search(myAgent, new AMSAgentDescription(), sc);
+				ACLMessage msg = new ACLMessage(ACLMessage.PROPAGATE);
+				msg.setConversationId("clock-notification");
+				msg.setContent(systemClock);
+				for (int i = 0; i < evalAgents.length; ++i) {
+					msg.addReceiver(evalAgents[i].getName());
+				}
 			} catch (FIPAException e) {
 				e.printStackTrace();
 			}
-
 		}
 	}
 }
