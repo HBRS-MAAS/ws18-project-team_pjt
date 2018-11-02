@@ -1,5 +1,5 @@
 ```java
-class CommonMessage{
+class CommonOrderMessage{
     private String sCustomerId;
     private Date dOrderDate;
     private Date dDeliveryDate;
