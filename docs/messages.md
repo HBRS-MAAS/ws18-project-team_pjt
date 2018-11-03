@@ -18,8 +18,10 @@ class OrderMessage{ // OrderProcessingagent -> OrderAgent
     private Order oCustomerOrder;
 }
 
-class SchedulerMessage{ // Orderagent -> Scheduleragent
+class SchedulerUpdateMessage{ // Orderagent -> Scheduleragent
                         // Scheduleragent -> Orderagent
+                        // Orderagent -> Visualagent
+                        // Truckagent->Orderagent
     private Order oCustomerOrder;
 }
 
@@ -27,7 +29,9 @@ class Order extends CommonOrderMessage{
     private HashMap<String, int> hmStatus;
 }
 
-class SchedulerMessage{ // Scheduleragent -> Kneadingmachineagent ; Scheduleragent -> Ovenagent 
+class SchedulerMessage{ // Scheduleragent -> Kneadingmachineagent ; 
+                        // Scheduleragent -> Ovenagent
     private HashMap<String, int> hmProducts;  
 }
+
 ```
