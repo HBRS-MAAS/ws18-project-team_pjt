@@ -22,6 +22,7 @@ class SchedulerUpdateMessage{ // Orderagent -> Scheduleragent
                         // Scheduleragent -> Orderagent
                         // Orderagent -> Visualagent
                         // Truckagent->Orderagent
+                        // Orderagent -> Truckscheduleragent
     private Order oCustomerOrder;
 }
 
@@ -32,6 +33,11 @@ class Order extends CommonOrderMessage{
 class SchedulerMessage{ // Scheduleragent -> Kneadingmachineagent ; 
                         // Scheduleragent -> Ovenagent
     private HashMap<String, int> hmProducts;  
+}
+
+class TruckStatusMessage{ // Truckagent -> Orderagent
+    private String sTruckId;
+    private boolean bIsUtilizedtoCapacity;
 }
 
 ```
