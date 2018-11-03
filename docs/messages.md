@@ -1,14 +1,33 @@
 ```java
-class CommonOrderMessage{
-    private String sCustomerId;
+//Message From Agent X ->(to) Agent Y
+class CommonOrderMessage{ // CustomerAgent->OrderProcessingAgent
+                          // Orderagent -> Truckagent
+    private Customer cCustomer;
     private Date dOrderDate;
     private Date dDeliveryDate;
-    private HashMap<String, int> hmProducts;
-    public CommonMessage(String sCustomerId, Date dOrderDate, Date dDeliveryDate, HashMap<String, int> hmProducts){
-        this.sCustomerId = sCustomerId;
-        this.dOrderDate = dOrderDate;
-        this.dDeliveryDate = dDeliveryDate;
-        this.hmProducts = hmProducts;
-    }
+    private HashMap<String, int> hmProducts;    
+}
+     
+class SchedulerStatusMessage{ // Scheduleragent->OrderProcessingagent
+    private String sSchedulerId;
+    private boolean bIsUtilizedtoCapacity;
+}
+
+class OrderMessage{ // OrderProcessingagent -> OrderAgent
+    private String sSchedulerId;
+    private Order oCustomerOrder;
+}
+
+class SchedulerMessage{ // Orderagent -> Scheduleragent
+                        // Scheduleragent -> Orderagent
+    private Order oCustomerOrder;
+}
+
+class Order extends CommonOrderMessage{
+    private HashMap<String, int> hmStatus;
+}
+
+class SchedulerMessage{ // Scheduleragent -> Kneadingmachineagent ; Scheduleragent -> Ovenagent 
+    private HashMap<String, int> hmProducts;  
 }
 ```
