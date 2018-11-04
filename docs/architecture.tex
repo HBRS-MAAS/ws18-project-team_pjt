@@ -2,7 +2,6 @@
 
 % define used packages
 \usepackage[left=4.0cm, right=2.0cm, top=3cm, bottom=3cm]{geometry}
-\usepackage{bibgerm}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
@@ -12,26 +11,17 @@
 %\usepackage{listings}
 \usepackage[numbers]{natbib}
 \usepackage{acronym}
-
 \bibliographystyle{alphadin}
 \usepackage{float}
-
 \usepackage{lastpage}
-
-% advanced tables
 \usepackage{array}
 
 % header and footer
-\usepackage{fancyhdr}
-
 % links
 \usepackage{url}
-
-% internal links
 \usepackage[colorlinks=true ,linkcolor=black,
 			anchorcolor=black ,citecolor=black ,filecolor=black,
 			menucolor=black ,urlcolor=black]{hyperref}
-
 % mathematical formulas
 \usepackage{amsmath, amssymb}
 
@@ -71,21 +61,12 @@ keepaspectratio]{images/Logo_H-BRS_background.pdf}%
 
 \newcommand{\HEADER}[0]{H-BRS, WS 2018 / 2019}
 \newcommand{\PAGENUMBERS}[0]{\pagemark}
-\newcommand{\DATE}[0]{07.11.2018}
-
-\newcommand{\AUTHOR}[0]{team pjt}
-%\newcommand{\MATNR}[0]{123456}
-%\newcommand{\STREET}[0]{Musterstraße 11}
-%\newcommand{\ZIP}[0]{12345}
-%\newcommand{\TOWN}[0]{Musterstadt}
-
+\newcommand{\DATE}[0]{\today}
+\newcommand{\AUTHOR}[0]{Team PJT}
 \newcommand{\REFERENT}[0]{Prof. Dr. Gerhard Kraetzschmar}
-%\newcommand{\KOREFERENT}[0]{Prof. Dr. Max Mustermann}
-
 \newcommand{\TITLE}[0]{Multi Agent and Agent Systems}
-%\newcommand{\COURSE}[0]{Master of Science Informatik}
 \newcommand{\TYPE}[0]{Semesterproject}
-%\newcommand{\COMPLETION}[0]{Bachelor / Master of Science}
+
 
 % #####
 % #
@@ -93,7 +74,6 @@ keepaspectratio]{images/Logo_H-BRS_background.pdf}%
 % #
 % #####
 
-% Hurenkinder und Schusterjungenregelung
 \clubpenalty=100000
 \widowpenalty=100000
 \displaywidowpenalty=100000
@@ -101,76 +81,12 @@ keepaspectratio]{images/Logo_H-BRS_background.pdf}%
 % starting the document
 \begin{document}
 
-% set pagenumbering to roman(I II III IV)
+
 \pagenumbering{Roman}
-% input the title
+
 \input{title}
 \nocite{*} %TODO: Show full bibliography remove for final version.  
 \input{architecturepicture}
 \input{Aggregation.tex}
-% load the preamble
-%\input{preamble}
-%
-%% loads the fancy pagestyle for register part
-%\input{fancyRegisterPart}
-%
-%% create the registers
-%\tableofcontents\newpage
-%
-%% set pagenumbering to arabic(1 2 3 4)
-%\pagenumbering{arabic}
-%% loads the fancy pagestyle for main part
-%\input{fancyMainPart}
-%
-%% #####
-%% # load the chapter from the files
-%% #
-%% # TODO: create new chapter
-%% #####
-%\input{chapter1}
-%\input{chapter2}
-%
-%\newpage
-%
-%% loads the fancy pagestyle for register part
-%\input{fancyRegisterPart}
-%
-%% #####
-%% # load the appendix from the files
-%% #####
-%\input{appendix}
-%
-%% #####
-%% # list of table, list of figures, and list of listings in ToC
-%% #####
-%\newpage
-%\addcontentsline{toc}{chapter}{Abbildungsverzeichnis}
-%\listoffigures
-%\newpage
-%\addcontentsline{toc}{chapter}{Tabellenverzeichnis}
-%\listoftables
-%\newpage
-%\addcontentsline{toc}{chapter}{Listings}
-%\lstlistoflistings
-%
-%% #####
-%% # List of Abbreviations
-%% #####
-%\phantomsection
-%\addcontentsline{toc}{chapter}{Abkürzungsverzeichnis}
-%\renewcommand\refname{Abkürzungsverzeichnis}
-%\chapter*{Abkürzungsverzeichnis}
-%\input{abbreviations}
-%\newpage
 
-% #####
-% # load the bibliography
-% #####
-%\bibliography{bibliography}
-
-% #####
-% # load the sworn declaration
-% #####
-%\input{declaration}
-% end of the document
 \end{document}
