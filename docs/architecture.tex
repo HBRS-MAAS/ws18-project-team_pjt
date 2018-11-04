@@ -1,7 +1,7 @@
 \documentclass[12pt, bibliography=totoc, a4paper, abstractoff, numbers=noenddot]{scrreprt}
 
 % define used packages
-\usepackage[left=2.0cm, right=2.0cm, top=3cm, bottom=3cm]{geometry}
+\usepackage[left=2	.0cm, right=2.0cm, top=3cm, bottom=3cm]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
@@ -86,7 +86,12 @@ keepaspectratio]{images/Logo_H-BRS_background.pdf}%
 
 \input{title}
 \nocite{*} %TODO: Show full bibliography remove for final version.  
-%\input{architecturepicture}
+\input{architecturepicture}
+
+
+\includegraphics[angle=270,scale=0.6]{images/arch-uml}
+
+	
 \input{Aggregation.tex}
 
 \end{document}
