@@ -10,9 +10,9 @@ public class Order implements  Comparable<Order> {
     private String customerID;
     private Clock orderDate;
     private Clock deliveryDate;
-    private Hashtable<String, Integer> products;
+    private Hashtable<String, Float> products;
 
-    public Order(String orderID, String customerID, Clock orderDate, Clock deliveryDate, Hashtable<String, Integer> products) {
+    public Order(String orderID, String customerID, Clock orderDate, Clock deliveryDate, Hashtable<String, Float> products) {
         this.orderID = orderID;
         this.customerID = customerID;
         this.orderDate = orderDate;
@@ -39,7 +39,7 @@ public class Order implements  Comparable<Order> {
         JSONObject jsonProducts = jsonOrder.getJSONObject("products");
         String[] listProducts = JSONObject.getNames(jsonProducts);
         for (int i = 0; i < listProducts.length; ++i) {
-            this.products.put(listProducts[i], new Integer(jsonProducts.getInt(listProducts[i])));
+            this.products.put(listProducts[i], new Float(jsonProducts.getFloat(listProducts[i])));
         }
     }
 
@@ -59,7 +59,7 @@ public class Order implements  Comparable<Order> {
         return deliveryDate;
     }
 
-    public Hashtable<String, Integer> getProducts() {
+    public Hashtable<String, Float> getProducts() {
         return products;
     }
 

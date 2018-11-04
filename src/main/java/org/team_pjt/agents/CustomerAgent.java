@@ -22,7 +22,6 @@ import org.json.JSONObject;
 import org.team_pjt.Objects.Clock;
 import org.team_pjt.Objects.Order;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 
@@ -46,7 +45,7 @@ public class CustomerAgent extends Agent {
 
 		sendOrders = new LinkedList<>();
 
-        addBehaviour(new TickerBehaviour(this, 60000) {
+        addBehaviour(new TickerBehaviour(this, 60) {
             @Override
             protected void onTick() {
                 DFAgentDescription template = new DFAgentDescription();
@@ -146,6 +145,9 @@ public class CustomerAgent extends Agent {
         private int step = 0;
         private MessageTemplate mt;
         private Order order;
+        private AID bestBakery;
+        private float bestPrice;
+		private int repliesCnt = 0;
 
         public sendOrder(Order order) {
         	super();
@@ -169,6 +171,27 @@ public class CustomerAgent extends Agent {
                             MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
                     step = 1;
                     break;
+				case 1:
+					ACLMessage reply = myAgent.receive(mt);
+					if (reply != null) {
+						if (reply.getPerformative() == ACLMessage.PROPOSE) {
+							float price = Float.parseFloat(reply.getContent());
+							if (bestBakery == null || price < bestPrice) {
+								bestPrice = price;
+								bestBakery = reply.getSender();
+							}
+						}
+						repliesCnt++;
+						if (repliesCnt >= bakeryAgents.length) {
+							if (bestBakery == null) {
+								System.out.println("No bakery for processing order found");
+							}
+							step = 2;
+						}
+					}
+					else {
+						block();
+					}
             }
 		}
 	}
