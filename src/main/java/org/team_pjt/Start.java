@@ -2,13 +2,12 @@ package org.team_pjt;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.team_pjt.Objects.Order;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 public class Start {
 	private static boolean isHost;
@@ -18,31 +17,35 @@ public class Start {
 
     public static void main(String[] args) {
     	if (!decodeArguments(args)) {
-    		return;
+            System.exit(-1);
 		}
     	List<String> agents = new Vector<>();
     	if(isHost) {
             agents.add("clock:org.team_pjt.agents.SystemClockAgent");
-            agents.add("bakery1:org.team_pjt.agents.SystemClockAgent");
-            agents.add("c1:org.team_pjt.agents.CustomerAgent");
+            agents.add("bakery1:org.team_pjt.agents.OrderProcessing");
+//            agents.add("c1:org.team_pjt.agents.CustomerAgent");
             agents.add("c2:org.team_pjt.agents.CustomerAgent");
         }
         else {
-            agents.add("bakery2:org.team_pjt.agents.SystemClockAgent");
+            agents.add("bakery2:org.team_pjt.agents.OrderProcessing");
             agents.add("c3:org.team_pjt.agents.CustomerAgent");
             agents.add("c4:org.team_pjt.agents.CustomerAgent");
         }
 
     	String scenario = readScenarioFile();
+    	if(scenario == null) {
+    	    System.exit(-1);
+        }
     	List<String> cmd = buildCMD(agents, new JSONObject(scenario));
-    	System.out.println(cmd.toString());
-        System.out.println(cmd.size());
+//    	  System.out.println(cmd.toString());
+//        System.out.println(cmd.size());
         jade.Boot.main(cmd.toArray(new String[cmd.size()]));
     }
 
     public static List<String> buildCMD(List<String> agents, JSONObject scenario) {
     	StringBuilder sb = new StringBuilder();
         List<String> cmd = new Vector<>();
+        Hashtable<String, List<Order>> sortedOrders = getSortedOrders(scenario.getJSONArray("orders"));
         JSONArray customers = scenario.getJSONArray("customers");
         JSONArray bakeries = scenario.getJSONArray("bakeries");
         Iterator<Object> customerIterator = customers.iterator();
@@ -62,12 +65,17 @@ public class Start {
 			sb.append(a);
 			if(a.contains("Customer")) {
                 sb.append("(");
-                sb.append(((JSONObject)customerIterator.next()).toString());
+                JSONObject customer = (JSONObject)customerIterator.next();
+                sb.append(customer.toString().replaceAll(",", "###"));
+                sb.append(",");
+                JSONObject orders = new JSONObject();
+                orders.put("orders", sortedOrders.get(customer.getString("guid")));
+                sb.append(orders.toString().replaceAll(",", "###"));
                 sb.append(")");
             }
             if(a.contains("Order")) {
                 sb.append("(");
-                sb.append(((JSONObject)bakeryIterator.next()).toString());
+                sb.append(((JSONObject)bakeryIterator.next()).toString().replaceAll(",", "###"));
                 sb.append(")");
             }
 			sb.append(";");
@@ -76,6 +84,26 @@ public class Start {
 
     	return cmd;
 	}
+
+    public static Hashtable<String, List<Order>> getSortedOrders(JSONArray jsonOrders) {
+        Hashtable<String, List<Order>> orders = new Hashtable<>();
+        Iterator<Object> orderIterator = jsonOrders.iterator();
+
+        while(orderIterator.hasNext()) {
+            Set<String> keys = orders.keySet();
+            Order o = new Order((orderIterator.next()).toString());
+            if (keys.contains(o.getCustomer_id())) {
+                orders.get(o.getCustomer_id()).add(o);
+            }
+            else {
+                List<Order> cOrder = new Vector<>();
+                cOrder.add(o);
+                orders.put(o.getCustomer_id(), cOrder);
+            }
+        }
+
+        return orders;
+    }
 
 	public static String readScenarioFile() {
     	String jsonString = null;

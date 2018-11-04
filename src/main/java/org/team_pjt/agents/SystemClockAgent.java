@@ -68,6 +68,8 @@ public class SystemClockAgent extends Agent {
 		@Override
 		protected void onTick() {
 			systemClock.incr();
+			myAgent.addBehaviour(new notifyClockUpdate());
+			System.out.println(systemClock.toString());
 		}
 	}
 

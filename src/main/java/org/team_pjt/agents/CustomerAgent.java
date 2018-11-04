@@ -5,6 +5,7 @@ import jade.content.lang.sl.SLCodec;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
@@ -35,19 +36,23 @@ public class CustomerAgent extends Agent {
 	private Clock clock;
 
 	protected void setup() {
+		//TODO: different Customer Types
 		Object[] args = getArguments();
 
 		if(!readArgs(args)) {
 			System.out.println("No parameter given " + getName());
 			return;
 		}
+
+		clock = new Clock(0, 0);
+
 		addBehaviour(new receiveClock());
 
 		sendOrders = new LinkedList<>();
 
-        addBehaviour(new TickerBehaviour(this, 60) {
+        addBehaviour(new CyclicBehaviour(this) {
             @Override
-            protected void onTick() {
+			public void action() {
                 DFAgentDescription template = new DFAgentDescription();
                 ServiceDescription sd = new ServiceDescription();
                 sd.setType("bakery");
@@ -65,14 +70,16 @@ public class CustomerAgent extends Agent {
                 }
 
                 Collections.sort(orders);
-                Clock nextDay = new Clock(clock.getDay() + 1, 0);
-
+				LinkedList<Order> ordersToDelete = new LinkedList<>();
 				for (Order order : orders) {
-					if(order.getDeliveryDate().compareTo(nextDay) == 0 || order.getDeliveryDate().compareTo(clock) == 0) {
+					if(order.getOrder_date().compareTo(clock) == 0) {
 						myAgent.addBehaviour(new sendOrder(order));
 						sendOrders.add(order);
-						orders.remove(order);
+						ordersToDelete.add(order);
 					}
+				}
+				for (Order order : ordersToDelete) {
+					orders.remove(order);
 				}
             }
         });
@@ -84,15 +91,14 @@ public class CustomerAgent extends Agent {
 
 	private boolean readArgs(Object[] args) {
 		if (args != null && args.length > 0) {
-			this.customerID = (String) args[0];
-			if (args.length == 1) {
-				return true;
-			}
-			JSONArray jsonOrders = (new JSONObject((String)args[1])).getJSONArray("orders");
+			JSONObject customer = new JSONObject(((String)args[0]).replaceAll("###", ","));
+			customerID = customer.getString("guid");
+			JSONArray jsonOrders = (new JSONObject(((String)args[1]).replaceAll("###", ","))).getJSONArray("orders");
 			int numOrders = jsonOrders.length();
 			this.orders = new LinkedList<>();
 			for (int i = 0; i < numOrders; ++i) {
 				this.orders.add(new Order(jsonOrders.getJSONObject(i).toString()));
+				System.out.println(this.orders.getLast().getOrder_date().toString());
 			}
 			return true;
 		}
@@ -134,6 +140,7 @@ public class CustomerAgent extends Agent {
 
 				clock.setDay(day);
 				clock.setHour(hour);
+				System.out.println("clock received: " + clock.toString());
 			}
 			else {
 				block();
@@ -141,7 +148,7 @@ public class CustomerAgent extends Agent {
 		}
 	}
 
-	private class sendOrder extends OneShotBehaviour {
+	private class sendOrder extends Behaviour {
         private int step = 0;
         private MessageTemplate mt;
         private Order order;
@@ -174,6 +181,7 @@ public class CustomerAgent extends Agent {
 				case 1:
 					ACLMessage reply = myAgent.receive(mt);
 					if (reply != null) {
+						System.out.println("CFP answer received");
 						if (reply.getPerformative() == ACLMessage.PROPOSE) {
 							float price = Float.parseFloat(reply.getContent());
 							if (bestBakery == null || price < bestPrice) {
@@ -193,6 +201,11 @@ public class CustomerAgent extends Agent {
 						block();
 					}
             }
+		}
+
+		@Override
+		public boolean done() {
+			return step == 2;
 		}
 	}
 

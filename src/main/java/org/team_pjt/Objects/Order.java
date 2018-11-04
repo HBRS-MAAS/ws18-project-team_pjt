@@ -6,34 +6,34 @@ import java.util.Hashtable;
 import java.util.Set;
 
 public class Order implements  Comparable<Order> {
-    private String orderID;
-    private String customerID;
-    private Clock orderDate;
-    private Clock deliveryDate;
+    private String guid;
+    private String customer_id;
+    private Clock order_date;
+    private Clock delivery_date;
     private Hashtable<String, Float> products;
 
-    public Order(String orderID, String customerID, Clock orderDate, Clock deliveryDate, Hashtable<String, Float> products) {
-        this.orderID = orderID;
-        this.customerID = customerID;
-        this.orderDate = orderDate;
-        this.deliveryDate = deliveryDate;
+    public Order(String guid, String customer_id, Clock order_date, Clock delivery_date, Hashtable<String, Float> products) {
+        this.guid = guid;
+        this.customer_id = customer_id;
+        this.order_date = order_date;
+        this.delivery_date = delivery_date;
         this.products = products;
     }
 
     public Order(String jsonOrderString) {
         JSONObject jsonOrder = new JSONObject(jsonOrderString);
-        this.orderID = jsonOrder.getString("guid");
-        this.customerID = jsonOrder.getString("customer_id");
+        this.guid = jsonOrder.getString("guid");
+        this.customer_id = jsonOrder.getString("customer_id");
 
-        int day = Integer.parseInt(jsonOrder.getJSONObject("order_date").getString("day"));
-        int hour = Integer.parseInt(jsonOrder.getJSONObject("order_date").getString("hour"));
+        int day =(jsonOrder.getJSONObject("order_date").getInt("day"));
+        int hour = (jsonOrder.getJSONObject("order_date").getInt("hour"));
 
-        this.orderDate = new Clock(day, hour);
+        this.order_date = new Clock(day, hour);
 
-        day = Integer.parseInt(jsonOrder.getJSONObject("delivery_date").getString("day"));
-        hour = Integer.parseInt(jsonOrder.getJSONObject("delivery_date").getString("hour"));
+        day = (jsonOrder.getJSONObject("delivery_date").getInt("day"));
+        hour = (jsonOrder.getJSONObject("delivery_date").getInt("hour"));
 
-        this.deliveryDate = new Clock(day, hour);
+        this.delivery_date = new Clock(day, hour);
 
         this.products = new Hashtable<>();
         JSONObject jsonProducts = jsonOrder.getJSONObject("products");
@@ -43,20 +43,20 @@ public class Order implements  Comparable<Order> {
         }
     }
 
-    public String getOrderID() {
-        return orderID;
+    public String getGuid() {
+        return guid;
     }
 
-    public String getCustomerID() {
-        return customerID;
+    public String getCustomer_id() {
+        return customer_id;
     }
 
-    public Clock getOrderDate() {
-        return orderDate;
+    public Clock getOrder_date() {
+        return order_date;
     }
 
-    public Clock getDeliveryDate() {
-        return deliveryDate;
+    public Clock getDelivery_date() {
+        return delivery_date;
     }
 
     public Hashtable<String, Float> getProducts() {
@@ -71,27 +71,27 @@ public class Order implements  Comparable<Order> {
 
         Set<String> keys = this.products.keySet();
         for (String key: keys) {
-            json_products.append(key, this.products.get(key));
+            json_products.put(key, this.products.get(key));
         }
 
-        json_orderDate.append("day", this.orderDate.getDay());
-        json_orderDate.append("hour", this.orderDate.getHour());
+        json_orderDate.put("day", this.order_date.getDay());
+        json_orderDate.put("hour", this.order_date.getHour());
 
-        json_deliveryDate.append("day", this.deliveryDate.getDay());
-        json_deliveryDate.append("hour", this.deliveryDate.getHour());
+        json_deliveryDate.put("day", this.delivery_date.getDay());
+        json_deliveryDate.put("hour", this.delivery_date.getHour());
 
-        obj.append("guid", this.orderID);
-        obj.append("customer_id", this.customerID);
-        obj.append("order_date", json_orderDate);
-        obj.append("delivery_date", json_deliveryDate);
+        obj.put("guid", this.guid);
+        obj.put("customer_id", this.customer_id);
+        obj.put("order_date", json_orderDate);
+        obj.put("delivery_date", json_deliveryDate);
 
-        obj.append("products", json_products);
+        obj.put("products", json_products);
 
         return obj.toString();
     }
 
     @Override
     public int compareTo(Order o) {
-        return orderDate.compareTo(o.getOrderDate());
+        return order_date.compareTo(o.getOrder_date());
     }
 }
