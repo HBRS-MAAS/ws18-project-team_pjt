@@ -1,0 +1,97 @@
+\documentclass[12pt, bibliography=totoc, a4paper, abstractoff, numbers=noenddot]{scrreprt}
+
+% define used packages
+\usepackage[left=2	.0cm, right=2.0cm, top=3cm, bottom=3cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage[ngerman]{babel}
+\usepackage{lmodern}
+\usepackage{pdfpages}
+%\usepackage{listings}
+\usepackage[numbers]{natbib}
+\usepackage{acronym}
+\bibliographystyle{alphadin}
+\usepackage{float}
+\usepackage{lastpage}
+\usepackage{array}
+
+% header and footer
+% links
+\usepackage{url}
+\usepackage[colorlinks=true ,linkcolor=black,
+			anchorcolor=black ,citecolor=black ,filecolor=black,
+			menucolor=black ,urlcolor=black]{hyperref}
+% mathematical formulas
+\usepackage{amsmath, amssymb}
+
+% fancy Diagrams %
+\usepackage{tikz}
+\usepackage{epstopdf}
+
+% to include images side by side
+\usepackage{subfigure}
+
+% for nice bg on title page
+\usepackage{eso-pic}
+\newcommand\BackgroundPic{%
+\put(0,0){%
+\parbox[b][\paperheight]{\paperwidth}{%
+\vfill
+\centering
+\includegraphics[width=\paperwidth,height=\paperheight,%
+keepaspectratio]{images/Logo_H-BRS_background.pdf}%
+\vfill
+}}}
+
+% define the programming language
+\input{lststyles}
+
+%set default pagestyle
+\pagestyle{empty}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{12pt}
+
+% #####
+% #
+% # START config area
+% #
+% #####
+
+\newcommand{\HEADER}[0]{H-BRS, WS 2018 / 2019}
+\newcommand{\PAGENUMBERS}[0]{\pagemark}
+\newcommand{\DATE}[0]{\today}
+\newcommand{\AUTHOR}[0]{Team PJT}
+\newcommand{\REFERENT}[0]{Prof. Dr. Gerhard Kraetzschmar}
+\newcommand{\TITLE}[0]{Multi Agent and Agent Systems}
+\newcommand{\TYPE}[0]{Semesterproject}
+
+
+% #####
+% #
+% # END config area
+% #
+% #####
+
+\clubpenalty=100000
+\widowpenalty=100000
+\displaywidowpenalty=100000
+
+% starting the document
+\begin{document}
+
+
+\pagenumbering{Roman}
+
+\input{title}
+\nocite{*} %TODO: Show full bibliography remove for final version.  
+\input{architecturepicture}
+
+
+\includegraphics[angle=270,scale=0.6]{images/arch-uml}
+
+	
+\input{Aggregation.tex}
+
+\end{document}
