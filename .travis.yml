@@ -5,4 +5,4 @@ group: stable
 dist: trusty
 os: linux
 script:
-  - gradle run --args='-isHost -path src\main\resources\random-scenario.json'
+  - gradle run
