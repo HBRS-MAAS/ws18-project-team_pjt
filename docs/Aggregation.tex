@@ -1,4 +1,4 @@
-\chapter*{Aggregation of order data}
+\section{Aggregation of order data}
 Aggregation of order data can be done in the following manner:
 \begin{itemize}
     \item \textbf{An aggregation of a customer’s orders for each day or each date <ddd.hh>} $\rightarrow$ It depends which data structure you could use
@@ -13,8 +13,6 @@ Aggregation of order data can be done in the following manner:
         \item If it is not that important to use the given dateformat you could use an array. Index is day of a year. That means here worst performance of searching an array
         given that you know which day you want to search is $O(n) = 1$
     \end{itemize}
-
-
     \item \textbf{An aggregation of all orders for a particular product for each day or each date} \\ $\rightarrow$
     Hashmap of Hashmaps. One entry within Hashmap represents one product. Key is product value is a hashmap. One Hashmap within Hashmap has
     as key a date, as value an array of orders.
