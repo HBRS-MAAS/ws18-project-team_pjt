@@ -4,6 +4,7 @@ import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.basic.Action;
 import jade.core.Agent;
+import jade.core.Runtime;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.AMSService;
@@ -15,6 +16,7 @@ import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.ShutdownPlatform;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.wrapper.StaleProxyException;
 import org.team_pjt.Objects.Clock;
 
 
@@ -97,7 +99,7 @@ public class SystemClockAgent extends Agent {
                 System.out.println(agent.getName());
 			}
 			myAgent.send(msg);
-			if (systemClock.getDay() == 3) { //TODO: get dynamic kill date
+			if (systemClock.getDay() == 1) { //TODO: get dynamic kill date
 				myAgent.addBehaviour(new killMessage());
 			}
 		}
@@ -125,6 +127,14 @@ public class SystemClockAgent extends Agent {
 			}
 			myAgent.send(msg);
 			myAgent.addBehaviour(new shutdown());
+			Runtime rt = Runtime.instance();
+			try {
+				getContainerController().kill();
+			} catch ( StaleProxyException e ) {
+				e.printStackTrace();
+			}
+			rt.shutDown();
+
 			myAgent.doDelete();
 		}
 	}
