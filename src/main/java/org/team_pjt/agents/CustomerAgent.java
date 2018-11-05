@@ -43,10 +43,16 @@ public class CustomerAgent extends Agent {
 			System.out.println("No parameter given " + getName());
 			return;
 		}
+		try {
+			Thread.sleep(30000);
+		} catch (InterruptedException e) {
+			//e.printStackTrace();
+		}
 
 		clock = new Clock(0, 0);
 
 		addBehaviour(new receiveClock());
+		addBehaviour(new receiveKillMessgae());
 
 		sendOrders = new LinkedList<>();
 
@@ -72,7 +78,7 @@ public class CustomerAgent extends Agent {
                 Collections.sort(orders);
 				LinkedList<Order> ordersToDelete = new LinkedList<>();
 				for (Order order : orders) {
-					if(order.getOrder_date().compareTo(clock) == 0) {
+					if(order.getOrderDate().compareTo(clock) == 0) {
 						myAgent.addBehaviour(new sendOrder(order));
 						sendOrders.add(order);
 						ordersToDelete.add(order);
@@ -98,7 +104,7 @@ public class CustomerAgent extends Agent {
 			this.orders = new LinkedList<>();
 			for (int i = 0; i < numOrders; ++i) {
 				this.orders.add(new Order(jsonOrders.getJSONObject(i).toString()));
-				System.out.println(this.orders.getLast().getOrder_date().toString());
+//				System.out.println(this.orders.getLast().getOrderDate().toString());
 			}
 			return true;
 		}
@@ -214,6 +220,24 @@ public class CustomerAgent extends Agent {
 		@Override
 		public void action() {
 			//TODO
+		}
+	}
+
+	private class receiveKillMessgae extends CyclicBehaviour {
+
+		@Override
+		public void action() {
+			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.PROPAGATE),
+					MessageTemplate.MatchConversationId("kill"));
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null) {
+				System.out.println("killing: " + myAgent.getAID());
+				myAgent.addBehaviour(new shutdown());
+				myAgent.doDelete();
+			}
+			else {
+				block();
+			}
 		}
 	}
 }

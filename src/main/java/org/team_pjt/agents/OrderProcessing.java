@@ -33,11 +33,14 @@ public class OrderProcessing extends Agent {
         catch (FIPAException fe) {
             fe.printStackTrace();
         }
+        try {
+            Thread.sleep(30000);
+        } catch (InterruptedException e) {
+            //e.printStackTrace();
+        }
+        addBehaviour(new receiveKillMessage());
 
         addBehaviour(new receiveOrders());
-    }
-    protected void takeDown() {
-        System.out.println(getAID().getLocalName() + ": Terminating.");
     }
 
     private boolean readArgs(Object[] args) {
@@ -79,6 +82,29 @@ public class OrderProcessing extends Agent {
                 reply.setContent(String.valueOf(price));
                 myAgent.send(reply);
                 System.out.println("PROPOSE send!");
+            }
+            else {
+                block();
+            }
+        }
+    }
+
+    private class receiveKillMessage extends CyclicBehaviour {
+
+        @Override
+        public void action() {
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.PROPAGATE),
+                    MessageTemplate.MatchConversationId("kill"));
+            ACLMessage msg = myAgent.receive(mt);
+            if (msg != null) {
+                System.out.println("killing: " + myAgent.getAID());
+                try {
+                    DFService.deregister(myAgent);
+                }
+                catch (FIPAException fe) {
+                    fe.printStackTrace();
+                }
+                myAgent.doDelete();
             }
             else {
                 block();
