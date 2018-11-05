@@ -19,6 +19,7 @@ public class Start {
     	if (!decodeArguments(args)) {
             return;
 		}
+
     	List<String> agents = new Vector<>();
     	if(isHost) {
             agents.add("clock:org.team_pjt.agents.SystemClockAgent");
