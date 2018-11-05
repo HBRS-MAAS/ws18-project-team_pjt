@@ -17,7 +17,7 @@ public class Start {
 
     public static void main(String[] args) {
     	if (!decodeArguments(args)) {
-            System.exit(-1);
+            return;
 		}
     	List<String> agents = new Vector<>();
     	if(isHost) {
@@ -40,6 +40,7 @@ public class Start {
 //    	  System.out.println(cmd.toString());
 //        System.out.println(cmd.size());
         jade.Boot.main(cmd.toArray(new String[cmd.size()]));
+
     }
 
     public static List<String> buildCMD(List<String> agents, JSONObject scenario) {
@@ -51,7 +52,10 @@ public class Start {
         Iterator<Object> customerIterator = customers.iterator();
         Iterator<Object> bakeryIterator = bakeries.iterator();
     	if(isHost) {
-
+//            cmd.add("-local-host");
+//            cmd.add("bilbo");
+            cmd.add("-local-port");
+            cmd.add("8080");
 		}
 		else {
     	    cmd.add("-container");
@@ -70,7 +74,7 @@ public class Start {
                 sb.append(",");
                 JSONObject orders = new JSONObject();
                 orders.put("orders", sortedOrders.get(customer.getString("guid")));
-                sb.append(orders.toString().replaceAll(",", "###"));
+                sb.append(orders.toString().replaceAll(",", "###").replaceAll("customerID", "customer_id").replaceAll("deliveryDate", "delivery_date").replaceAll("orderDate", "order_date"));
                 sb.append(")");
             }
             if(a.contains("Order")) {
@@ -92,13 +96,13 @@ public class Start {
         while(orderIterator.hasNext()) {
             Set<String> keys = orders.keySet();
             Order o = new Order((orderIterator.next()).toString());
-            if (keys.contains(o.getCustomer_id())) {
-                orders.get(o.getCustomer_id()).add(o);
+            if (keys.contains(o.getCustomerID())) {
+                orders.get(o.getCustomerID()).add(o);
             }
             else {
                 List<Order> cOrder = new Vector<>();
                 cOrder.add(o);
-                orders.put(o.getCustomer_id(), cOrder);
+                orders.put(o.getCustomerID(), cOrder);
             }
         }
 

@@ -27,7 +27,7 @@ public class SystemClockAgent extends Agent {
 		addBehaviour(new updateClock(this, 1000));
 
         try {
- 			Thread.sleep(3000);
+ 			Thread.sleep(30000);
  		} catch (InterruptedException e) {
  			//e.printStackTrace();
  		}
@@ -82,6 +82,7 @@ public class SystemClockAgent extends Agent {
 			AMSAgentDescription[] evalAgents;
 			try {
 				evalAgents = AMSService.search(myAgent, new AMSAgentDescription(), sc);
+				System.out.println(evalAgents.length);
 			} catch (FIPAException e) {
 				e.printStackTrace();
 				return;
@@ -93,8 +94,38 @@ public class SystemClockAgent extends Agent {
 
 			for (AMSAgentDescription agent : evalAgents) {
 				msg.addReceiver(agent.getName());
+                System.out.println(agent.getName());
 			}
 			myAgent.send(msg);
+			if (systemClock.getDay() == 3) { //TODO: get dynamic kill date
+				myAgent.addBehaviour(new killMessage());
+			}
+		}
+	}
+
+	private class killMessage extends OneShotBehaviour {
+
+		@Override
+		public void action() {
+			SearchConstraints sc = new SearchConstraints();
+			sc.setMaxResults(-1l);
+			AMSAgentDescription[] evalAgents;
+			try {
+				evalAgents = AMSService.search(myAgent, new AMSAgentDescription(), sc);
+			} catch (FIPAException e) {
+				e.printStackTrace();
+				return;
+			}
+
+			ACLMessage msg = new ACLMessage(ACLMessage.PROPAGATE);
+			msg.setConversationId("kill");
+
+			for (AMSAgentDescription agent : evalAgents) {
+				msg.addReceiver(agent.getName());
+			}
+			myAgent.send(msg);
+			myAgent.addBehaviour(new shutdown());
+			myAgent.doDelete();
 		}
 	}
 }

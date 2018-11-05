@@ -47,15 +47,15 @@ public class Order implements  Comparable<Order> {
         return guid;
     }
 
-    public String getCustomer_id() {
+    public String getCustomerID() {
         return customer_id;
     }
 
-    public Clock getOrder_date() {
+    public Clock getOrderDate() {
         return order_date;
     }
 
-    public Clock getDelivery_date() {
+    public Clock getDeliveryDate() {
         return delivery_date;
     }
 
@@ -91,7 +91,12 @@ public class Order implements  Comparable<Order> {
     }
 
     @Override
+    public String toString() {
+        return toJSONString();
+    }
+
+    @Override
     public int compareTo(Order o) {
-        return order_date.compareTo(o.getOrder_date());
+        return order_date.compareTo(o.getOrderDate());
     }
 }
