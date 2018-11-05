@@ -1,4 +1,4 @@
-\documentclass[12pt, bibliography=totoc, a4paper, abstractoff, numbers=noenddot]{scrreprt}
+\documentclass[12pt, bibliography=totoc, a4paper, abstractoff, numbers=noenddot]{paper}
 
 % define used packages
 \usepackage[left=2	.0cm, right=2.0cm, top=3cm, bottom=3cm]{geometry}
@@ -85,14 +85,10 @@ keepaspectratio]{images/Logo_H-BRS_background.pdf}%
 \pagenumbering{Roman}
 
 \input{title}
-\nocite{*} %TODO: Show full bibliography remove for final version.  
+
 \input{architecturepicture}
-
-
 \includegraphics[angle=90,scale=0.6]{images/arch-uml}
-
 \input{Objects.tex}
-	
 \input{Aggregation.tex}
 
 \end{document}
