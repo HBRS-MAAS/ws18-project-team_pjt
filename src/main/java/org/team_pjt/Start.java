@@ -17,7 +17,8 @@ public class Start {
 
     public static void main(String[] args) {
     	if (!decodeArguments(args)) {
-            return;
+            isHost = true;
+            path = "src\\main\\resources\\random-scenario.json";
 		}
 
     	List<String> agents = new Vector<>();
