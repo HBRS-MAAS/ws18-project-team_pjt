@@ -14,6 +14,7 @@ public class Start {
 	private static String host;
 	private static String port;
     private static String path;
+    private static final String sOvPrefix = ":org.team_pjt.agents.OvenAgent";
 
     public static void main(String[] args) {
     	if (!decodeArguments(args)) {
@@ -51,6 +52,13 @@ public class Start {
         Hashtable<String, List<Order>> sortedOrders = getSortedOrders(scenario.getJSONArray("orders"));
         JSONArray customers = scenario.getJSONArray("customers");
         JSONArray bakeries = scenario.getJSONArray("bakeries");
+
+//        joObject.get("ove")
+//        hmMap.get("ovens");
+//        String sIntermBakery = bakeries.toString();
+//        JSONObject joObject = new JSONObject(sIntermBakery);
+//        JSONArray jsOvens1 = joObject.getJSONArray("ovens");
+//        Object ovens = jsOvens1;
         Iterator<Object> customerIterator = customers.iterator();
         Iterator<Object> bakeryIterator = bakeries.iterator();
     	if(isHost) {
@@ -86,7 +94,54 @@ public class Start {
             }
 			sb.append(";");
 		}
-		cmd.add(sb.toString());
+
+        int iOvenPrefix = 0;
+        for (int i = 0; i< bakeries.length(); ++i) {
+
+            JSONObject joObject = null;
+            if (bakeries.get(i) instanceof JSONObject) {
+                joObject = (JSONObject) bakeries.get(i);
+            }
+            JSONArray jaOvenArray = null;
+            // Parsing Ovens
+            if (joObject.get("ovens") instanceof JSONArray) {
+                jaOvenArray = (JSONArray) joObject.get("ovens");
+            }
+            JSONObject jsOvenDetail = null;
+            for (int z = 0; z < jaOvenArray.length(); ++z) {
+                if(jaOvenArray != null && jaOvenArray.get(z) instanceof JSONObject){
+                    sb.append("o"+iOvenPrefix+sOvPrefix);
+                    iOvenPrefix++;
+                    sb.append("(");
+                    jsOvenDetail = (JSONObject) jaOvenArray.get(z);
+                    sb.append(jsOvenDetail.get("cooling_rate").toString());
+                    sb.append(",");
+                    sb.append(jsOvenDetail.get("guid").toString());
+                    sb.append(",");
+                    sb.append(jsOvenDetail.get("heating_rate"));
+                    sb.append(",");
+                    sb.append(joObject.get("guid"));
+                    sb.append(")");
+                    sb.append(";");
+                }
+            }
+            // Parsing Ovens
+            // ToDo Parsing Products
+            JSONArray jaProductsArray = null;
+            if ((JSONArray) joObject.get("products") instanceof JSONArray){
+                jaProductsArray = (JSONArray) joObject.get("products");
+            }
+            JSONObject jsProductDetail = null;
+            if (jsProductDetail != null && jaProductsArray.get(0) instanceof JSONObject) {
+                jsProductDetail = (JSONObject) jaProductsArray.get(0);
+            }
+            // Parsing Products
+            // ToDo Parsing Truck
+            // Parsing Truck
+            // ToDO Parsing TruckScheduler
+            // Parsing TruckScheduler
+        }
+        cmd.add(sb.toString());
 
     	return cmd;
 	}
