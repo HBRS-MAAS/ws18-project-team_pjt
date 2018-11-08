@@ -15,6 +15,8 @@ public class Start {
 	private static String port;
     private static String path;
     private static final String sOvPrefix = ":org.team_pjt.agents.OvenAgent";
+    private static final String sSchPrefix = ":org.team_pjt.agents.SchedulerAgent";
+    private static final String sTrPrefix = ":org.team_pjt.agents.TruckAgent";
 
     public static void main(String[] args) {
     	if (!decodeArguments(args)) {
@@ -52,13 +54,6 @@ public class Start {
         Hashtable<String, List<Order>> sortedOrders = getSortedOrders(scenario.getJSONArray("orders"));
         JSONArray customers = scenario.getJSONArray("customers");
         JSONArray bakeries = scenario.getJSONArray("bakeries");
-
-//        joObject.get("ove")
-//        hmMap.get("ovens");
-//        String sIntermBakery = bakeries.toString();
-//        JSONObject joObject = new JSONObject(sIntermBakery);
-//        JSONArray jsOvens1 = joObject.getJSONArray("ovens");
-//        Object ovens = jsOvens1;
         Iterator<Object> customerIterator = customers.iterator();
         Iterator<Object> bakeryIterator = bakeries.iterator();
     	if(isHost) {
@@ -96,6 +91,8 @@ public class Start {
 		}
 
         int iOvenPrefix = 0;
+        int iSchedulerPrefix = 0;
+        int iTruckPrefix = 0;
         for (int i = 0; i< bakeries.length(); ++i) {
 
             JSONObject joObject = null;
@@ -126,17 +123,113 @@ public class Start {
                 }
             }
             // Parsing Ovens
-            // ToDo Parsing Products
+            // Parsing Scheduler
+            sb.append("s"+iSchedulerPrefix+sSchPrefix);
+            sb.append("(");
+                // Parsing BakeryId
+            parsingBakeryId(sb, joObject);
+            // Parsing BakeryId
+                // Parsing Location
+            // ToDo Location wird falsch geparsed?
+            if (joObject.get("location") instanceof JSONObject) {
+                JSONObject joLocation = (JSONObject) joObject.get("location");
+                sb.append(joLocation.get("y"));
+                sb.append(",");
+                sb.append(joLocation.get("x"));
+                sb.append("#");
+            }
+                // Parsing Location
+                // Parsing Products
             JSONArray jaProductsArray = null;
-            if ((JSONArray) joObject.get("products") instanceof JSONArray){
+
+            if (joObject.get("products") instanceof JSONArray){
                 jaProductsArray = (JSONArray) joObject.get("products");
             }
-            JSONObject jsProductDetail = null;
-            if (jsProductDetail != null && jaProductsArray.get(0) instanceof JSONObject) {
-                jsProductDetail = (JSONObject) jaProductsArray.get(0);
+            JSONObject joProductDetail = null;
+            if (jaProductsArray != null) {
+                for (int u = 0; u < jaProductsArray.length(); ++u) {
+                    if (jaProductsArray.get(u) instanceof JSONObject) {
+                        joProductDetail = (JSONObject) jaProductsArray.get(u);
+                        sb.append(joProductDetail.get("guid"));
+                        sb.append(",");
+                        sb.append(joProductDetail.get("boxing_temp"));
+                        sb.append(",");
+                        sb.append(joProductDetail.get("sales_price"));
+                        sb.append(",");
+                        sb.append(joProductDetail.get("breads_per_oven"));
+                        sb.append(",");
+                        sb.append(joProductDetail.get("breads_per_box"));
+                        sb.append(",");
+                        sb.append(joProductDetail.get("item_prep_time"));
+                        sb.append(",");
+                        sb.append(joProductDetail.get("dough_prep_time"));
+                        sb.append(",");
+                        sb.append(joProductDetail.get("baking_temp"));
+                        sb.append(",");
+                        sb.append(joProductDetail.get("cooling_rate"));
+                        sb.append(",");
+                        sb.append(joProductDetail.get("baking_time"));
+                        sb.append(",");
+                        sb.append(joProductDetail.get("resting_time"));
+                        sb.append(",");
+                        sb.append(joProductDetail.get("production_cost"));
+                        if (u < jaProductsArray.length() - 1){
+                            sb.append(",");
+                        }
+                    }
+                }
             }
-            // Parsing Products
-            // ToDo Parsing Truck
+                // Parsing Products
+            sb.append("#");
+                // Parsing Kneading_machines
+            JSONArray jaKneadingMachinesArray = null;
+            if ((JSONArray) joObject.get("kneading_machines") instanceof JSONArray){
+                jaKneadingMachinesArray = (JSONArray) joObject.get("kneading_machines");
+            }
+            JSONObject joKneadinMachineDetails = null;
+            for (int o = 0; o < jaKneadingMachinesArray.length(); ++o) {
+                if (jaKneadingMachinesArray != null && jaKneadingMachinesArray.get(o) instanceof JSONObject) {
+                    joKneadinMachineDetails = (JSONObject) jaKneadingMachinesArray.get(o);
+                    sb.append(joKneadinMachineDetails.get("guid"));
+                    if(o < jaKneadingMachinesArray.length() - 1){sb.append(",");}
+                }
+            }
+
+                // Parsing Kneading_machines
+            sb.append(")");
+            sb.append(";");
+            iSchedulerPrefix++;
+            // Scheduler passing finished
+            // Parsing Truck
+            JSONArray jaTruckArray = null;
+            if (joObject.get("trucks") instanceof JSONArray) {
+                jaTruckArray = (JSONArray) joObject.get("trucks");
+            }
+            if (jaTruckArray != null) {
+                for (int o = 0; o < jaTruckArray.length(); o++) {
+                    if(jaTruckArray.get(o) instanceof JSONObject){
+                        sb.append("t"+iTruckPrefix+sTrPrefix);
+                        sb.append("(");
+                        JSONObject joTruckDetails = (JSONObject) jaTruckArray.get(o);
+                        sb.append(joObject.get("guid"));
+                        sb.append(",");
+                        sb.append(joTruckDetails.get("guid"));
+                        sb.append(",");
+                        sb.append(joTruckDetails.get("load_capacity"));
+                        sb.append(",");
+                        if (joTruckDetails.get("location") instanceof JSONObject) {
+                            JSONObject joLocation = (JSONObject) joTruckDetails.get("location");
+                            sb.append(joLocation.get("y"));
+                            sb.append(",");
+                            sb.append(joLocation.get("x"));
+                        }
+                        sb.append(")");
+                        sb.append(";");
+                        iTruckPrefix++;
+                    }
+                }
+            }
+//            sb.append(")");
             // Parsing Truck
             // ToDO Parsing TruckScheduler
             // Parsing TruckScheduler
@@ -145,6 +238,13 @@ public class Start {
 
     	return cmd;
 	}
+
+    private static void parsingBakeryId(StringBuilder sb, JSONObject joObject) {
+        if (joObject.get("guid") instanceof JSONObject) {
+            sb.append(joObject.get("guid"));
+        }
+        sb.append("#");
+    }
 
     public static Hashtable<String, List<Order>> getSortedOrders(JSONArray jsonOrders) {
         Hashtable<String, List<Order>> orders = new Hashtable<>();
