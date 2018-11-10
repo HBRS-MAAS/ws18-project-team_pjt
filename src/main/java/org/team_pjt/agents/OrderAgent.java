@@ -22,7 +22,8 @@ public class OrderAgent extends Agent /*implements  Comparable<Order>*/ {
     private int type;
     private String customer_name;
     private Location location;
-    private AID[] bakery_agents;
+    private AID[] order_processing_agents;
+    private AID truck_scheduler;
     private Clock system_clock;
     private String order_id;
     private Clock order_date;
@@ -57,9 +58,9 @@ public class OrderAgent extends Agent /*implements  Comparable<Order>*/ {
                 template.addServices(sd);
                 try {
                     DFAgentDescription[] result = DFService.search(myAgent, template);
-                    bakery_agents = new AID[result.length];
+                    order_processing_agents = new AID[result.length];
                     for (int i = 0; i < result.length; ++i) {
-                        bakery_agents[i] = result[i].getName();
+                        order_processing_agents[i] = result[i].getName();
                     }
                 }
                 catch (FIPAException fe) {
@@ -86,8 +87,8 @@ public class OrderAgent extends Agent /*implements  Comparable<Order>*/ {
             switch(step) {
                 case 0:
                     ACLMessage cfp = new ACLMessage((ACLMessage.CFP));
-                    for (int i = 0; i < bakery_agents.length; ++i) {
-                        cfp.addReceiver(bakery_agents[i]);
+                    for (int i = 0; i < order_processing_agents.length; ++i) {
+                        cfp.addReceiver(order_processing_agents[i]);
                     }
 
                     JSONObject simpleOrder = new JSONObject();
@@ -127,7 +128,7 @@ public class OrderAgent extends Agent /*implements  Comparable<Order>*/ {
                             }
                         }
                         repliesCnt++;
-                        if (repliesCnt >= bakery_agents.length) {
+                        if (repliesCnt >= order_processing_agents.length) {
                             if (bestBakery == null) {
                                 System.out.println("No bakery for processing order found");
                             }
