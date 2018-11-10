@@ -87,23 +87,27 @@ public class OrderProcessing extends Agent {
                 JSONObject simple_order = new JSONObject(msg.getContent());
                 System.out.println("CFP received");
 
-                Set<String> needed_products = simple_order.getJSONObject("products").keySet();
+                JSONObject json_needed_products = simple_order.getJSONObject("products");
+                Hashtable<String, Integer> needed_products = new Hashtable<>();
+                Iterator<String> needed_product_iterator = json_needed_products.keySet().iterator();
+                while (needed_product_iterator.hasNext()) {
+                    String product = needed_product_iterator.next();
+                    needed_products.put(product, json_needed_products.getInt(product));
+                }
 
-
-//                Set<String> availableProducts = bakery.getAvailableProducts().keySet(); TODO
-                float price = 23.56f;
-//                if (availableProducts.containsAll(neededProducts)) {
-//                    for (String pr: neededProducts) {
-//                        price += bakery.getAvailableProducts().get(pr).getSalesPrice();
-//                    }
-//                    reply.setPerformative(ACLMessage.PROPOSE);
-//                    reply.setContent(String.valueOf(price));
-//                }
-//                else {
-//                    reply.setPerformative(ACLMessage.REFUSE);
-//                    reply.setContent("not-available");
-//                    System.out.println("Some products not available");
-//                }
+                float price = 0f;
+                if (available_products.keySet().containsAll(needed_products.keySet())) {
+                    for (String pr: needed_products.keySet()) {
+                        price += available_products.get(pr);
+                    }
+                    reply.setPerformative(ACLMessage.PROPOSE);
+                    reply.setContent(String.valueOf(price));
+                }
+                else {
+                    reply.setPerformative(ACLMessage.REFUSE);
+                    reply.setContent("not-available");
+                    System.out.println("Some products not available");
+                }
                 reply.setPerformative(ACLMessage.PROPOSE);
                 reply.setContent(String.valueOf(price));
                 myAgent.send(reply);
