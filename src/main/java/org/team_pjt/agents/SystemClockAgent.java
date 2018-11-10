@@ -15,9 +15,9 @@ import jade.domain.FIPANames;
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.ShutdownPlatform;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 import jade.wrapper.StaleProxyException;
-import org.team_pjt.Objects.Clock;
+import org.team_pjt.behaviours.shutdown;
+import org.team_pjt.objects.Clock;
 
 
 @SuppressWarnings("serial")
@@ -38,27 +38,6 @@ public class SystemClockAgent extends Agent {
 	}
 	protected void takeDown() {
 		System.out.println(getAID().getLocalName() + ": Terminating.");
-	}
-
-    // Taken from http://www.rickyvanrijn.nl/2017/08/29/how-to-shutdown-jade-agent-platform-programmatically/
-	private class shutdown extends OneShotBehaviour{
-		public void action() {
-			ACLMessage shutdownMessage = new ACLMessage(ACLMessage.REQUEST);
-			Codec codec = new SLCodec();
-			myAgent.getContentManager().registerLanguage(codec);
-			myAgent.getContentManager().registerOntology(JADEManagementOntology.getInstance());
-			shutdownMessage.addReceiver(myAgent.getAMS());
-			shutdownMessage.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
-			shutdownMessage.setOntology(JADEManagementOntology.getInstance().getName());
-			try {
-			    myAgent.getContentManager().fillContent(shutdownMessage,new Action(myAgent.getAID(), new ShutdownPlatform()));
-			    myAgent.send(shutdownMessage);
-			}
-			catch (Exception e) {
-			    //LOGGER.error(e);
-			}
-
-		}
 	}
 
 	private class updateClock extends TickerBehaviour {
@@ -84,7 +63,6 @@ public class SystemClockAgent extends Agent {
 			AMSAgentDescription[] evalAgents;
 			try {
 				evalAgents = AMSService.search(myAgent, new AMSAgentDescription(), sc);
-				System.out.println(evalAgents.length);
 			} catch (FIPAException e) {
 				e.printStackTrace();
 				return;
@@ -96,7 +74,6 @@ public class SystemClockAgent extends Agent {
 
 			for (AMSAgentDescription agent : evalAgents) {
 				msg.addReceiver(agent.getName());
-                System.out.println(agent.getName());
 			}
 			myAgent.send(msg);
 			if (systemClock.getDay() == 1) { //TODO: get dynamic kill date
@@ -126,16 +103,15 @@ public class SystemClockAgent extends Agent {
 				msg.addReceiver(agent.getName());
 			}
 			myAgent.send(msg);
-			myAgent.addBehaviour(new shutdown());
-			Runtime rt = Runtime.instance();
-			try {
-				getContainerController().kill();
-			} catch ( StaleProxyException e ) {
-				e.printStackTrace();
-			}
-			rt.shutDown();
-
+            myAgent.addBehaviour(new shutdown());
 			myAgent.doDelete();
+            try {
+                getContainerController().kill();
+            } catch ( StaleProxyException e ) {
+                e.printStackTrace();
+            }
+            Runtime rt = Runtime.instance();
+            rt.shutDown();
 		}
 	}
 }

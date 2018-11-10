@@ -1,5 +1,6 @@
 package org.team_pjt.agents;
 
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -8,17 +9,23 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import org.json.JSONArray;
 import org.json.JSONObject;
-import org.team_pjt.Objects.Bakery;
-import org.team_pjt.Objects.Order;
+import org.team_pjt.behaviours.receiveKillMessage;
+import org.team_pjt.objects.Location;
+import org.team_pjt.objects.Product;
 
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
 
 public class OrderProcessing extends Agent {
-    private Bakery bakery;
-    private LinkedList<Order> orders;
+    private Hashtable<String, Float> available_products;
+    private List<AID> ovens;
+    private List<AID> trucks;
+    private Location location;
+    private String bakery_guid;
+    private String bakery_name;
+
+    private Hashtable<String, List<Product>> assigned_orders;
+    private List<AID> accepted_order_agents;
 
     protected void setup() {
         DFAgentDescription dfd = new DFAgentDescription();
@@ -58,12 +65,13 @@ public class OrderProcessing extends Agent {
                                                      MessageTemplate.MatchConversationId("bakery-order"));
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
-                Order order = new Order(msg.getContent());
+                ACLMessage reply = msg.createReply();
+                JSONObject simple_order = new JSONObject(msg.getContent());
                 System.out.println("CFP received");
 
-                ACLMessage reply = msg.createReply();
+                Set<String> needed_products = simple_order.getJSONObject("products").keySet();
 
-                Set<String> neededProducts = order.getProducts().keySet();
+
 //                Set<String> availableProducts = bakery.getAvailableProducts().keySet(); TODO
                 float price = 23.56f;
 //                if (availableProducts.containsAll(neededProducts)) {
@@ -88,49 +96,4 @@ public class OrderProcessing extends Agent {
             }
         }
     }
-
-    private class receiveKillMessage extends CyclicBehaviour {
-
-        @Override
-        public void action() {
-            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.PROPAGATE),
-                    MessageTemplate.MatchConversationId("kill"));
-            ACLMessage msg = myAgent.receive(mt);
-            if (msg != null) {
-                System.out.println("killing: " + myAgent.getAID());
-                try {
-                    DFService.deregister(myAgent);
-                }
-                catch (FIPAException fe) {
-                    fe.printStackTrace();
-                }
-                myAgent.doDelete();
-            }
-            else {
-                block();
-            }
-        }
-    }
 }
-
-    // Taken from http://www.rickyvanrijn.nl/2017/08/29/how-to-shutdown-jade-agent-platform-programmatically/
-//    private class shutdown extends OneShotBehaviour {
-//        public void action() {
-//            ACLMessage shutdownMessage = new ACLMessage(ACLMessage.REQUEST);
-//            Codec codec = new SLCodec();
-//            myAgent.getContentManager().registerLanguage(codec);
-//            myAgent.getContentManager().registerOntology(JADEManagementOntology.getInstance());
-//            shutdownMessage.addReceiver(myAgent.getAMS());
-//            shutdownMessage.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
-//            shutdownMessage.setOntology(JADEManagementOntology.getInstance().getName());
-//            try {
-//                myAgent.getContentManager().fillContent(shutdownMessage,new Action(myAgent.getAID(), new ShutdownPlatform()));
-//                myAgent.send(shutdownMessage);
-//            }
-//            catch (Exception e) {
-//                //LOGGER.error(e);
-//            }
-//
-//        }
-//    }
-//}

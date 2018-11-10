@@ -1,4 +1,4 @@
-package org.team_pjt.Objects;
+package org.team_pjt.objects;
 
 import java.util.HashMap;
 
