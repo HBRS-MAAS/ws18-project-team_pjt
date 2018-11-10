@@ -1,8 +1,8 @@
 package org.team_pjt.agents;
 
 import jade.core.Agent;
-import org.team_pjt.Objects.Location;
-import org.team_pjt.Objects.Product;
+import org.team_pjt.objects.Location;
+import org.team_pjt.objects.Product;
 
 import java.util.Hashtable;
 import java.util.Vector;
