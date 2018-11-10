@@ -18,8 +18,6 @@ import java.util.*;
 
 public class OrderProcessing extends Agent {
     private Hashtable<String, Float> available_products;
-    private List<AID> ovens;
-    private List<AID> trucks;
     private Location location;
     private String bakery_guid;
     private String bakery_name;
@@ -28,6 +26,12 @@ public class OrderProcessing extends Agent {
     private List<AID> accepted_order_agents;
 
     protected void setup() {
+        Object[] args = getArguments();
+
+        if(!readArgs(args)) {
+            System.out.println("No parameter given " + getName());
+            return;
+        }
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(getAID());
         ServiceDescription sd = new ServiceDescription();
@@ -52,9 +56,23 @@ public class OrderProcessing extends Agent {
 
     private boolean readArgs(Object[] args) {
         if (args != null && args.length > 0) {
+            JSONObject bakery = new JSONObject(((String)args[1]).replaceAll("###", ","));
+            JSONObject products = bakery.getJSONObject("products");
+            Set<String> product_names = products.keySet();
+            Iterator<String> product_name_iterator = product_names.iterator();
 
+            bakery_guid = bakery.getString("guid");
+            bakery_name = bakery.getString("name");
+            location = new Location(bakery.getJSONObject("location").getFloat("x"), bakery.getJSONObject("location").getFloat("y"));
+
+            while(product_name_iterator.hasNext()) {
+                String product_name = product_name_iterator.next();
+                available_products.put(product_name, products.getFloat(product_name));
+            }
+
+            return true;
         }
-        return true;
+        return false;
     }
 
     private class receiveOrders extends CyclicBehaviour {
