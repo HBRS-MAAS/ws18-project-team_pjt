@@ -18,8 +18,6 @@ import java.util.*;
 
 public class OrderProcessing extends Agent {
     private Hashtable<String, Float> available_products;
-    private List<AID> ovens;
-    private List<AID> trucks;
     private Location location;
     private String bakery_guid;
     private String bakery_name;
@@ -28,6 +26,12 @@ public class OrderProcessing extends Agent {
     private List<AID> accepted_order_agents;
 
     protected void setup() {
+        Object[] args = getArguments();
+
+        if(!readArgs(args)) {
+            System.out.println("No parameter given " + getName());
+            return;
+        }
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(getAID());
         ServiceDescription sd = new ServiceDescription();
@@ -52,9 +56,23 @@ public class OrderProcessing extends Agent {
 
     private boolean readArgs(Object[] args) {
         if (args != null && args.length > 0) {
+            JSONObject bakery = new JSONObject(((String)args[1]).replaceAll("###", ","));
+            JSONObject products = bakery.getJSONObject("products");
+            Set<String> product_names = products.keySet();
+            Iterator<String> product_name_iterator = product_names.iterator();
 
+            bakery_guid = bakery.getString("guid");
+            bakery_name = bakery.getString("name");
+            location = new Location(bakery.getJSONObject("location").getFloat("x"), bakery.getJSONObject("location").getFloat("y"));
+
+            while(product_name_iterator.hasNext()) {
+                String product_name = product_name_iterator.next();
+                available_products.put(product_name, products.getFloat(product_name));
+            }
+
+            return true;
         }
-        return true;
+        return false;
     }
 
     private class receiveOrders extends CyclicBehaviour {
@@ -69,23 +87,27 @@ public class OrderProcessing extends Agent {
                 JSONObject simple_order = new JSONObject(msg.getContent());
                 System.out.println("CFP received");
 
-                Set<String> needed_products = simple_order.getJSONObject("products").keySet();
+                JSONObject json_needed_products = simple_order.getJSONObject("products");
+                Hashtable<String, Integer> needed_products = new Hashtable<>();
+                Iterator<String> needed_product_iterator = json_needed_products.keySet().iterator();
+                while (needed_product_iterator.hasNext()) {
+                    String product = needed_product_iterator.next();
+                    needed_products.put(product, json_needed_products.getInt(product));
+                }
 
-
-//                Set<String> availableProducts = bakery.getAvailableProducts().keySet(); TODO
-                float price = 23.56f;
-//                if (availableProducts.containsAll(neededProducts)) {
-//                    for (String pr: neededProducts) {
-//                        price += bakery.getAvailableProducts().get(pr).getSalesPrice();
-//                    }
-//                    reply.setPerformative(ACLMessage.PROPOSE);
-//                    reply.setContent(String.valueOf(price));
-//                }
-//                else {
-//                    reply.setPerformative(ACLMessage.REFUSE);
-//                    reply.setContent("not-available");
-//                    System.out.println("Some products not available");
-//                }
+                float price = 0f;
+                if (available_products.keySet().containsAll(needed_products.keySet())) {
+                    for (String pr: needed_products.keySet()) {
+                        price += available_products.get(pr);
+                    }
+                    reply.setPerformative(ACLMessage.PROPOSE);
+                    reply.setContent(String.valueOf(price));
+                }
+                else {
+                    reply.setPerformative(ACLMessage.REFUSE);
+                    reply.setContent("not-available");
+                    System.out.println("Some products not available");
+                }
                 reply.setPerformative(ACLMessage.PROPOSE);
                 reply.setContent(String.valueOf(price));
                 myAgent.send(reply);
