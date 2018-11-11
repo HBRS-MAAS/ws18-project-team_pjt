@@ -16,7 +16,7 @@ public class ProoferAgent extends Agent {
     protected void setup() {
         Object[] args = getArguments();
         if (!readArgs(args)) {
-            System.out.println("not enough arguments for CoolingRacksAgent!");
+            System.out.println("not enough arguments for ProoferAgent!");
         }
         addBehaviour(new doughPrepDoneMessage());
         addBehaviour(new receiveKillMessage());
