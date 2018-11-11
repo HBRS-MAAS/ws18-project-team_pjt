@@ -256,9 +256,9 @@ public class Start {
 	}
 
     private static void parsingBakeryId(StringBuilder sb, JSONObject joObject) {
-        if (joObject.get("guid") instanceof JSONObject) {
+//        if (joObject.get("guid") instanceof JSONObject) {
             sb.append(joObject.get("guid"));
-        }
+//        }
         sb.append("#");
     }
 
