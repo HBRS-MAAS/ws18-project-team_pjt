@@ -25,8 +25,8 @@ public class ProoferAgent extends Agent {
     private boolean readArgs(Object[] args) {
         if(args.length == 3) {
             bakery_id = (String) args[0];
-            receiver_agent = new AID((String) args[1]);
-            transmitter_agent = new AID((String) args[2]);
+            receiver_agent = new AID((String) args[1], true);
+            transmitter_agent = new AID((String) args[2], true);
             return true;
         }
         return false;
