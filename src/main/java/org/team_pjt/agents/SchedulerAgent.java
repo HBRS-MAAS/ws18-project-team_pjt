@@ -11,9 +11,9 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import org.team_pjt.Objects.Product;
+import org.team_pjt.objects.Product;
 import org.team_pjt.behaviours.receiveKillMessage;
-import org.team_pjt.Objects.Location;
+import org.team_pjt.objects.Location;
 import org.team_pjt.behaviours.shutdown;
 //import org.team_pjt.objects.Product;
 
