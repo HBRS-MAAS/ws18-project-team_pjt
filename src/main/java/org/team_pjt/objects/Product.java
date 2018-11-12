@@ -1,6 +1,7 @@
 package org.team_pjt.Objects;
 
-public class Product {
+public class
+Product {
     private String guid;
     private int boxingTemp;
     private float salesPrice;
