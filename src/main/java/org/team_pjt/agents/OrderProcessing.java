@@ -28,6 +28,7 @@ public class OrderProcessing extends Agent {
 
     protected void setup() {
         Object[] args = getArguments();
+        available_products = new Hashtable<>();
 
         if(!readArgs(args)) {
             System.out.println("No parameter given " + getName());
