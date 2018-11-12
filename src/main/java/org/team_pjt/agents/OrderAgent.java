@@ -11,8 +11,8 @@ import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import org.json.*;
-import org.team_pjt.Objects.Clock;
-import org.team_pjt.Objects.Location;
+import org.team_pjt.objects.Clock;
+import org.team_pjt.objects.Location;
 import org.team_pjt.behaviours.*;
 
 import java.util.*;

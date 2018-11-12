@@ -1,13 +1,14 @@
-package org.team_pjt.Objects;
+package org.team_pjt.objects;
 
-public class Product {
+public class
+Product {
     private String guid;
     private int boxingTemp;
     private float salesPrice;
     private int breadsPerOven;
     private int breadsPerBox;
-    private int itemPrepTime;
-    private int doughPrepTime;
+    private int itemPrepTime; // Time to prepare a single item on a prepTable
+    private int doughPrepTime; // Time inside a kneading machine
     private int bakingTemp;
     private int coolingRate;
     private int bakingTime;

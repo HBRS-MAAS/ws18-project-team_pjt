@@ -9,11 +9,11 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import org.json.JSONArray;
 import org.json.JSONObject;
-import org.team_pjt.Objects.Product;
 import org.team_pjt.behaviours.receiveKillMessage;
-import org.team_pjt.Objects.Location;
-//import org.team_pjt.objects.Product;
+import org.team_pjt.objects.Location;
+import org.team_pjt.objects.Product;
 
 import java.util.*;
 
@@ -28,6 +28,7 @@ public class OrderProcessing extends Agent {
 
     protected void setup() {
         Object[] args = getArguments();
+        available_products = new Hashtable<>();
 
         if(!readArgs(args)) {
             System.out.println("No parameter given " + getName());
@@ -57,18 +58,17 @@ public class OrderProcessing extends Agent {
 
     private boolean readArgs(Object[] args) {
         if (args != null && args.length > 0) {
-            JSONObject bakery = new JSONObject(((String)args[1]).replaceAll("###", ","));
-            JSONObject products = bakery.getJSONObject("products");
-            Set<String> product_names = products.keySet();
-            Iterator<String> product_name_iterator = product_names.iterator();
+            JSONObject bakery = new JSONObject(((String)args[0]).replaceAll("###", ","));
+            JSONArray products = bakery.getJSONArray("products");
+            Iterator<Object> product_iterator = products.iterator();
 
             bakery_guid = bakery.getString("guid");
             bakery_name = bakery.getString("name");
             location = new Location(bakery.getJSONObject("location").getFloat("x"), bakery.getJSONObject("location").getFloat("y"));
 
-            while(product_name_iterator.hasNext()) {
-                String product_name = product_name_iterator.next();
-                available_products.put(product_name, products.getFloat(product_name));
+            while(product_iterator.hasNext()) {
+                JSONObject product = (JSONObject)product_iterator.next();
+                available_products.put(product.getString("guid"), product.getFloat("sales_price"));
             }
 
             return true;

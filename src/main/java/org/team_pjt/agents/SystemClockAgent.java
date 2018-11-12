@@ -17,7 +17,7 @@ import jade.domain.JADEAgentManagement.ShutdownPlatform;
 import jade.lang.acl.ACLMessage;
 import jade.wrapper.StaleProxyException;
 import org.team_pjt.behaviours.shutdown;
-import org.team_pjt.Objects.Clock;
+import org.team_pjt.objects.Clock;
 
 
 @SuppressWarnings("serial")
