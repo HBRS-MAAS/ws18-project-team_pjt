@@ -57,7 +57,7 @@ public class OrderProcessing extends Agent {
 
     private boolean readArgs(Object[] args) {
         if (args != null && args.length > 0) {
-            JSONObject bakery = new JSONObject(((String)args[1]).replaceAll("###", ","));
+            JSONObject bakery = new JSONObject(((String)args[0]).replaceAll("###", ","));
             JSONArray products = bakery.getJSONArray("products");
             Iterator<Object> product_iterator = products.iterator();
 

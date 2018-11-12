@@ -1,4 +1,4 @@
-package org.team_pjt.objects;
+package org.team_pjt.Objects;
 
 public class Clock implements Comparable<Clock> {
     private int day;
