@@ -14,6 +14,21 @@ public class Product {
     private int restingTime;
     private float productionCost;
 
+    public Product(String guid, int boxingTemp, float salesPrice, int breadsPerOven, int breadsPerBox, int itemPrepTime, int doughPrepTime, int bakingTemp, int coolingRate, int bakingTime, int restingTime, float productionCost) {
+        this.guid = guid;
+        this.boxingTemp = boxingTemp;
+        this.salesPrice = salesPrice;
+        this.breadsPerOven = breadsPerOven;
+        this.breadsPerBox = breadsPerBox;
+        this.itemPrepTime = itemPrepTime;
+        this.doughPrepTime = doughPrepTime;
+        this.bakingTemp = bakingTemp;
+        this.coolingRate = coolingRate;
+        this.bakingTime = bakingTime;
+        this.restingTime = restingTime;
+        this.productionCost = productionCost;
+    }
+
     public String getGuid() {
         return guid;
     }
