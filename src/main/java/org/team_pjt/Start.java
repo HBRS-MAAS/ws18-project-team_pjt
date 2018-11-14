@@ -107,9 +107,6 @@ public class Start {
 			sb.append(";");
 		}
         if (isHost) {
-            int iOvenPrefix = 0;
-            int iSchedulerPrefix = 0;
-            int iTruckPrefix = 0;
             for (int i = 0; i< json_bakeries.length(); ++i) {
 
                 JSONObject joObject = null;
@@ -125,7 +122,6 @@ public class Start {
                 for (int z = 0; z < jaOvenArray.length(); ++z) {
                     if(jaOvenArray != null && jaOvenArray.get(z) instanceof JSONObject){
                         sb.append(joObject.get("guid")+sOvPrefix);
-                        iOvenPrefix++;
                         sb.append("(");
                         jsOvenDetail = (JSONObject) jaOvenArray.get(z);
                         sb.append(jsOvenDetail.get("cooling_rate").toString());
@@ -215,7 +211,6 @@ public class Start {
                 // Parsing Kneading_machines
                 sb.append(")");
                 sb.append(";");
-                iSchedulerPrefix++;
                 // Scheduler passing finished
                 // Parsing Truck
                 JSONArray jaTruckArray = null;
@@ -242,7 +237,6 @@ public class Start {
                             }
                             sb.append(")");
                             sb.append(";");
-                            iTruckPrefix++;
                         }
                     }
                 }
