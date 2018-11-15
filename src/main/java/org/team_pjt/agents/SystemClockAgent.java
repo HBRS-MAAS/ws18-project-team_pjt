@@ -111,7 +111,7 @@ public class SystemClockAgent extends Agent {
                 e.printStackTrace();
             }
             Runtime rt = Runtime.instance();
-            rt.shutDown();
+//            rt.shutDown();
 		}
 	}
 }

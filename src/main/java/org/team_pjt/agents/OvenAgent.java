@@ -17,8 +17,12 @@ import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.ShutdownPlatform;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.team_pjt.behaviours.receiveKillMessage;
 import org.team_pjt.behaviours.shutdown;
+
+import java.util.Iterator;
 
 public class OvenAgent extends Agent {
     private String sOvenId;
@@ -28,11 +32,6 @@ public class OvenAgent extends Agent {
     private AID[] aidSchedulerAgents;
 
     protected void setup(){
-        // 2, cooling_rate
-        // oven-005, guid
-        // 5, heating_rate
-        // bakery-002 bakeryId
-//        System.out.println("OvenAgent ready");
         Object[] args = getArguments();
         if(!readArgs(args)){
             System.out.println("No parameter given for OvenAgent " + getName());
@@ -79,37 +78,29 @@ public class OvenAgent extends Agent {
 
     private boolean readArgs(Object[] args){
         if (args != null && args.length > 0) {
-            if (args[0] instanceof String) {
-                try {
-                    this.iCoolingRate = Integer.parseInt((String) args[0]);
-                } catch (Exception e) {
-                    e.printStackTrace();
+            JSONArray jsaOvenInfo = new JSONArray(args[0].toString().replaceAll("###",","));
+            Iterator<Object> iBakery = jsaOvenInfo.iterator();
+            String sName = getName();
+            String[] sSplit = sName.split("#");
+            sBakeryId = sSplit[0];
+            sOvenId = sSplit[1];
+            while(iBakery.hasNext()){
+                JSONObject jsoBakeryInfo = (JSONObject) iBakery.next();
+                if (sBakeryId.equals(String.valueOf(jsoBakeryInfo.get("guid")))) {
+                    JSONObject jsoEquipment = (JSONObject) jsoBakeryInfo.get("equipment");
+                    JSONArray jsaArray = (JSONArray) jsoEquipment.get("ovens");
+                    Iterator<Object> iOvenArray = jsaArray.iterator();
+                    while(iOvenArray.hasNext()){
+                        JSONObject jsoOven = (JSONObject) iOvenArray.next();
+                        if (String.valueOf(jsoOven.get("guid")).equals(sOvenId)) {
+                            iCoolingRate = (int) jsoOven.get("coolingRate");
+                            iHeating_rate = (int) jsoOven.get("heatingRate");
+                        }
+                    }
                 }
             }
-            if (args[1] instanceof String) {
-                try {
-                    this.sOvenId = (String) args[1];
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            if (args[2] instanceof String) {
-                try {
-                    this.iHeating_rate = Integer.parseInt((String) args[2]);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            if (args[3] instanceof String) {
-                try {
-                    this.sBakeryId = (String) args[3];
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            return true;
-        }
-        return false;
+            return false;
+        } else {return true;}
     }
 
 }

@@ -64,7 +64,7 @@ public class OrderProcessing extends Agent {
 
             bakery_guid = bakery.getString("guid");
             bakery_name = bakery.getString("name");
-            location = new Location(bakery.getJSONObject("location").getFloat("x"), bakery.getJSONObject("location").getFloat("y"));
+            location = new Location(bakery.getJSONObject("location").getDouble("x"), bakery.getJSONObject("location").getDouble("y"));
 
             while(product_iterator.hasNext()) {
                 JSONObject product = (JSONObject)product_iterator.next();
