@@ -153,7 +153,7 @@ public class OrderAgent extends Agent /*implements  Comparable<Order>*/ {
             customer_id = customer.getString("guid");
             type = customer.getInt("type");
             customer_name = customer.getString("name");
-            location = new Location(customer.getJSONObject("location").getFloat("x"), customer.getJSONObject("location").getFloat("y"));
+            location = new Location(customer.getJSONObject("location").getDouble("x"), customer.getJSONObject("location").getDouble("y"));
 
             readJSONOrder(((String)args[0]).replaceAll("###", ","));
 

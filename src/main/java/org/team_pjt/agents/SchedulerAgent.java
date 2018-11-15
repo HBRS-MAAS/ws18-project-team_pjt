@@ -2,8 +2,6 @@ package org.team_pjt.agents;
 
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -11,28 +9,32 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import org.team_pjt.objects.Product;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.team_pjt.behaviours.receiveKillMessage;
-import org.team_pjt.objects.Location;
 import org.team_pjt.behaviours.shutdown;
+import org.team_pjt.objects.Product;
+import org.team_pjt.objects.Location;
 //import org.team_pjt.objects.Product;
 
 import java.util.*;
 
 public class SchedulerAgent extends Agent {
+    public static final String DURATION = "duration";
     private String sBakeryId;
     private Location lLocation;
     private Hashtable<String, Product> htAvailableProducts;
-    private Hashtable<String, Float> htKneadingMachines;
-    private Hashtable<String, Float> htPrepTables;
+    private HashMap<String, Float> hmPrepTables;
     private Vector<AID> ovens;
-    private HashMap<String, Integer> hmKneadingMachine;
+    private HashMap<String, Float> hmKneadingMachine;
     private HashMap<String, Product> hmProducts;
     private String[] sSplit;
     protected void setup(){
         Object[] oArguments = getArguments();
-        String sArguments = prepareArguments(oArguments);
-        readArgs(sArguments);
+//        String sArguments = prepareArguments(oArguments);
+        if (!readArgs(oArguments)) {
+            System.out.println("No parameter given for SchedulerAgent " + getName());
+        }
         registerAgent();
         ovens = new Vector<>();
         addBehaviour(new receiveKillMessage());
@@ -86,39 +88,83 @@ public class SchedulerAgent extends Agent {
         return sArguments;
     }
 
-    private boolean readArgs(String sArgs){
-        hmKneadingMachine = new HashMap<>();
-        hmProducts = new HashMap<>();
-        String[] saSplit = sArgs.split("#");
-        for (int i = 0; i<saSplit.length; i++) {
-            if (!(saSplit[i].isEmpty())){
-                switch (i){
-                    case 0: this.sBakeryId = saSplit[i];
-                            break;
-                    case 1: sSplit = saSplit[i].split(",");
-                            lLocation = new Location(Float.parseFloat(sSplit[0]), Float.parseFloat(sSplit[1]));
-                            break;
-                    case 2: sSplit = saSplit[i].split(",");
-                            for(int z = 0; z < sSplit.length; z++){
-                                if((z % 12) == 0 && (z != 0)){
-                                    hmProducts.put(sSplit[z-12], new Product(sSplit[z-12], Integer.parseInt(sSplit[z-11]), Float.parseFloat(sSplit[z-10]), Integer.parseInt(sSplit[z-9]) , Integer.parseInt(sSplit[z-8]), Integer.parseInt(sSplit[z-7]), Integer.parseInt(sSplit[z-6]), Integer.parseInt(sSplit[z-5]), Integer.parseInt(sSplit[z - 4]), Integer.parseInt(sSplit[z - 3]), Integer.parseInt(sSplit[z - 2]), Float.parseFloat(sSplit[z - 1])));
-                                }
-                                if (z == sSplit.length - 1){
-                                    hmProducts.put(sSplit[z-11], new Product(sSplit[z-11], Integer.parseInt(sSplit[z-10]), Float.parseFloat(sSplit[z-9]), Integer.parseInt(sSplit[z-8]) , Integer.parseInt(sSplit[z-7]), Integer.parseInt(sSplit[z-6]), Integer.parseInt(sSplit[z-5]), Integer.parseInt(sSplit[z-4]), Integer.parseInt(sSplit[z - 3]), Integer.parseInt(sSplit[z - 2]), Integer.parseInt(sSplit[z - 1]), Float.parseFloat(sSplit[z])));
-                                }
-                            }
-                            break;
-                    case 3: sSplit = saSplit[i].split(",");
-                            for(int z = 0; z < sSplit.length; z++){
-                                hmKneadingMachine.put(sSplit[z], -1);
-                            }
-                            break;
-                }
-            };
-        }
-        return false;
+    private boolean readArgs(Object[] oArgs){
+          if(oArgs != null && oArgs.length > 0){
+              hmProducts = new HashMap<>();
+              Product p = new Product();
+              hmKneadingMachine = new HashMap<>();
+              hmPrepTables = new HashMap<>();
+              JSONArray jsaOvenInfo = new JSONArray(oArgs[0].toString().replaceAll("###",","));
+              Iterator<Object> iBakery = jsaOvenInfo.iterator();
+              String sName = getName();
+              String[] sSplit = sName.split("@");
+              sBakeryId = sSplit[0];
+              while(iBakery.hasNext()){
+                  JSONObject jsoBakeryInfo = (JSONObject) iBakery.next();
+                  if (sBakeryId.equals(String.valueOf(jsoBakeryInfo.get("guid")))) {
+                      JSONObject jsoEquipment = (JSONObject) jsoBakeryInfo.get("equipment");
+                      JSONArray jsaArray = (JSONArray) jsoEquipment.get("kneadingMachines");
+                      Iterator<Object> iKneadingMachinesIterator = jsaArray.iterator();
+                      while(iKneadingMachinesIterator.hasNext()){
+                          JSONObject jsoKneadingMachine = (JSONObject) iKneadingMachinesIterator.next();
+                          hmKneadingMachine.put((String) jsoKneadingMachine.get("guid"), (float) -1);
+                      }
+                      JSONArray jsaProducts = (JSONArray) jsoBakeryInfo.get("products");
+                      Iterator<Object> ijsaIterator = jsaProducts.iterator();
+                      while(ijsaIterator.hasNext()){
+                          JSONObject jsoProdut = (JSONObject) ijsaIterator.next();
+                          String sGuid = (String) jsoProdut.get("guid");
+                          p.setGuid(sGuid);
+                          JSONObject jsoBatch = (JSONObject) jsoProdut.get("batch");
+                          p.setBreadsPerOven((Integer) jsoBatch.get("breadsPerOven"));
+                          JSONObject jsoRecipe = (JSONObject) jsoProdut.get("recipe");
+                          p.setCoolingRate((Integer) jsoRecipe.get("coolingRate"));
+                          p.setBakingTemp((Integer) jsoRecipe.get("bakingTemp"));
+
+                          JSONArray jsaRecipe = (JSONArray) jsoRecipe.get("steps");
+                          Iterator<Object> iJsaRecipe = jsaRecipe.iterator();
+                          JSONObject jsoRecipeStep = null;
+                          String sAction = null;
+                          int iDuration = 0;
+                          while(iJsaRecipe.hasNext()){
+                              jsoRecipeStep = (JSONObject) iJsaRecipe.next();
+                              sAction = String.valueOf(jsoRecipeStep.get("action"));
+                              switch(sAction){
+                                  case "kneading": p.setKneadingTime((Integer) jsoRecipeStep.get(DURATION)); break;
+                                  case "resting": p.setRestingTime((Integer) jsoRecipeStep.get(DURATION)); break;
+                                  case "item preparation": p.setItemPrepTime((Integer) jsoRecipeStep.get(DURATION)); break;
+                                  case "cooling": p.setCooling((Integer) jsoRecipeStep.get(DURATION)); break;
+                                  case "proofing": p.setProofing((Integer) jsoRecipeStep.get(DURATION)); break;
+                                  case "filling": p.setFilling((Integer) jsoRecipeStep.get(DURATION)); break;
+                                  case "baking": p.setBaking((Integer) jsoRecipeStep.get(DURATION)); break;
+                                  case "decorating": p.setDecorating((Integer) jsoRecipeStep.get(DURATION)); break;
+                                  case "sprinkling": p.setSprinkling((Integer) jsoRecipeStep.get(DURATION)); break;
+                              }
+                              iDuration = iDuration + Integer.valueOf((Integer) jsoRecipeStep.get(DURATION));
+                          }
+                          p.setRecipeDuration(iDuration);
+                          JSONObject jsoPackaging = (JSONObject) jsoProdut.get("packaging");
+                          p.setBoxingTemp((Integer) jsoPackaging.get("boxingTemp"));
+                          p.setBreadsPerBox((Integer) jsoPackaging.get("breadsPerBox"));
+                          p.setSalesPrice((Double) jsoProdut.get("salesPrice"));
+                          p.setProductionCost((Double) jsoProdut.get("productionCost"));
+                          hmProducts.put(sGuid, p);
+//                          Product p = new Product(,jsoProdut.get("guid"))
+                      }
+                      JSONArray jsaDoughPrepTables = (JSONArray) jsoEquipment.get("doughPrepTables");
+                      Iterator<Object> iDoughPrepTable = jsaDoughPrepTables.iterator();
+                      while(iDoughPrepTable.hasNext()){
+                          JSONObject jsoDoughPrepTable = (JSONObject) iDoughPrepTable.next();
+                          hmPrepTables.put((String)jsoDoughPrepTable.get("guid"), (float) -1);
+                      }
+                      JSONObject jsoLocation = (JSONObject) jsoBakeryInfo.get("location");
+                      jsoBakeryInfo.getJSONObject("location").getDouble("y");
+                      jsoBakeryInfo.getJSONObject("location").getDouble("x");
+                      lLocation = new Location(jsoBakeryInfo.getJSONObject("location").getDouble("y"), jsoBakeryInfo.getJSONObject("location").getDouble("x"));
+                  }
+              }
+              return false;
+          }else {return true;}
     }
 
-
-
-}
+    }

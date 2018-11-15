@@ -1,10 +1,10 @@
 package org.team_pjt.objects;
 
 public class Location {
-    private float fX;
-    private float fY;
+    private Double fX;
+    private Double fY;
 
-    public Location(float fY, float fX) {
+    public Location(Double fY, Double fX) {
         this.fX = fX;
         this.fY = fY;
     }
