@@ -1,7 +1,6 @@
 package org.team_pjt.agents;
 
 import jade.core.AID;
-import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -18,26 +17,41 @@ import org.team_pjt.objects.Location;
 //import org.team_pjt.objects.Product;
 
 import java.util.*;
-
-public class SchedulerAgent extends Agent {
+// ToDo SchedulerAgent in OrderProcessingAgent umbenennen
+public class SchedulerAgent extends BaseAgent {
     public static final String DURATION = "duration";
     private String sBakeryId;
     private Location lLocation;
-    private Hashtable<String, Product> htAvailableProducts;
     private HashMap<String, Float> hmPrepTables;
     private Vector<AID> ovens;
     private HashMap<String, Float> hmKneadingMachine;
     private HashMap<String, Product> hmProducts; // = Available Products
     JSONArray jsonArrayCustomer;
-    private String[] sSplit;
     private StringBuffer sbResponseArray;
+    private boolean bFeasibleOrder;
+    private AID aidScheduler;
     protected void setup(){
+        DFAgentDescription[] dfSchedulerAgentResult = new DFAgentDescription[0];
+        super.setup();
         Object[] oArguments = getArguments();
-//        String sArguments = prepareArguments(oArguments);
         if (!readArgs(oArguments)) {
             System.out.println("No parameter given for SchedulerAgent " + getName());
         }
-        registerAgent();
+//        registerAgent();
+        super.register("OrderProcessing", this.sBakeryId);
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+//        sd.setType("scheduler"+);
+        sd.setName("scheduler-"+sBakeryId.split("-")[1]);
+        template.addServices(sd);
+        while (dfSchedulerAgentResult.length == 0) {
+            try {
+                dfSchedulerAgentResult = DFService.search(this, template);
+            } catch (FIPAException e) {
+                e.printStackTrace();
+            }
+        }
+        aidScheduler = dfSchedulerAgentResult[0].getName();
         ovens = new Vector<>();
         addBehaviour(new receiveKillMessage());
         addBehaviour(new shutdown());
@@ -48,7 +62,6 @@ public class SchedulerAgent extends Agent {
                 ACLMessage aclmReceiveOven = (ACLMessage) myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
                 if(aclmReceiveOven != null &&(aclmReceiveOven.getPerformative() == ACLMessage.INFORM)){
                     if (aclmReceiveOven.getContent().equals(sBakeryId)){
-//                        ovens.put();
                         ovens.add(aclmReceiveOven.getSender());
                     };
 
@@ -56,7 +69,7 @@ public class SchedulerAgent extends Agent {
                 ACLMessage aclmReceiveCustomer = (ACLMessage) myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF));
                 if(aclmReceiveCustomer != null &&(aclmReceiveCustomer.getPerformative() == ACLMessage.QUERY_IF)){
                     jsonArrayCustomer = new JSONArray(aclmReceiveCustomer.getContent());
-                    checkOrderForFeasibility(aclmReceiveCustomer.getSender(), jsonArrayCustomer, myAgent);
+                    checkOrderForFeasibility(aclmReceiveCustomer.getSender(), jsonArrayCustomer);
                 }
             }
         });
@@ -64,11 +77,12 @@ public class SchedulerAgent extends Agent {
 
     }
 
-    private void checkOrderForFeasibility(AID aidSender, JSONArray jsaCustomerArray, Agent myAgent) {
+    private void checkOrderForFeasibility(AID aidSender, JSONArray jsaCustomerArray) {
+        bFeasibleOrder = false;
         Iterator<Object> iCustomerArray = jsaCustomerArray.iterator();
         while(iCustomerArray.hasNext()){
             sbResponseArray = new StringBuffer();
-            sbResponseArray.append("[{");
+            sbResponseArray.append("{");
             JSONObject jsoObject = (JSONObject) iCustomerArray.next();
             JSONArray jsaOrders = jsoObject.getJSONArray("orders");
             Iterator<Object> iJsaIterator = jsaOrders.iterator();
@@ -81,33 +95,65 @@ public class SchedulerAgent extends Agent {
                 while(iKeys.hasNext()){
                     String sNextProduct = iKeys.next();
                     if(hmProducts.get(sNextProduct)!= null){
-                        // Jan check whether JSON ArrayString is build correctly testproduct has to be replaced with available products
-                        sbResponseArray.append("guid" + i + ": "+ "testproduct1" + "," );
+                        if(!bFeasibleOrder){
+                            JSONObject jsodeliveryDate = oNextProduct.getJSONObject("deliveryDate");
+                            sbResponseArray.append("deliveryDate:");
+                            sbResponseArray.append(jsodeliveryDate.toString());
+                            sbResponseArray.append(",");
+                            sbResponseArray.append("products: {");
+                        }
+                        if(i != 0){
+                            sbResponseArray.append(",");
+                        }
+                        bFeasibleOrder = true;
+                        sbResponseArray.append(sNextProduct + ":" +  jsoProducts.getInt(sNextProduct));
                         i++;
                     }
                 }
             }
-            sbResponseArray.append("}]");
-            ACLMessage almCustomerResponseMessage = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+            sbResponseArray.append("}}");
+            sbResponseArray.toString();
+            ACLMessage almCustomerResponseMessage = null;
+            if (bFeasibleOrder) {
+                almCustomerResponseMessage = new ACLMessage(ACLMessage.PROPOSE);
+                almCustomerResponseMessage.addReceiver(aidScheduler);
+                almCustomerResponseMessage.setContent(sbResponseArray.toString());
+            } else {
+                almCustomerResponseMessage = new ACLMessage(ACLMessage.REFUSE);
+                almCustomerResponseMessage.setContent("No matching products");
+            }
+            // ToDo Antwort vom Scheduler einbauen
             almCustomerResponseMessage.addReceiver(aidSender);
-            almCustomerResponseMessage.setContent(sbResponseArray.toString());
-            myAgent.send(almCustomerResponseMessage);
+            super.send(almCustomerResponseMessage);
+            if(bFeasibleOrder){
+                addOrderToQueue();
+                distributeOrder();
+            }
+            bFeasibleOrder = false;
         }
     }
 
-    private void registerAgent() {
-        DFAgentDescription dfd = new DFAgentDescription();
-        dfd.setName(getAID());
-        ServiceDescription sd = new ServiceDescription();
-        sd.setType("schedulerbakery");
-        sd.setName(this.sBakeryId);
-        dfd.addServices(sd);
-        try {
-            DFService.register(this, dfd);
-        } catch (FIPAException e) {
-            e.printStackTrace();
-        }
+    private void addOrderToQueue() {
+
     }
+
+    private void distributeOrder() {
+
+    }
+
+//    private void registerAgent() {
+//        DFAgentDescription dfd = new DFAgentDescription();
+//        dfd.setName(getAID());
+//        ServiceDescription sd = new ServiceDescription();
+//        sd.setType("schedulerbakery");
+//        sd.setName(this.sBakeryId);
+//        dfd.addServices(sd);
+//        try {
+//            DFService.register(this, dfd);
+//        } catch (FIPAException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     private String prepareArguments(Object[] oArguments) {
         String[] stringArray = Arrays.copyOf(oArguments, oArguments.length, String[].class);

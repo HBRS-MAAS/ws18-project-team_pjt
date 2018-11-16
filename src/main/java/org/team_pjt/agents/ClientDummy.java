@@ -4,6 +4,7 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
+import jade.core.behaviours.WakerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -31,7 +32,7 @@ public class ClientDummy extends Agent {
             public void action() {
                 DFAgentDescription template = new DFAgentDescription();
                 ServiceDescription sd = new ServiceDescription();
-                sd.setType("schedulerbakery");
+                sd.setType("OrderProcessing");
                 template.addServices(sd);
                 try {
                     DFAgentDescription[] result = DFService.search(myAgent, template);
@@ -50,20 +51,31 @@ public class ClientDummy extends Agent {
                 myAgent.send(aclMessage);
             }
         });
-        addBehaviour(new TickerBehaviour(this, 1000) {
+        addBehaviour(new WakerBehaviour(this, 1000) {
             @Override
-            protected void onTick() {
-                ACLMessage aclReceiveOffer = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL));
-                if(aclReceiveOffer != null && aclReceiveOffer.getPerformative() == ACLMessage.ACCEPT_PROPOSAL){
+            protected void onWake() {
+                ACLMessage aclReceiveOffer = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.PROPOSE));
+                if(aclReceiveOffer != null && aclReceiveOffer.getPerformative() == ACLMessage.PROPOSE){
                     String sContent = aclReceiveOffer.getContent();
-                    JSONArray jsonArrayResponse = new JSONArray(sContent);
-                    Iterator<Object> iJsonArrayResponse = jsonArrayResponse.iterator();
-                    while(iJsonArrayResponse.hasNext()){
-                        JSONObject jsonObject = (JSONObject) iJsonArrayResponse.next();
-                        if(jsonObject.isEmpty()){
-                            System.out.println("No demanded products are available");
-                        }
+                    JSONObject jsonObjectResponse = new JSONObject(sContent);
+                    JSONObject jsoProducts = jsonObjectResponse.getJSONObject("products");
+                    Iterator<String> iKeys = jsonObjectResponse.keys();
+                    while (iKeys.hasNext()){
+                        System.out.println(iKeys.next());;
                     }
+//                    Iterator<Object> iJsonArrayResponse = jsonArrayResponse.iterator();
+//                    while(iJsonArrayResponse.hasNext()){
+//                        JSONObject jsonObject = (JSONObject) iJsonArrayResponse.next();
+//                        if(jsonObject.isEmpty()){
+//                            System.out.println("No demanded products are available");
+//                        } else{
+//                            JSONObject joProducts = jsonObject.getJSONObject("products");
+//                            Iterator<String> iProductKeys = joProducts.keys();
+//                            while (iProductKeys.hasNext()){
+//                                System.out.println(iProductKeys.next() + "is available");
+//                            }
+//                        }
+//                    }
                 }
             }
         });

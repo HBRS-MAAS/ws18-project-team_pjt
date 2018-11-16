@@ -43,7 +43,7 @@ public class OvenAgent extends Agent {
             public void action() {
                 DFAgentDescription template = new DFAgentDescription();
                 ServiceDescription sd = new ServiceDescription();
-                sd.setType("schedulerbakery");
+                sd.setType("OrderProcessing");
                 template.addServices(sd);
                 try {
                     DFAgentDescription[] result = DFService.search(myAgent, template);
