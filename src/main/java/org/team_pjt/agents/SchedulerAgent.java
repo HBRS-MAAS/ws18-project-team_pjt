@@ -27,8 +27,10 @@ public class SchedulerAgent extends Agent {
     private HashMap<String, Float> hmPrepTables;
     private Vector<AID> ovens;
     private HashMap<String, Float> hmKneadingMachine;
-    private HashMap<String, Product> hmProducts;
+    private HashMap<String, Product> hmProducts; // = Available Products
+    JSONArray jsonArrayCustomer;
     private String[] sSplit;
+    private StringBuffer sbResponseArray;
     protected void setup(){
         Object[] oArguments = getArguments();
 //        String sArguments = prepareArguments(oArguments);
@@ -43,24 +45,54 @@ public class SchedulerAgent extends Agent {
 
             @Override
             protected void onTick() {
-                ACLMessage aclmReceive = (ACLMessage) myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-                if(aclmReceive != null &&(aclmReceive.getPerformative() == ACLMessage.INFORM)){
-                    if (aclmReceive.getContent().equals(sBakeryId)){
+                ACLMessage aclmReceiveOven = (ACLMessage) myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+                if(aclmReceiveOven != null &&(aclmReceiveOven.getPerformative() == ACLMessage.INFORM)){
+                    if (aclmReceiveOven.getContent().equals(sBakeryId)){
 //                        ovens.put();
-                        ovens.add(aclmReceive.getSender());
+                        ovens.add(aclmReceiveOven.getSender());
                     };
 
                 }
+                ACLMessage aclmReceiveCustomer = (ACLMessage) myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF));
+                if(aclmReceiveCustomer != null &&(aclmReceiveCustomer.getPerformative() == ACLMessage.QUERY_IF)){
+                    jsonArrayCustomer = new JSONArray(aclmReceiveCustomer.getContent());
+                    checkOrderForFeasibility(aclmReceiveCustomer.getSender(), jsonArrayCustomer, myAgent);
+                }
             }
         });
-//        addBehaviour(new OneShotBehaviour() {
-//            @Override
-//            public void action() {
-//
-//            }
-//        });
         System.out.println("SchedulerAgent " + getName() + " ready");
 
+    }
+
+    private void checkOrderForFeasibility(AID aidSender, JSONArray jsaCustomerArray, Agent myAgent) {
+        Iterator<Object> iCustomerArray = jsaCustomerArray.iterator();
+        while(iCustomerArray.hasNext()){
+            sbResponseArray = new StringBuffer();
+            sbResponseArray.append("[{");
+            JSONObject jsoObject = (JSONObject) iCustomerArray.next();
+            JSONArray jsaOrders = jsoObject.getJSONArray("orders");
+            Iterator<Object> iJsaIterator = jsaOrders.iterator();
+            while(iJsaIterator.hasNext()){
+                JSONObject oNextProduct = (JSONObject) iJsaIterator.next();
+                JSONObject jsoProducts = oNextProduct.getJSONObject("products");
+                Iterator<String> iKeys = jsoProducts.keys();
+                // Jan provisorisch
+                int i = 0;
+                while(iKeys.hasNext()){
+                    String sNextProduct = iKeys.next();
+                    if(hmProducts.get(sNextProduct)!= null){
+                        // Jan check whether JSON ArrayString is build correctly testproduct has to be replaced with available products
+                        sbResponseArray.append("guid" + i + ": "+ "testproduct1" + "," );
+                        i++;
+                    }
+                }
+            }
+            sbResponseArray.append("}]");
+            ACLMessage almCustomerResponseMessage = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+            almCustomerResponseMessage.addReceiver(aidSender);
+            almCustomerResponseMessage.setContent(sbResponseArray.toString());
+            myAgent.send(almCustomerResponseMessage);
+        }
     }
 
     private void registerAgent() {

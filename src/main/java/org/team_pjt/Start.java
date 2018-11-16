@@ -20,6 +20,7 @@ public class Start {
     private static final String sOvPrefix = ":org.team_pjt.agents.OvenAgent";
     private static final String sSchPrefix = ":org.team_pjt.agents.SchedulerAgent";
     private static final String sTrPrefix = ":org.team_pjt.agents.TruckAgent";
+    private static final String sCPrefix = ":org.team_pjt.agents.ClientDummy";
     private static List<String> agents = new Vector<>();
     public static void main(String[] args) {
         String sNewPath = "src/main/resources/";
@@ -83,7 +84,7 @@ public class Start {
                         jsaTruck = prepareTruck(sReadFile);
                     }
                     if(fChild.getName().contains("clients")){
-//                        jsaClients =
+                        jsaClients = prepareClients(sReadFile);
                     }
                 }
             }
@@ -106,14 +107,16 @@ public class Start {
         return joObjectScenario;
     }
 
-//    private static JSONArray prepareClients(String sReadFile) {
-//        JSONArray joObjectScenario = new JSONArray(sReadFile);
-//        Iterator<Object> iCustomerIterator = joObjectScenario.iterator();
-//        while(iCustomerIterator.hasNext()){
-//            JSONObject jsoCustomer = (JSONObject) iCustomerIterator.next();
-//            agents.add(jsoCustomer.get("guid")+":org.team_pjt.agents.OrderProcessing");
-//        }
-//    }
+    private static JSONArray prepareClients(String sReadFile) {
+        JSONArray joObjectScenario = new JSONArray(sReadFile);
+        Iterator<Object> iCustomerIterator = joObjectScenario.iterator();
+        while(iCustomerIterator.hasNext()){
+            JSONObject jsoCustomer = (JSONObject) iCustomerIterator.next();
+            // ToDo [Jan] richtige ID vergeben
+            agents.add(jsoCustomer.get("guid")+ sCPrefix);
+        }
+        return joObjectScenario;
+    }
 
     private static JSONArray prepareOvenandBakery(String sReadFile) {
         JSONArray joObjectScenario = new JSONArray(sReadFile);
@@ -177,6 +180,14 @@ public class Start {
                     sb.append(a);
                     sb.append("(");
                     sb.append(jsaTruck.toString().replaceAll(",", "###"));
+                    sb.append(")");
+                    sb.append(";");
+                    continue;
+                }
+                if(a.contains("Client")){
+                    sb.append(a);
+                    sb.append("(");
+                    sb.append(jsaClients.toString().replaceAll(",", "###"));
                     sb.append(")");
                     sb.append(";");
                     continue;
