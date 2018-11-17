@@ -13,101 +13,93 @@ public class Start {
 	private static boolean isHost;
 	private static String host;
 	private static String port;
-    private static String path;
-    private static JSONArray jsaBakeries;
-    private static JSONArray jsaTruck;
-    private static JSONArray jsaClients;
-    private static final String sOvPrefix = ":org.team_pjt.agents.OvenAgent";
-    private static final String sSchPrefix = ":org.team_pjt.agents.SchedulerAgent";
-    private static final String sSchPrefix2 = ":org.team_pjt.agents.mySchedulerAgent";
-    private static final String sTrPrefix = ":org.team_pjt.agents.TruckAgent";
+    private static String bakeries_path;
+    private static String clients_path;
+    private static String delivery_path;
+    private static String meta_path;
+    private static String street_network_path;
+    private static final String sOPPrefix = ":org.team_pjt.agents.OrderProcessing";
+    private static final String sSchPrefix2 = ":org.team_pjt.agents.SchedulerAgent";
     private static final String sCPrefix = ":org.team_pjt.agents.ClientDummy";
     private static final String sTPrefix = "timekeeper:org.team_pjt.agents.TimeKeeper";
     private static List<String> agents = new Vector<>();
+
     public static void main(String[] args) {
-        String sNewPath = "src/main/resources/";
-        path = "src/main/resources/archive/random-scenario.json";
+        bakeries_path = "src/main/resources/bakeries.json";
+        clients_path = "src/main/resources/clients.json";
+        delivery_path = "src/main/resources/delivery.json";
+        meta_path = "src/main/resources/meta.json";
+        street_network_path = "src/main/resources/street-network.json";
     	if (!decodeArguments(args)) {
             isHost = true;
 		}
 
-        String scenario = readScenarioFile(path);
+        String bakeries = readScenarioFile(bakeries_path);
+    	String clients = readScenarioFile(clients_path);
+        String delivery = readScenarioFile(delivery_path);
+        String meta = readScenarioFile(meta_path);
+        String street_network = readScenarioFile(street_network_path);
     	// new scenarioFile
-        readNewScenarioFile(sNewPath);
+//        readNewScenarioFile(sNewPath);
         // new scenarioFile
-        if(scenario == null) {
+        if(bakeries == null || clients == null || delivery == null || meta == null || street_network == null) {
             System.exit(-1);
         }
-        JSONObject json_scenario = new JSONObject(scenario);
+        JSONArray jaBakeries = new JSONArray(bakeries);
+        JSONArray jaClients = new JSONArray(clients);
+        JSONArray jaDelivery = new JSONArray(delivery);
+        JSONObject joMeta = new JSONObject(meta);
+        JSONObject joStreet_network = new JSONObject(street_network);
 
-        JSONObject meta_data = json_scenario.getJSONObject("meta");
-
-        int duration_days = meta_data.getInt("duration_days");
-        agents.add(sTPrefix);
+//        int duration_days = joMeta.getInt("duration_days");
 //    	List<String> agents = new Vector<>();
     	if(isHost) {
-            JSONArray bakeries = json_scenario.getJSONArray("bakeries");
-            Iterator<Object> bakery_iterator = bakeries.iterator();
+            agents.add(sTPrefix);
+            Iterator<Object> bakery_iterator = jaBakeries.iterator();
             while (bakery_iterator.hasNext()) {
                 JSONObject bakery = (JSONObject) bakery_iterator.next();
                 String id = bakery.getString("guid");
-                agents.add(id + ":org.team_pjt.agents.OrderProcessing");
+                String bakery_idNum = id.split("-")[1];
+                agents.add(id + sOPPrefix);
+                agents.add("scheduler-" + bakery_idNum + sSchPrefix2);
             }
-            agents.add("c1:org.team_pjt.agents.SystemClockAgent");
-
         }
         else {
-            JSONArray orders = json_scenario.getJSONArray("orders");
-            Iterator<Object> order_iterator = orders.iterator();
-            while (order_iterator.hasNext()) {
-                JSONObject order = (JSONObject) order_iterator.next();
+            Iterator<Object> client_iterator = jaClients.iterator();
+            while (client_iterator.hasNext()) {
+                JSONObject order = (JSONObject) client_iterator.next();
                 String id = order.getString("guid");
-                agents.add(id + ":org.team_pjt.agents.OrderAgent");
+                agents.add(id + sCPrefix);
             }
         }
-    	List<String> cmd = buildCMD(agents, json_scenario);
+    	List<String> cmd = buildCMD(agents, jaBakeries, jaClients, jaDelivery, joMeta, joStreet_network);
 //    	  System.out.println(cmd.toString());
 //        System.out.println(cmd.size());
         jade.Boot.main(cmd.toArray(new String[cmd.size()]));
 
     }
 
-    private static void readNewScenarioFile(String sDirectory) {
-        File fDir = new File(sDirectory);
-        File[] directoryListing = fDir.listFiles();
-        if (directoryListing != null) {
-            for (File fChild : directoryListing) {
-                if(fChild.isFile()){
-                    String sReadFile = readScenarioFile(fChild.getAbsolutePath());
-                    if(fChild.getName().contains("bakeries")){
-                        jsaBakeries = prepareOvenandBakery(sReadFile);
-                    }
-                    if(fChild.getName().contains("delivery")){
-                        jsaTruck = prepareTruck(sReadFile);
-                    }
-                    if(fChild.getName().contains("clients")){
-                        jsaClients = prepareClients(sReadFile);
-                    }
-                }
-            }
-        }
-//        return sbBuilder.toString();
-    }
-
-    private static JSONArray prepareTruck(String sReadFile) {
-        JSONArray joObjectScenario = new JSONArray(sReadFile);
-        Iterator<Object> iDeliveryIterator = joObjectScenario.iterator();
-        while(iDeliveryIterator.hasNext()){
-            JSONObject joDelivery = (JSONObject) iDeliveryIterator.next();
-            JSONArray jaTrucks = joDelivery.getJSONArray("trucks");
-            Iterator<Object> iIteratorTruckArray= jaTrucks.iterator();
-            while(iIteratorTruckArray.hasNext()){
-                JSONObject joTruckObject = (JSONObject) iIteratorTruckArray.next();
-                agents.add(joTruckObject.get("guid")+sTrPrefix);
-            }
-        }
-        return joObjectScenario;
-    }
+//    private static void readNewScenarioFile(String sDirectory) {
+//        File fDir = new File(sDirectory);
+//        File[] directoryListing = fDir.listFiles();
+//        if (directoryListing != null) {
+//            for (File fChild : directoryListing) {
+//                if(fChild.isFile()){
+//                    String sReadFile = readScenarioFile(fChild.getAbsolutePath());
+//                    if(fChild.getName().contains("bakeries")){
+//                        jsaBakeries = prepareOvenandBakery(sReadFile);
+//                    }
+//                    if(fChild.getName().contains("delivery")){
+//                        jsaTruck = prepareTruck(sReadFile);
+//                    }
+//                    if(fChild.getName().contains("clients")){
+//                        jsaClients = prepareClients(sReadFile);
+//                    }
+//                }
+//            }
+//        }
+////        return sbBuilder.toString();
+//    }
 
     private static JSONArray prepareClients(String sReadFile) {
         JSONArray joObjectScenario = new JSONArray(sReadFile);
@@ -120,43 +112,18 @@ public class Start {
         return joObjectScenario;
     }
 
-    private static JSONArray prepareOvenandBakery(String sReadFile) {
-        JSONArray joObjectScenario = new JSONArray(sReadFile);
-        Iterator<Object> iBakeryIterator = joObjectScenario.iterator();
-        while(iBakeryIterator.hasNext()){
-                JSONObject joBakery = (JSONObject) iBakeryIterator.next();
-                String sGuid = joBakery.getString("guid");
-//                String[] sSplit = ;
-                agents.add(sGuid+sSchPrefix);
-                // ToDo Scheduler hochiterieren
-                agents.add("scheduler-"+sGuid.split("-")[1]+sSchPrefix2);
-                JSONObject joEquipment = joBakery.getJSONObject("equipment");
-                JSONArray jaOvens = joEquipment.getJSONArray("ovens");
-                Iterator<Object> iJaOveniterator = jaOvens.iterator();
-                while(iJaOveniterator.hasNext()){
-                        JSONObject joOven = (JSONObject) iJaOveniterator.next();
-                        agents.add(sGuid+"#"+joOven.get("guid")+"#"+sOvPrefix);
-                }
-        }
-        return joObjectScenario;
-    }
-
-    ;
-
-    public static List<String> buildCMD(List<String> agents, JSONObject scenario) {
+    public static List<String> buildCMD(List<String> agents, JSONArray jaBakeries, JSONArray jaClients, JSONArray jaDelivery, JSONObject joMeta, JSONObject joStreet_network) {
     	StringBuilder sb = new StringBuilder();
         List<String> cmd = new Vector<>();
-        JSONArray json_customers = scenario.getJSONArray("customers");
-        JSONArray json_bakeries = scenario.getJSONArray("bakeries");
-        Iterator<Object> customer_iterator = json_customers.iterator();
-        Iterator<Object> bakery_iterator = json_bakeries.iterator();
-        Iterator<Object> order_iterator = scenario.getJSONArray("orders").iterator();
+        Iterator<Object> customer_iterator = jaClients.iterator();
+        Iterator<Object> bakery_iterator = jaBakeries.iterator();
+//        Iterator<Object> delivery_iterator = jaDelivery.iterator();
 
-        Hashtable<String, JSONObject> htCustomers = new Hashtable<>();
-        while(customer_iterator.hasNext()) {
-            JSONObject json_cust = (JSONObject) customer_iterator.next();
-            htCustomers.put(json_cust.getString("guid"), json_cust);
-        }
+//        Hashtable<String, JSONObject> htCustomers = new Hashtable<>();
+//        while(customer_iterator.hasNext()) {
+//            JSONObject json_cust = (JSONObject) customer_iterator.next();
+//            htCustomers.put(json_cust.getString("guid"), json_cust);
+//        }
 
     	if(isHost) {
             cmd.add("-local-port");
@@ -170,59 +137,44 @@ public class Start {
             cmd.add(port);
 		}
         cmd.add("-agents");
+    	JSONObject bakery = new JSONObject();
 		for (String a : agents) {
             if(isHost){
-                //new scenarion
-                if(a.contains("Scheduler")|| a.contains("Oven")){
-                    sb.append(a);
-                    sb.append("(");
-                    sb.append(jsaBakeries.toString().replaceAll(",", "###"));
-                    sb.append(")");
+                if(a.contains("Scheduler")){
+                    appendAgentAndArguments(sb, bakery.toString().replaceAll(",", "###"), a);
                     sb.append(";");
                     continue;
                 }
-                if(a.contains("Truck")){
-                    sb.append(a);
-                    sb.append("(");
-                    sb.append(jsaTruck.toString().replaceAll(",", "###"));
-                    sb.append(")");
+                if(a.contains("OrderProcessing")) {
+                    bakery = (JSONObject)bakery_iterator.next();
+                    appendAgentAndArguments(sb, bakery.toString().replaceAll(",", "###"), a);
                     sb.append(";");
                     continue;
                 }
+            }
+            else {
                 if(a.contains("Client")){
-                    sb.append(a);
-                    sb.append("(");
-                    sb.append(jsaClients.toString().replaceAll(",", "###"));
-                    sb.append(")");
+                    JSONObject client = (JSONObject)customer_iterator.next();
+                    appendAgentAndArguments(sb, client.toString().replaceAll(",", "###"), a);
                     sb.append(";");
                     continue;
                 }
-                //new scenarion
             }
 			sb.append(a);
-			if(a.contains("OrderAgent")) {
-                sb.append("(");
-                JSONObject order = (JSONObject)order_iterator.next();
-                sb.append(order.toString().replaceAll(",", "###"));
-                sb.append(",");
-                JSONObject customer = htCustomers.get(order.getString("customer_id"));
-                sb.append(customer.toString().replaceAll(",", "###"));
-                sb.append(")");
-            }
-            if(a.contains("OrderProcessing")) {
-                sb.append("(");
-                sb.append(((JSONObject)bakery_iterator.next()).toString().replaceAll(",", "###"));
-                sb.append(")");
-
-            }
-
-			sb.append(";");
+            sb.append(";");
 		}
 
         cmd.add(sb.toString());
 
     	return cmd;
 	}
+
+	private static void appendAgentAndArguments(StringBuilder sb, String argument, String agent) {
+        sb.append(agent);
+        sb.append("(");
+        sb.append(argument);
+        sb.append(")");
+    }
 
     private static void parsingBakeryId(StringBuilder sb, JSONObject joObject) {
 //        if (joObject.get("guid") instanceof JSONObject) {
@@ -231,12 +183,12 @@ public class Start {
         sb.append("#");
     }
 
-	public static String readScenarioFile(String sPath) {
+	public static String readScenarioFile(String path) {
     	String jsonString = null;
 		try {
 		    StringBuilder sb = new StringBuilder();
 		    String line = null;
-            FileReader fileReader = new FileReader(sPath);
+            FileReader fileReader = new FileReader(path);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 			while ((line = bufferedReader.readLine()) != null) {
                 sb.append(line);
@@ -265,7 +217,7 @@ public class Start {
 				++i;
 			}
             if (args[i].equals("-path")) {
-                path = args[i+1];
+                bakeries_path = args[i+1];
                 ++i;
             }
 			if (args[i].equals("-h")) {

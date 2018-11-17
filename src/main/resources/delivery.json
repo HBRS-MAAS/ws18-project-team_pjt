@@ -1,0 +1,19 @@
+[
+  {
+    "guid": "delivery-company-004",
+    "location": {
+      "y": 7.19,
+      "x": -0.82
+    },
+    "trucks": [
+      {
+        "guid": "truck-004",
+        "load_capacity": 30,
+        "location": {
+          "y": 7.19,
+          "x": -0.82
+        }
+      }
+    ]
+  }
+]

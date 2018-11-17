@@ -20,7 +20,6 @@ import java.util.Iterator;
 
 public class ClientDummy extends Agent {
     private AID[] aidSchedulerAgents;
-    JSONArray jsaClientInfo;
     protected void setup(){
         Object[] oArguments = getArguments();
         if(!readArgs(oArguments)){
@@ -47,7 +46,6 @@ public class ClientDummy extends Agent {
                 for(int i = 0; i < aidSchedulerAgents.length; i++){
                     aclMessage.addReceiver(aidSchedulerAgents[i]);
                 }
-                aclMessage.setContent(jsaClientInfo.toString());
                 myAgent.send(aclMessage);
             }
         });
@@ -99,9 +97,11 @@ public class ClientDummy extends Agent {
     }
 
     private boolean readArgs(Object[] oArguments) {
-        jsaClientInfo = null;
+        JSONObject joClient;
         if(oArguments != null && oArguments.length > 0){
-            jsaClientInfo = new JSONArray(oArguments[0].toString().replaceAll("###",","));
+            String client_string = ((String)oArguments[0]).replaceAll("###", ",");
+            joClient = new JSONObject(client_string);
+            return true;
         }
         return false;
     }
