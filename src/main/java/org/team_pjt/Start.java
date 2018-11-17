@@ -19,7 +19,10 @@ public class Start {
     private static JSONArray jsaClients;
     private static final String sOvPrefix = ":org.team_pjt.agents.OvenAgent";
     private static final String sSchPrefix = ":org.team_pjt.agents.SchedulerAgent";
+    private static final String sSchPrefix2 = ":org.team_pjt.agents.mySchedulerAgent";
     private static final String sTrPrefix = ":org.team_pjt.agents.TruckAgent";
+    private static final String sCPrefix = ":org.team_pjt.agents.ClientDummy";
+    private static final String sTPrefix = "timekeeper:org.team_pjt.agents.TimeKeeper";
     private static List<String> agents = new Vector<>();
     public static void main(String[] args) {
         String sNewPath = "src/main/resources/";
@@ -40,7 +43,7 @@ public class Start {
         JSONObject meta_data = json_scenario.getJSONObject("meta");
 
         int duration_days = meta_data.getInt("duration_days");
-
+        agents.add(sTPrefix);
 //    	List<String> agents = new Vector<>();
     	if(isHost) {
             JSONArray bakeries = json_scenario.getJSONArray("bakeries");
@@ -83,7 +86,7 @@ public class Start {
                         jsaTruck = prepareTruck(sReadFile);
                     }
                     if(fChild.getName().contains("clients")){
-//                        jsaClients =
+                        jsaClients = prepareClients(sReadFile);
                     }
                 }
             }
@@ -106,14 +109,16 @@ public class Start {
         return joObjectScenario;
     }
 
-//    private static JSONArray prepareClients(String sReadFile) {
-//        JSONArray joObjectScenario = new JSONArray(sReadFile);
-//        Iterator<Object> iCustomerIterator = joObjectScenario.iterator();
-//        while(iCustomerIterator.hasNext()){
-//            JSONObject jsoCustomer = (JSONObject) iCustomerIterator.next();
-//            agents.add(jsoCustomer.get("guid")+":org.team_pjt.agents.OrderProcessing");
-//        }
-//    }
+    private static JSONArray prepareClients(String sReadFile) {
+        JSONArray joObjectScenario = new JSONArray(sReadFile);
+        Iterator<Object> iCustomerIterator = joObjectScenario.iterator();
+        while(iCustomerIterator.hasNext()){
+            JSONObject jsoCustomer = (JSONObject) iCustomerIterator.next();
+            // ToDo [Jan] richtige ID vergeben
+            agents.add(jsoCustomer.get("guid")+ sCPrefix);
+        }
+        return joObjectScenario;
+    }
 
     private static JSONArray prepareOvenandBakery(String sReadFile) {
         JSONArray joObjectScenario = new JSONArray(sReadFile);
@@ -121,7 +126,10 @@ public class Start {
         while(iBakeryIterator.hasNext()){
                 JSONObject joBakery = (JSONObject) iBakeryIterator.next();
                 String sGuid = joBakery.getString("guid");
+//                String[] sSplit = ;
                 agents.add(sGuid+sSchPrefix);
+                // ToDo Scheduler hochiterieren
+                agents.add("scheduler-"+sGuid.split("-")[1]+sSchPrefix2);
                 JSONObject joEquipment = joBakery.getJSONObject("equipment");
                 JSONArray jaOvens = joEquipment.getJSONArray("ovens");
                 Iterator<Object> iJaOveniterator = jaOvens.iterator();
@@ -177,6 +185,14 @@ public class Start {
                     sb.append(a);
                     sb.append("(");
                     sb.append(jsaTruck.toString().replaceAll(",", "###"));
+                    sb.append(")");
+                    sb.append(";");
+                    continue;
+                }
+                if(a.contains("Client")){
+                    sb.append(a);
+                    sb.append("(");
+                    sb.append(jsaClients.toString().replaceAll(",", "###"));
                     sb.append(")");
                     sb.append(";");
                     continue;

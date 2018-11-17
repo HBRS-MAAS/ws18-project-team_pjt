@@ -20,7 +20,7 @@ public class shutdown extends OneShotBehaviour {
         shutdownMessage.setOntology(JADEManagementOntology.getInstance().getName());
         try {
             myAgent.getContentManager().fillContent(shutdownMessage,new Action(myAgent.getAID(), new ShutdownPlatform()));
-            myAgent.send(shutdownMessage);
+//            myAgent.send(shutdownMessage);
         }
         catch (Exception e) {
             //LOGGER.error(e);
