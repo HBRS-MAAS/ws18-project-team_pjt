@@ -72,6 +72,7 @@ public class Start {
             while (client_iterator.hasNext()) {
                 JSONObject order = (JSONObject) client_iterator.next();
                 String id = order.getString("guid");
+                System.out.println(id);
                 agents.add(id + sCPrefix);
             }
         }
@@ -79,7 +80,7 @@ public class Start {
 //    	  System.out.println(cmd.toString());
 //        System.out.println(cmd.size());
         jade.Boot.main(cmd.toArray(new String[cmd.size()]));
-        Visualisation.showWindow();
+        //Visualisation.showWindow();
 
     }
 
