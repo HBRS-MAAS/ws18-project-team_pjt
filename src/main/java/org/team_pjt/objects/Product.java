@@ -1,5 +1,9 @@
 package org.team_pjt.objects;
 
+import org.json.JSONObject;
+
+import java.util.Iterator;
+
 public class
 Product {
 
@@ -38,6 +42,34 @@ Product {
     }
 
     public Product() {
+    }
+
+    public Product(String json_product_string) {
+        JSONObject joProduct = new JSONObject(json_product_string);
+        this.guid = joProduct.getString("guid");
+        this.boxingTemp = joProduct.getJSONObject("packaging").getInt("boxingTemp");
+        this.breadsPerBox = joProduct.getJSONObject("packaging").getInt("breadsPerBox");
+        this.salesPrice = joProduct.getDouble("salesPrice");
+        this.productionCost = joProduct.getDouble("productionCost");
+        JSONObject recipe = joProduct.getJSONObject("recipe");
+        Iterator<Object> step_iterator = recipe.getJSONArray("steps").iterator();
+        while(step_iterator.hasNext()) {
+            JSONObject step = (JSONObject)step_iterator.next();
+            String action = step.getString("action");
+            switch (action) {
+                case "kneading": this.kneadingTime = step.getInt("duration");
+                case "resting": this.restingTime = step.getInt("duration");
+                case "item preparation": this.itemPrepTime = step.getInt("duration");
+                case "cooling": this.cooling = step.getInt("duration");
+                case "proofing": this.proofing = step.getInt("duration");
+                case "filling": this.filling = step.getInt("duration");
+                case "baking": this.baking = step.getInt("duration");
+                case "decorating": this.decorating = step.getInt("duration");
+                case "sprinkling": this.sprinkling = step.getInt("duration");
+            }
+        }
+        this.bakingTemp = recipe.getInt("bakingTemp");
+        this.coolingRate = recipe.getInt("coolingRate");
     }
 
     public int getCoolingRate() {
