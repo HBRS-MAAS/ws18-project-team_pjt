@@ -15,7 +15,7 @@ public class TruckAgent extends Agent {
 //    }
 //    }
 //      ],
-    private int iLoadCapacity;
+//  private int iLoadCapacity;
     private String sBakeryGuid;
     private String sTruckGuid;
     private Location lLocation;
