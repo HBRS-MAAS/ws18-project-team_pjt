@@ -31,7 +31,4 @@ public class Visualisation extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-    public static void main(String[] args) {
-        launch(args);
-    }
-}
+    public static void showWindow( ) { launch(new String[] {}); }}

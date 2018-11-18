@@ -9,6 +9,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+import org.team_pjt.agents.Visualisation;
+import org.team_pjt.agents.Visualisation.*;
+
 public class Start {
 	private static boolean isHost;
 	private static String host;
@@ -76,6 +79,7 @@ public class Start {
 //    	  System.out.println(cmd.toString());
 //        System.out.println(cmd.size());
         jade.Boot.main(cmd.toArray(new String[cmd.size()]));
+        Visualisation.showWindow();
 
     }
 
