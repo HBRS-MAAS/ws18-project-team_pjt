@@ -18,12 +18,13 @@ public class shutdown extends OneShotBehaviour {
         shutdownMessage.addReceiver(myAgent.getAMS());
         shutdownMessage.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
         shutdownMessage.setOntology(JADEManagementOntology.getInstance().getName());
+        System.out.println("shutdown " + myAgent.getName());
         try {
             myAgent.getContentManager().fillContent(shutdownMessage,new Action(myAgent.getAID(), new ShutdownPlatform()));
-//            myAgent.send(shutdownMessage);
+            myAgent.send(shutdownMessage);
         }
         catch (Exception e) {
-            //LOGGER.error(e);
+            e.printStackTrace();
         }
 
     }

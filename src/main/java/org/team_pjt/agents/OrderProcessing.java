@@ -1,6 +1,7 @@
 package org.team_pjt.agents;
 
 import jade.core.AID;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -10,35 +11,38 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.team_pjt.behaviours.receiveKillMessage;
 import org.team_pjt.behaviours.shutdown;
+import org.team_pjt.objects.Order;
 import org.team_pjt.objects.Product;
 import org.team_pjt.objects.Location;
-//import org.team_pjt.objects.Product;
 
 import java.util.*;
 // ToDo OrderProcessing in OrderProcessingAgent umbenennen
 public class OrderProcessing extends BaseAgent {
-    public static final String DURATION = "duration";
     private String sBakeryId;
     private Location lLocation;
     private HashMap<String, Product> hmProducts; // = Available Products
-    private StringBuffer sbResponseArray;
-    private boolean bFeasibleOrder;
     private AID aidScheduler;
+    private AID[] allAgents;
+    private int endDays;
 
     protected void setup(){
         super.setup();
-        DFAgentDescription[] dfSchedulerAgentResult = new DFAgentDescription[0];
         Object[] oArguments = getArguments();
         if (!readArgs(oArguments)) {
             System.out.println("No parameter given for OrderProcessing " + getName());
         }
-//        registerAgent();
-        super.register("OrderProcessing", this.sBakeryId);
+        this.register("OrderProcessing", this.sBakeryId);
+        findScheduler();
+        addBehaviour(new OfferRequestServer());
+        System.out.println("OrderProcessing " + getName() + " ready");
+
+    }
+
+    private void findScheduler() {
+        DFAgentDescription[] dfSchedulerAgentResult = new DFAgentDescription[0];
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
-//        sd.setType("scheduler"+);
         sd.setName("scheduler-"+sBakeryId.split("-")[1]);
         template.addServices(sd);
         while (dfSchedulerAgentResult.length == 0) {
@@ -49,65 +53,41 @@ public class OrderProcessing extends BaseAgent {
             }
         }
         aidScheduler = dfSchedulerAgentResult[0].getName();
-        addBehaviour(new shutdown());
-        System.out.println("OrderProcessing " + getName() + " ready");
-
+        System.out.println("Scheduler found! - " + aidScheduler);
     }
 
-    private void checkOrderForFeasibility(AID aidSender, JSONArray jsaCustomerArray) {
-        bFeasibleOrder = false;
-        Iterator<Object> iCustomerArray = jsaCustomerArray.iterator();
-        while(iCustomerArray.hasNext()){
-            sbResponseArray = new StringBuffer();
-            sbResponseArray.append("{");
-            JSONObject jsoObject = (JSONObject) iCustomerArray.next();
-            JSONArray jsaOrders = jsoObject.getJSONArray("orders");
-            Iterator<Object> iJsaIterator = jsaOrders.iterator();
-            while(iJsaIterator.hasNext()){
-                JSONObject oNextProduct = (JSONObject) iJsaIterator.next();
-                JSONObject jsoProducts = oNextProduct.getJSONObject("products");
-                Iterator<String> iKeys = jsoProducts.keys();
-                // Jan provisorisch
-                int i = 0;
-                while(iKeys.hasNext()){
-                    String sNextProduct = iKeys.next();
-                    if(hmProducts.get(sNextProduct)!= null){
-                        if(!bFeasibleOrder){
-                            JSONObject jsodeliveryDate = oNextProduct.getJSONObject("deliveryDate");
-                            sbResponseArray.append("deliveryDate:");
-                            sbResponseArray.append(jsodeliveryDate.toString());
-                            sbResponseArray.append(",");
-                            sbResponseArray.append("products: {");
-                        }
-                        if(i != 0){
-                            sbResponseArray.append(",");
-                        }
-                        bFeasibleOrder = true;
-                        sbResponseArray.append(sNextProduct + ":" +  jsoProducts.getInt(sNextProduct));
-                        i++;
-                    }
-                }
+    private void findAllAgents() {
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        template.addServices(sd);
+        try {
+            DFAgentDescription[] result = DFService.search(this, template);
+            allAgents = new AID[result.length];
+            int counter = 0;
+            for(DFAgentDescription ad : result) {
+                allAgents[counter] = ad.getName();
+                counter++;
             }
-            sbResponseArray.append("}}");
-            sbResponseArray.toString();
-            ACLMessage almCustomerResponseMessage = null;
-            if (bFeasibleOrder) {
-                almCustomerResponseMessage = new ACLMessage(ACLMessage.PROPOSE);
-                almCustomerResponseMessage.addReceiver(aidScheduler);
-                almCustomerResponseMessage.setContent(sbResponseArray.toString());
-            } else {
-                almCustomerResponseMessage = new ACLMessage(ACLMessage.REFUSE);
-                almCustomerResponseMessage.setContent("No matching products");
-            }
-            // ToDo Antwort vom Scheduler einbauen
-            almCustomerResponseMessage.addReceiver(aidSender);
-            super.send(almCustomerResponseMessage);
-            if(bFeasibleOrder){
-                addOrderToQueue();
-                distributeOrder();
-            }
-            bFeasibleOrder = false;
         }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
+            allAgents = new AID[0];
+        }
+    }
+
+    private boolean checkForAvailableProducts(List<String> neededProducts) {
+        boolean bFeasibleOrder = false;
+        List<String> notAvailableProducts = new LinkedList<>();
+        for (String product_name : neededProducts) {
+            if(!hmProducts.containsKey(product_name)) {
+                notAvailableProducts.add(product_name);
+            }
+        }
+        if(neededProducts.size() != notAvailableProducts.size()) {
+            bFeasibleOrder = true;
+        }
+        neededProducts.removeAll(notAvailableProducts);
+        return bFeasibleOrder;
     }
 
     private void addOrderToQueue() {
@@ -116,31 +96,6 @@ public class OrderProcessing extends BaseAgent {
 
     private void distributeOrder() {
 
-    }
-
-//    private void registerAgent() {
-//        DFAgentDescription dfd = new DFAgentDescription();
-//        dfd.setName(getAID());
-//        ServiceDescription sd = new ServiceDescription();
-//        sd.setType("schedulerbakery");
-//        sd.setName(this.sBakeryId);
-//        dfd.addServices(sd);
-//        try {
-//            DFService.register(this, dfd);
-//        } catch (FIPAException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
-    private String prepareArguments(Object[] oArguments) {
-        String[] stringArray = Arrays.copyOf(oArguments, oArguments.length, String[].class);
-        StringBuilder sbBuilder = new StringBuilder();
-        for(int i = 0; i< stringArray.length;i++){
-            sbBuilder.append(stringArray[i]);
-            if(i < stringArray.length - 1){sbBuilder.append(",");}
-        }
-        String sArguments = sbBuilder.toString();
-        return sArguments;
     }
 
     private boolean readArgs(Object[] oArgs){
@@ -155,14 +110,115 @@ public class OrderProcessing extends BaseAgent {
               while(product_iterator.hasNext()) {
                   JSONObject jsoProduct = (JSONObject) product_iterator.next();
                   Product product = new Product(jsoProduct.toString());
+                  hmProducts.put(product.getGuid(), product);
               }
               JSONObject jsoLocation = bakery.getJSONObject("location");
               lLocation = new Location(jsoLocation.getDouble("y"), jsoLocation.getDouble("x"));
+
+              JSONObject meta_data = new JSONObject(((String)oArgs[1]).replaceAll("###", ","));
+              this.endDays = meta_data.getInt("durationInDays");
+
               return true;
           }
           else {
               return false;
           }
+    }
+
+    private class OfferRequestServer extends CyclicBehaviour {
+        private boolean bFeasibleOrder;
+
+        private void sendNotFeasibleMessage(ACLMessage msg, String content) {
+            ACLMessage clientReply = msg.createReply();
+            clientReply.setPerformative(ACLMessage.REFUSE);
+            clientReply.setContent(content);
+            myAgent.send(clientReply);
+        }
+
+        @Override
+        public void action() {
+            if(getCurrentDay() >= endDays) {
+                System.out.println("system shutdown!");
+                addBehaviour(new shutdown());
+            }
+            MessageTemplate cfpMT = MessageTemplate.MatchPerformative(ACLMessage.CFP);
+            ACLMessage cfpMsg = myAgent.receive(cfpMT);
+            if(cfpMsg != null) {
+                Order order = new Order(cfpMsg.getContent());
+                List<String> order_av_products = new LinkedList<>(order.getProducts().keySet());
+                bFeasibleOrder = checkForAvailableProducts(order_av_products);
+
+                if(!bFeasibleOrder) {
+                    sendNotFeasibleMessage(cfpMsg, "No needed Product available!");
+                    return;
+                }
+
+                ACLMessage schedulerRequest = new ACLMessage(ACLMessage.REQUEST);
+                Hashtable<String, Integer> order_products = order.getProducts();
+
+                for(String product_name : order_products.keySet()) {
+                    if(!order_av_products.contains(product_name)) {
+                        order_products.remove(product_name);
+                    }
+                }
+
+                order.setProducts(order_products);
+                schedulerRequest.setConversationId(order.getGuid());
+                schedulerRequest.setContent(order.toJSONString());
+                myAgent.send(schedulerRequest);
+
+                MessageTemplate schedulerReply = MessageTemplate.and(MessageTemplate.MatchConversationId(order.getGuid()),
+                        MessageTemplate.MatchSender(aidScheduler));
+                ACLMessage schedulerMessage = myAgent.receive(schedulerReply);
+                if(schedulerMessage != null) {
+                    if(schedulerMessage.getPerformative() == ACLMessage.CONFIRM) {
+                        ACLMessage proposeMsg = cfpMsg.createReply();
+                        proposeMsg.setPerformative(ACLMessage.PROPOSE);
+
+                        JSONObject proposeObject = new JSONObject();
+                        JSONObject products = new JSONObject();
+                        proposeObject.put("guid", order.getGuid());
+                        for(String product_name : order.getProducts().keySet()) {
+                            double priceAllProductsOfType = hmProducts.get(product_name).getSalesPrice() * order.getProducts().get(product_name);
+                            products.put(product_name, priceAllProductsOfType);
+                        }
+                        proposeObject.put("products", products);
+                        proposeMsg.setContent(proposeObject.toString());
+                        proposeMsg.setConversationId(order.getGuid());
+                        myAgent.send(proposeMsg);
+
+                        MessageTemplate proposalReplyMT = MessageTemplate.and(MessageTemplate.MatchConversationId(order.getGuid()),
+                                MessageTemplate.MatchSender(cfpMsg.getSender()));
+                        ACLMessage proposalReply = myAgent.receive(proposalReplyMT);
+                        if(proposalReply != null) {
+                            if(proposalReply.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+
+                                // send to all Agents, send to schedule to addToQueue
+                            }
+                            else if (proposalReply.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
+                                return;
+                            }
+                        }
+                        else {
+                            block();
+                        }
+                    }
+                    else if(schedulerMessage.getPerformative() == ACLMessage.DISCONFIRM) {
+                        bFeasibleOrder = false;
+                    }
+                    if(!bFeasibleOrder) {
+                        sendNotFeasibleMessage(cfpMsg, "Not able to schedule Order!");
+                        return;
+                    }
+                }
+                else {
+                    block();
+                }
+            }
+            else {
+                block();
+            }
+        }
     }
 }
 
@@ -213,4 +269,9 @@ public class OrderProcessing extends BaseAgent {
             * Sender: SchedulerAgent
             * Receiver: OrderProcessingAgent
             * Content: String -> Scheduling impossible
+        * Propagate accepted Orders:
+            * Type: PROPAGATE
+            * Sender: SchedulerAgent
+            * Receiver: allAgents
+            * Content: JSONArray -> sorted List of all received Orders
      */

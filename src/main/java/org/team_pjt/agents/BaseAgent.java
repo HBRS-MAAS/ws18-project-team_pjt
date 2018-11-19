@@ -128,6 +128,7 @@ public abstract class BaseAgent extends Agent {
                 currentDay = day;
                 currentHour = hour;
                 allowAction = true;
+                finished();
             }
             else {
                 block();

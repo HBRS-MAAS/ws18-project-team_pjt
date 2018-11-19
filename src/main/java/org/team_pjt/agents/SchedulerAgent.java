@@ -6,6 +6,8 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.team_pjt.behaviours.shutdown;
+import org.team_pjt.objects.Order;
 import org.team_pjt.objects.Product;
 
 import java.util.HashMap;
@@ -15,6 +17,8 @@ public class SchedulerAgent extends BaseAgent {
     private HashMap<String, Float> hmPrepTables;
     private HashMap<String, Float> hmKneadingMachine;
     private HashMap<String, Product> hmProducts; // = Available Products
+    private HashMap<Integer, Order> scheduledOrders;
+    private int endDays;
 
     protected void setup(){
         super.setup();
@@ -23,6 +27,12 @@ public class SchedulerAgent extends BaseAgent {
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
+                if(getCurrentDay() >= endDays) {
+                    System.out.println("system shutdown!");
+                    addBehaviour(new shutdown());
+                }
+//                System.out.println(getCurrentDay() + " - " + getCurrentHour());
+//                System.out.println(getAllowAction());
                 ACLMessage aclmProducts = (ACLMessage) myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.PROPOSE));
                 if(aclmProducts != null &&(aclmProducts.getPerformative() == ACLMessage.PROPOSE)){
                     String sContent = aclmProducts.getContent();

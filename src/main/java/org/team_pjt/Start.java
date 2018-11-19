@@ -146,13 +146,13 @@ public class Start {
 		for (String a : agents) {
             if(isHost){
                 if(a.contains("Scheduler")){
-                    appendAgentAndArguments(sb, bakery.toString().replaceAll(",", "###"), a);
+                    appendAgentAndArguments(sb, bakery.toString().replaceAll(",", "###") + "," + joMeta.toString().replaceAll(",", "###"), a);
                     sb.append(";");
                     continue;
                 }
                 if(a.contains("OrderProcessing")) {
                     bakery = (JSONObject)bakery_iterator.next();
-                    appendAgentAndArguments(sb, bakery.toString().replaceAll(",", "###"), a);
+                    appendAgentAndArguments(sb, bakery.toString().replaceAll(",", "###") + "," + joMeta.toString().replaceAll(",", "###"), a);
                     sb.append(";");
                     continue;
                 }
@@ -160,7 +160,7 @@ public class Start {
             else {
                 if(a.contains("Client")){
                     JSONObject client = (JSONObject)customer_iterator.next();
-                    appendAgentAndArguments(sb, client.toString().replaceAll(",", "###"), a);
+                    appendAgentAndArguments(sb, client.toString().replaceAll(",", "###") + "," + joMeta.toString().replaceAll(",", "###"), a);
                     sb.append(";");
                     continue;
                 }
