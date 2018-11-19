@@ -1,0 +1,93 @@
+[
+  {
+    "guid": "bakery-001",
+    "name": "Sunspear Bakery",
+    "location": {
+      "y": 5.08,
+      "x": 0.01
+    },
+    "products": [
+      {
+        "guid": "Multigrain Bread",
+        "batch": {
+          "breadsPerOven": 14
+        },
+        "recipe": {
+          "coolingRate": 5,
+          "bakingTemp": 195,
+          "steps": [
+            {
+              "action": "kneading",
+              "duration": 5
+            },
+            {
+              "action": "resting",
+              "duration": 1
+            },
+            {
+              "action": "item preparation",
+              "duration": 1
+            },
+            {
+              "action": "cooling",
+              "duration": 1
+            },
+            {
+              "action": "proofing",
+              "duration": 1
+            },
+            {
+              "action": "filling",
+              "duration": 1
+            },
+            {
+              "action": "baking",
+              "duration": 1
+            },
+            {
+              "action": "decorating",
+              "duration": 1
+            },
+            {
+              "action": "sprinkling",
+              "duration": 1
+            }
+          ]
+        },
+        "packaging": {
+          "boxingTemp": 55,
+          "breadsPerBox": 10
+        },
+        "salesPrice": 2.9,
+        "productionCost": 0.3
+      }
+    ],
+    "equipment": {
+      "ovens": [
+        {
+          "coolingRate": 3,
+          "guid": "oven-001",
+          "heatingRate": 4
+        },
+        {
+          "cooling_rate": 5,
+          "guid": "oven-002",
+          "heating_rate": 2
+        }
+      ],
+      "doughPrepTables": [
+        {
+          "guid": "prep-table-001"
+        },
+        {
+          "guid": "prep-table-002"
+        }
+      ],
+      "kneadingMachines": [
+        {
+          "guid": "kneading-machine-001"
+        }
+      ]
+    }
+  }
+]

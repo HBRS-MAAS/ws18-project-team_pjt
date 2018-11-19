@@ -1,0 +1,33 @@
+[
+  {
+    "guid": "customer-001",
+    "type": 1,
+    "name": "King's Landing Shop",
+    "location": {
+      "y": -1.21,
+      "x": 0.35
+    },
+    "orders": [
+      {
+        "customerId": "customer-001",
+        "guid": "order-331",
+        "orderDate": {
+          "day": 7,
+          "hour": 0
+        },
+        "deliveryDate": {
+          "day": 11,
+          "hour": 11
+        },
+        "products": {
+          "Multigrain Bread": 3,
+          "Bagel": 7,
+          "Donut": 1,
+          "Berliner": 5,
+          "Muffin": 2,
+          "Bread": 4
+        }
+      }
+    ]
+  }
+]

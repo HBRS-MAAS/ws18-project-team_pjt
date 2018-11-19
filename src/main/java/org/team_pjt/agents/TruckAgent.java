@@ -15,18 +15,19 @@ public class TruckAgent extends Agent {
 //    }
 //    }
 //      ],
-    private int iLoadCapacity;
+//  private int iLoadCapacity;
     private String sBakeryGuid;
     private String sTruckGuid;
     private Location lLocation;
     protected void setup(){
+        // ToDo Argumente einlesen
         Object[] oArguments = getArguments();
-        this.sBakeryGuid = (String) oArguments[0];
-        this.sTruckGuid = (String) oArguments[1];
-        this.iLoadCapacity = Integer.parseInt(String.valueOf(oArguments[2]));
-        this.lLocation = new Location(Float.parseFloat(String.valueOf(oArguments[3])), Float.parseFloat(String.valueOf(oArguments[4])));
-        addBehaviour(new receiveKillMessage());
-        addBehaviour(new shutdown());
+//        this.sBakeryGuid = (String) oArguments[0];
+//        this.sTruckGuid = (String) oArguments[1];
+//        this.iLoadCapacity = Integer.parseInt(String.valueOf(oArguments[2]));
+//        this.lLocation = new Location(Float.parseFloat(String.valueOf(oArguments[3])), Float.parseFloat(String.valueOf(oArguments[4])));
+//        addBehaviour(new receiveKillMessage());
+//        addBehaviour(new shutdown());
         System.out.println("TruckAgent " + getName() + " ready");
     }
 }

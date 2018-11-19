@@ -1,9 +1,7 @@
 package org.team_pjt.agents;
 
 import jade.core.AID;
-import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -11,114 +9,157 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import org.team_pjt.objects.Product;
-import org.team_pjt.behaviours.receiveKillMessage;
-import org.team_pjt.objects.Location;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.team_pjt.behaviours.shutdown;
-//import org.team_pjt.objects.Product;
+import org.team_pjt.objects.Location;
+import org.team_pjt.objects.Order;
+import org.team_pjt.objects.Product;
 
 import java.util.*;
 
-public class SchedulerAgent extends Agent {
+public class SchedulerAgent extends BaseAgent {
     private String sBakeryId;
     private Location lLocation;
-    private Hashtable<String, Product> htAvailableProducts;
-    private Hashtable<String, Float> htKneadingMachines;
-    private Hashtable<String, Float> htPrepTables;
-    private Vector<AID> ovens;
-    private HashMap<String, Integer> hmKneadingMachine;
-    private HashMap<String, Product> hmProducts;
-    private String[] sSplit;
+    private HashMap<String, Float> hmPrepTables;
+    private HashMap<String, Float> hmKneadingMachine;
+    private HashMap<String, Product> hmProducts; // = Available Products
+    private HashMap<Integer, Order> scheduledOrders;
+    private AID order_processing;
+    private int endDays;
+
     protected void setup(){
+        super.setup();
         Object[] oArguments = getArguments();
-        String sArguments = prepareArguments(oArguments);
-        readArgs(sArguments);
-        registerAgent();
-        ovens = new Vector<>();
-        addBehaviour(new receiveKillMessage());
-        addBehaviour(new shutdown());
-        addBehaviour(new TickerBehaviour(this, 500) {
+        if (!readArgs(oArguments)) {
+            System.out.println("No parameter given for OrderProcessing " + getName());
+        }
+        this.register("scheduler", getName().split("@")[0]);
+        findOrderProcessing();
+        scheduledOrders = new HashMap<>();
 
-            @Override
-            protected void onTick() {
-                ACLMessage aclmReceive = (ACLMessage) myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-                if(aclmReceive != null &&(aclmReceive.getPerformative() == ACLMessage.INFORM)){
-                    if (aclmReceive.getContent().equals(sBakeryId)){
-//                        ovens.put();
-                        ovens.add(aclmReceive.getSender());
-                    };
+        addBehaviour(new receiveOrder());
+        System.out.println("SchedulerAgent is ready");
+    }
 
+    private void findOrderProcessing() {
+        DFAgentDescription[] dfSchedulerAgentResult = new DFAgentDescription[0];
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        sd.setName("bakery-"+sBakeryId.split("-")[1]);
+        template.addServices(sd);
+        while (dfSchedulerAgentResult.length == 0) {
+            try {
+                dfSchedulerAgentResult = DFService.search(this, template);
+            } catch (FIPAException e) {
+                e.printStackTrace();
+            }
+        }
+        order_processing = dfSchedulerAgentResult[0].getName();
+        System.out.println("OrderProcessing found! - " + order_processing);
+    }
+
+    private class receiveOrder extends CyclicBehaviour {
+
+        @Override
+        public void action() {
+            if(getCurrentDay() >= endDays) {
+                System.out.println("system shutdown!");
+                addBehaviour(new shutdown());
+            }
+            ACLMessage schedule_request = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
+            if(schedule_request != null) {
+                System.out.println("schedule request received!");
+                String sContent = schedule_request.getContent();
+                JSONObject jsoProducts = new JSONObject(sContent);
+                int delivery_day = jsoProducts.getJSONObject("deliveryDate").getInt("day");
+                ACLMessage schedule_reply = schedule_request.createReply();
+                System.out.println(schedule_reply.getAllReceiver().next());
+                if(scheduledOrders.containsKey(delivery_day)) {
+                    schedule_reply.setPerformative(ACLMessage.DISCONFIRM);
+                    schedule_reply.setContent("Scheduling impossible!");
+                    sendMessage(schedule_reply);
+                    return;
                 }
+                schedule_reply.setPerformative(ACLMessage.CONFIRM);
+                schedule_reply.setContent("Scheduling possible!");
+                sendMessage(schedule_reply);
+                System.out.println("schedule reply sent!");
+            }
+            else {
+                block();
+            }
+        }
+    }
+
+    private class getAcceptedProposal extends CyclicBehaviour {
+
+        @Override
+        public void action() {
+            MessageTemplate accepted_proposalMT = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.PROPAGATE),
+                    MessageTemplate.MatchSender(order_processing));
+            ACLMessage accepted_proposal = receive(accepted_proposalMT);
+            if(accepted_proposal != null) {
+                Order order = new Order(accepted_proposal.getContent());
+                scheduledOrders.put(order.getDeliveryDay(), order);
+                scheduledOrders = sortOrders(scheduledOrders);
+                System.out.println("Order added");
+            }
+            else {
+                block();
+            }
+        }
+    }
+
+    public static HashMap<Integer, Order> sortOrders(HashMap<Integer, Order> hm)
+    {
+        List<Map.Entry<Integer, Order>> orders = new LinkedList<Map.Entry<Integer, Order>>(hm.entrySet());
+
+        Collections.sort(orders, new Comparator<Map.Entry<Integer, Order> >() {
+            @Override
+            public int compare(Map.Entry<Integer, Order> o1, Map.Entry<Integer, Order> o2) {
+                if(o1.getKey() < o2.getKey()) {
+                    return -1;
+                }
+                if(o1.getKey() > o2.getKey()) {
+                    return 1;
+                }
+                return 0;
             }
         });
-//        addBehaviour(new OneShotBehaviour() {
-//            @Override
-//            public void action() {
-//
-//            }
-//        });
-        System.out.println("SchedulerAgent " + getName() + " ready");
 
+        // put data from sorted list to hashmap
+        HashMap<Integer, Order> temp = new LinkedHashMap<>();
+        for (Map.Entry<Integer, Order> aa : orders) {
+            temp.put(aa.getKey(), aa.getValue());
+        }
+        return temp;
     }
 
-    private void registerAgent() {
-        DFAgentDescription dfd = new DFAgentDescription();
-        dfd.setName(getAID());
-        ServiceDescription sd = new ServiceDescription();
-        sd.setType("schedulerbakery");
-        sd.setName(this.sBakeryId);
-        dfd.addServices(sd);
-        try {
-            DFService.register(this, dfd);
-        } catch (FIPAException e) {
-            e.printStackTrace();
+    private boolean readArgs(Object[] oArgs){
+        if(oArgs != null && oArgs.length > 0){
+            hmProducts = new HashMap<>();
+            JSONObject bakery = new JSONObject(((String)oArgs[0]).replaceAll("###", ","));
+            JSONArray products = bakery.getJSONArray("products");
+            Iterator<Object> product_iterator = products.iterator();
+
+            sBakeryId = bakery.getString("guid");
+
+            while(product_iterator.hasNext()) {
+                JSONObject jsoProduct = (JSONObject) product_iterator.next();
+                Product product = new Product(jsoProduct.toString());
+                hmProducts.put(product.getGuid(), product);
+            }
+            JSONObject jsoLocation = bakery.getJSONObject("location");
+            lLocation = new Location(jsoLocation.getDouble("y"), jsoLocation.getDouble("x"));
+
+            JSONObject meta_data = new JSONObject(((String)oArgs[1]).replaceAll("###", ","));
+            this.endDays = meta_data.getInt("durationInDays");
+
+            return true;
+        }
+        else {
+            return false;
         }
     }
-
-    private String prepareArguments(Object[] oArguments) {
-        String[] stringArray = Arrays.copyOf(oArguments, oArguments.length, String[].class);
-        StringBuilder sbBuilder = new StringBuilder();
-        for(int i = 0; i< stringArray.length;i++){
-            sbBuilder.append(stringArray[i]);
-            if(i < stringArray.length - 1){sbBuilder.append(",");}
-        }
-        String sArguments = sbBuilder.toString();
-        return sArguments;
-    }
-
-    private boolean readArgs(String sArgs){
-        hmKneadingMachine = new HashMap<>();
-        hmProducts = new HashMap<>();
-        String[] saSplit = sArgs.split("#");
-        for (int i = 0; i<saSplit.length; i++) {
-            if (!(saSplit[i].isEmpty())){
-                switch (i){
-                    case 0: this.sBakeryId = saSplit[i];
-                            break;
-                    case 1: sSplit = saSplit[i].split(",");
-                            lLocation = new Location(Float.parseFloat(sSplit[0]), Float.parseFloat(sSplit[1]));
-                            break;
-                    case 2: sSplit = saSplit[i].split(",");
-                            for(int z = 0; z < sSplit.length; z++){
-                                if((z % 12) == 0 && (z != 0)){
-                                    hmProducts.put(sSplit[z-12], new Product(sSplit[z-12], Integer.parseInt(sSplit[z-11]), Float.parseFloat(sSplit[z-10]), Integer.parseInt(sSplit[z-9]) , Integer.parseInt(sSplit[z-8]), Integer.parseInt(sSplit[z-7]), Integer.parseInt(sSplit[z-6]), Integer.parseInt(sSplit[z-5]), Integer.parseInt(sSplit[z - 4]), Integer.parseInt(sSplit[z - 3]), Integer.parseInt(sSplit[z - 2]), Float.parseFloat(sSplit[z - 1])));
-                                }
-                                if (z == sSplit.length - 1){
-                                    hmProducts.put(sSplit[z-11], new Product(sSplit[z-11], Integer.parseInt(sSplit[z-10]), Float.parseFloat(sSplit[z-9]), Integer.parseInt(sSplit[z-8]) , Integer.parseInt(sSplit[z-7]), Integer.parseInt(sSplit[z-6]), Integer.parseInt(sSplit[z-5]), Integer.parseInt(sSplit[z-4]), Integer.parseInt(sSplit[z - 3]), Integer.parseInt(sSplit[z - 2]), Integer.parseInt(sSplit[z - 1]), Float.parseFloat(sSplit[z])));
-                                }
-                            }
-                            break;
-                    case 3: sSplit = saSplit[i].split(",");
-                            for(int z = 0; z < sSplit.length; z++){
-                                hmKneadingMachine.put(sSplit[z], -1);
-                            }
-                            break;
-                }
-            };
-        }
-        return false;
-    }
-
-
-
 }

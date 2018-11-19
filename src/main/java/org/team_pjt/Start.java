@@ -4,80 +4,135 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+
+import org.team_pjt.agents.Visualisation;
+import org.team_pjt.agents.Visualisation.*;
 
 public class Start {
 	private static boolean isHost;
 	private static String host;
 	private static String port;
-    private static String path;
-    private static final String sOvPrefix = ":org.team_pjt.agents.OvenAgent";
-    private static final String sSchPrefix = ":org.team_pjt.agents.SchedulerAgent";
-    private static final String sTrPrefix = ":org.team_pjt.agents.TruckAgent";
+    private static String bakeries_path;
+    private static String clients_path;
+    private static String delivery_path;
+    private static String meta_path;
+    private static String street_network_path;
+    private static final String sOPPrefix = ":org.team_pjt.agents.OrderProcessing";
+    private static final String sSchPrefix2 = ":org.team_pjt.agents.SchedulerAgent";
+    private static final String sCPrefix = ":org.team_pjt.agents.ClientDummy";
+    private static final String sTPrefix = "timekeeper:org.team_pjt.agents.TimeKeeper";
+    private static List<String> agents = new Vector<>();
 
     public static void main(String[] args) {
+        bakeries_path = "src/main/resources/bakeries.json";
+        clients_path = "src/main/resources/clients.json";
+        delivery_path = "src/main/resources/delivery.json";
+        meta_path = "src/main/resources/meta.json";
+        street_network_path = "src/main/resources/street-network.json";
     	if (!decodeArguments(args)) {
             isHost = true;
-            path = "src/main/resources/random-scenario.json";
 		}
 
-        String scenario = readScenarioFile();
-        if(scenario == null) {
+        String bakeries = readScenarioFile(bakeries_path);
+    	String clients = readScenarioFile(clients_path);
+        String delivery = readScenarioFile(delivery_path);
+        String meta = readScenarioFile(meta_path);
+        String street_network = readScenarioFile(street_network_path);
+    	// new scenarioFile
+//        readNewScenarioFile(sNewPath);
+        // new scenarioFile
+        if(bakeries == null || clients == null || delivery == null || meta == null || street_network == null) {
             System.exit(-1);
         }
-        JSONObject json_scenario = new JSONObject(scenario);
+        JSONArray jaBakeries = new JSONArray(bakeries);
+        JSONArray jaClients = new JSONArray(clients);
+        JSONArray jaDelivery = new JSONArray(delivery);
+        JSONObject joMeta = new JSONObject(meta);
+        JSONObject joStreet_network = new JSONObject(street_network);
 
-        JSONObject meta_data = json_scenario.getJSONObject("meta");
-
-        int duration_days = meta_data.getInt("duration_days");
-
-    	List<String> agents = new Vector<>();
+//        int duration_days = joMeta.getInt("duration_days");
+//    	List<String> agents = new Vector<>();
     	if(isHost) {
-            JSONArray bakeries = json_scenario.getJSONArray("bakeries");
-            Iterator<Object> bakery_iterator = bakeries.iterator();
+            agents.add(sTPrefix);
+            Iterator<Object> bakery_iterator = jaBakeries.iterator();
             while (bakery_iterator.hasNext()) {
                 JSONObject bakery = (JSONObject) bakery_iterator.next();
                 String id = bakery.getString("guid");
-                agents.add(id + ":org.team_pjt.agents.OrderProcessing");
+                String bakery_idNum = id.split("-")[1];
+                agents.add(id + sOPPrefix);
+                agents.add("scheduler-" + bakery_idNum + sSchPrefix2);
             }
-            agents.add("c1:org.team_pjt.agents.SystemClockAgent");
         }
         else {
-            JSONArray orders = json_scenario.getJSONArray("orders");
-            Iterator<Object> order_iterator = orders.iterator();
-            while (order_iterator.hasNext()) {
-                JSONObject order = (JSONObject) order_iterator.next();
+            Iterator<Object> client_iterator = jaClients.iterator();
+            while (client_iterator.hasNext()) {
+                JSONObject order = (JSONObject) client_iterator.next();
                 String id = order.getString("guid");
-                agents.add(id + ":org.team_pjt.agents.OrderAgent");
+                System.out.println(id);
+                agents.add(id + sCPrefix);
             }
         }
-    	List<String> cmd = buildCMD(agents, json_scenario);
+    	List<String> cmd = buildCMD(agents, jaBakeries, jaClients, jaDelivery, joMeta, joStreet_network);
 //    	  System.out.println(cmd.toString());
 //        System.out.println(cmd.size());
         jade.Boot.main(cmd.toArray(new String[cmd.size()]));
+        //Visualisation.showWindow();
 
     }
 
-    public static List<String> buildCMD(List<String> agents, JSONObject scenario) {
+//    private static void readNewScenarioFile(String sDirectory) {
+//        File fDir = new File(sDirectory);
+//        File[] directoryListing = fDir.listFiles();
+//        if (directoryListing != null) {
+//            for (File fChild : directoryListing) {
+//                if(fChild.isFile()){
+//                    String sReadFile = readScenarioFile(fChild.getAbsolutePath());
+//                    if(fChild.getName().contains("bakeries")){
+//                        jsaBakeries = prepareOvenandBakery(sReadFile);
+//                    }
+//                    if(fChild.getName().contains("delivery")){
+//                        jsaTruck = prepareTruck(sReadFile);
+//                    }
+//                    if(fChild.getName().contains("clients")){
+//                        jsaClients = prepareClients(sReadFile);
+//                    }
+//                }
+//            }
+//        }
+////        return sbBuilder.toString();
+//    }
+
+    private static JSONArray prepareClients(String sReadFile) {
+        JSONArray joObjectScenario = new JSONArray(sReadFile);
+        Iterator<Object> iCustomerIterator = joObjectScenario.iterator();
+        while(iCustomerIterator.hasNext()){
+            JSONObject jsoCustomer = (JSONObject) iCustomerIterator.next();
+            // ToDo [Jan] richtige ID vergeben
+            agents.add(jsoCustomer.get("guid")+ sCPrefix);
+        }
+        return joObjectScenario;
+    }
+
+    public static List<String> buildCMD(List<String> agents, JSONArray jaBakeries, JSONArray jaClients, JSONArray jaDelivery, JSONObject joMeta, JSONObject joStreet_network) {
     	StringBuilder sb = new StringBuilder();
         List<String> cmd = new Vector<>();
-        JSONArray json_customers = scenario.getJSONArray("customers");
-        JSONArray json_bakeries = scenario.getJSONArray("bakeries");
-        Iterator<Object> customer_iterator = json_customers.iterator();
-        Iterator<Object> bakery_iterator = json_bakeries.iterator();
-        Iterator<Object> order_iterator = scenario.getJSONArray("orders").iterator();
+        Iterator<Object> customer_iterator = jaClients.iterator();
+        Iterator<Object> bakery_iterator = jaBakeries.iterator();
+//        Iterator<Object> delivery_iterator = jaDelivery.iterator();
 
-        Hashtable<String, JSONObject> htCustomers = new Hashtable<>();
-        while(customer_iterator.hasNext()) {
-            JSONObject json_cust = (JSONObject) customer_iterator.next();
-            htCustomers.put(json_cust.getString("guid"), json_cust);
-        }
+//        Hashtable<String, JSONObject> htCustomers = new Hashtable<>();
+//        while(customer_iterator.hasNext()) {
+//            JSONObject json_cust = (JSONObject) customer_iterator.next();
+//            htCustomers.put(json_cust.getString("guid"), json_cust);
+//        }
 
     	if(isHost) {
             cmd.add("-local-port");
-            cmd.add("8080");
+            cmd.add("8133");
 		}
 		else {
     	    cmd.add("-container");
@@ -87,176 +142,44 @@ public class Start {
             cmd.add(port);
 		}
         cmd.add("-agents");
+    	JSONObject bakery = new JSONObject();
 		for (String a : agents) {
+            if(isHost){
+                if(a.contains("Scheduler")){
+                    appendAgentAndArguments(sb, bakery.toString().replaceAll(",", "###") + "," + joMeta.toString().replaceAll(",", "###"), a);
+                    sb.append(";");
+                    continue;
+                }
+                if(a.contains("OrderProcessing")) {
+                    bakery = (JSONObject)bakery_iterator.next();
+                    appendAgentAndArguments(sb, bakery.toString().replaceAll(",", "###") + "," + joMeta.toString().replaceAll(",", "###"), a);
+                    sb.append(";");
+                    continue;
+                }
+            }
+            else {
+                if(a.contains("Client")){
+                    JSONObject client = (JSONObject)customer_iterator.next();
+                    appendAgentAndArguments(sb, client.toString().replaceAll(",", "###") + "," + joMeta.toString().replaceAll(",", "###"), a);
+                    sb.append(";");
+                    continue;
+                }
+            }
 			sb.append(a);
-			if(a.contains("OrderAgent")) {
-                sb.append("(");
-                JSONObject order = (JSONObject)order_iterator.next();
-                sb.append(order.toString().replaceAll(",", "###"));
-                sb.append(",");
-                JSONObject customer = htCustomers.get(order.getString("customer_id"));
-                sb.append(customer.toString().replaceAll(",", "###"));
-                sb.append(")");
-            }
-            if(a.contains("OrderProcessing")) {
-                sb.append("(");
-                sb.append(((JSONObject)bakery_iterator.next()).toString().replaceAll(",", "###"));
-                sb.append(")");
-
-            }
-			sb.append(";");
+            sb.append(";");
 		}
-        if (isHost) {
-            int iOvenPrefix = 0;
-            int iSchedulerPrefix = 0;
-            int iTruckPrefix = 0;
-            for (int i = 0; i< json_bakeries.length(); ++i) {
-
-                JSONObject joObject = null;
-                if (json_bakeries.get(i) instanceof JSONObject) {
-                    joObject = (JSONObject) json_bakeries.get(i);
-                }
-                JSONArray jaOvenArray = null;
-                // Parsing Ovens
-                if (joObject.get("ovens") instanceof JSONArray) {
-                    jaOvenArray = (JSONArray) joObject.get("ovens");
-                }
-                JSONObject jsOvenDetail = null;
-                for (int z = 0; z < jaOvenArray.length(); ++z) {
-                    if(jaOvenArray != null && jaOvenArray.get(z) instanceof JSONObject){
-                        sb.append(joObject.get("guid")+sOvPrefix);
-                        iOvenPrefix++;
-                        sb.append("(");
-                        jsOvenDetail = (JSONObject) jaOvenArray.get(z);
-                        sb.append(jsOvenDetail.get("cooling_rate").toString());
-                        sb.append(",");
-                        sb.append(jsOvenDetail.get("guid").toString());
-                        sb.append(",");
-                        sb.append(jsOvenDetail.get("heating_rate"));
-                        sb.append(",");
-                        sb.append(joObject.get("guid"));
-                        sb.append(")");
-                        sb.append(";");
-                    }
-                }
-                // Parsing Ovens
-                // Parsing Scheduler
-                sb.append(joObject.get("guid")+sSchPrefix);
-                sb.append("(");
-                // Parsing BakeryId
-                parsingBakeryId(sb, joObject);
-                // Parsing BakeryId
-                // Parsing Location
-                // ToDo Location wird falsch geparsed?
-                if (joObject.get("location") instanceof JSONObject) {
-                    JSONObject joLocation = (JSONObject) joObject.get("location");
-                    sb.append(joLocation.get("y"));
-                    sb.append(",");
-                    sb.append(joLocation.get("x"));
-                    sb.append("#");
-                }
-                // Parsing Location
-                // Parsing Products
-                JSONArray jaProductsArray = null;
-
-                if (joObject.get("products") instanceof JSONArray){
-                    jaProductsArray = (JSONArray) joObject.get("products");
-                }
-                JSONObject joProductDetail = null;
-                if (jaProductsArray != null) {
-                    for (int u = 0; u < jaProductsArray.length(); ++u) {
-                        if (jaProductsArray.get(u) instanceof JSONObject) {
-                            joProductDetail = (JSONObject) jaProductsArray.get(u);
-                            sb.append(joProductDetail.get("guid"));
-                            sb.append(",");
-                            sb.append(joProductDetail.get("boxing_temp"));
-                            sb.append(",");
-                            sb.append(joProductDetail.get("sales_price"));
-                            sb.append(",");
-                            sb.append(joProductDetail.get("breads_per_oven"));
-                            sb.append(",");
-                            sb.append(joProductDetail.get("breads_per_box"));
-                            sb.append(",");
-                            sb.append(joProductDetail.get("item_prep_time"));
-                            sb.append(",");
-                            sb.append(joProductDetail.get("dough_prep_time"));
-                            sb.append(",");
-                            sb.append(joProductDetail.get("baking_temp"));
-                            sb.append(",");
-                            sb.append(joProductDetail.get("cooling_rate"));
-                            sb.append(",");
-                            sb.append(joProductDetail.get("baking_time"));
-                            sb.append(",");
-                            sb.append(joProductDetail.get("resting_time"));
-                            sb.append(",");
-                            sb.append(joProductDetail.get("production_cost"));
-                            if (u < jaProductsArray.length() - 1){
-                                sb.append(",");
-                            }
-                        }
-                    }
-                }
-                // Parsing Products
-                sb.append("#");
-                // Parsing Kneading_machines
-                JSONArray jaKneadingMachinesArray = null;
-                if ((JSONArray) joObject.get("kneading_machines") instanceof JSONArray){
-                    jaKneadingMachinesArray = (JSONArray) joObject.get("kneading_machines");
-                }
-                JSONObject joKneadinMachineDetails = null;
-                for (int o = 0; o < jaKneadingMachinesArray.length(); ++o) {
-                    if (jaKneadingMachinesArray != null && jaKneadingMachinesArray.get(o) instanceof JSONObject) {
-                        joKneadinMachineDetails = (JSONObject) jaKneadingMachinesArray.get(o);
-                        sb.append(joKneadinMachineDetails.get("guid"));
-                        if(o < jaKneadingMachinesArray.length() - 1){sb.append(",");}
-                    }
-                }
-
-                // Parsing Kneading_machines
-                sb.append(")");
-                sb.append(";");
-                iSchedulerPrefix++;
-                // Scheduler passing finished
-                // Parsing Truck
-                JSONArray jaTruckArray = null;
-                if (joObject.get("trucks") instanceof JSONArray) {
-                    jaTruckArray = (JSONArray) joObject.get("trucks");
-                }
-                if (jaTruckArray != null) {
-                    for (int o = 0; o < jaTruckArray.length(); o++) {
-                        if(jaTruckArray.get(o) instanceof JSONObject){
-                            JSONObject joTruckDetails = (JSONObject) jaTruckArray.get(o);
-                            sb.append(joTruckDetails.get("guid")+sTrPrefix);
-                            sb.append("(");
-                            sb.append(joObject.get("guid"));
-                            sb.append(",");
-                            sb.append(joTruckDetails.get("guid"));
-                            sb.append(",");
-                            sb.append(joTruckDetails.get("load_capacity"));
-                            sb.append(",");
-                            if (joTruckDetails.get("location") instanceof JSONObject) {
-                                JSONObject joLocation = (JSONObject) joTruckDetails.get("location");
-                                sb.append(joLocation.get("y"));
-                                sb.append(",");
-                                sb.append(joLocation.get("x"));
-                            }
-                            sb.append(")");
-                            sb.append(";");
-                            iTruckPrefix++;
-                        }
-                    }
-                }
-    //            sb.append(")");
-                // Parsing Truck
-                // ToDO Parsing TruckScheduler
-                // Parsing TruckScheduler
-            }
-        }
 
         cmd.add(sb.toString());
 
     	return cmd;
 	}
+
+	private static void appendAgentAndArguments(StringBuilder sb, String argument, String agent) {
+        sb.append(agent);
+        sb.append("(");
+        sb.append(argument);
+        sb.append(")");
+    }
 
     private static void parsingBakeryId(StringBuilder sb, JSONObject joObject) {
 //        if (joObject.get("guid") instanceof JSONObject) {
@@ -265,7 +188,7 @@ public class Start {
         sb.append("#");
     }
 
-	public static String readScenarioFile() {
+	public static String readScenarioFile(String path) {
     	String jsonString = null;
 		try {
 		    StringBuilder sb = new StringBuilder();
@@ -299,7 +222,7 @@ public class Start {
 				++i;
 			}
             if (args[i].equals("-path")) {
-                path = args[i+1];
+                bakeries_path = args[i+1];
                 ++i;
             }
 			if (args[i].equals("-h")) {
