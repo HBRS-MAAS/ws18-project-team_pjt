@@ -39,6 +39,7 @@ public class ClientDummy extends BaseAgent {
             System.out.println("No parameters given for ClientDummy " + getName());
         }
         register("customer", guid);
+        ordersSent = new LinkedList<>();
         addBehaviour(new OrderTimeChecker());
     }
 
@@ -92,7 +93,6 @@ public class ClientDummy extends BaseAgent {
                 System.out.println("system shutdown!");
                 addBehaviour(new shutdown());
             }
-            System.out.println(getCurrentDay() + " - " + getCurrentHour());
             if(ordersToSent.get(0).getOrderDay() == getCurrentDay() && ordersToSent.get(0).getOrderHour() == getCurrentHour()) {
                 myAgent.addBehaviour(new RequestPerformer(ordersToSent.get(0)));
                 ordersSent.add(ordersToSent.remove(0));
@@ -128,8 +128,8 @@ public class ClientDummy extends BaseAgent {
             for(AID agent : orderProcessingAgents) {
                 cfp.addReceiver(agent);
             }
-            myAgent.send(cfp);
-            lastSendMessage = cfp;
+            sendMessage(cfp);
+            System.out.println("day: " + getCurrentDay() + " hour: " + getCurrentHour() + " cfp send " + order.getGuid());
         }
 
         private void receiveProposals() {
