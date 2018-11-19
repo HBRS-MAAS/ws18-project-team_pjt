@@ -4,6 +4,7 @@ bin/
 .settings/
 build/
 .gradle/
+.idea/
 APDescription.txt
 MTPs-Main-Container.txt
 

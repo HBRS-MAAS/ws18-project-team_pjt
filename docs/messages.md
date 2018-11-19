@@ -5,7 +5,7 @@ class CommonOrderMessage{ // CustomerAgent->OrderProcessingAgent
     private Customer cCustomer;
     private Date dOrderDate;
     private Date dDeliveryDate;
-    private HashMap<String, int> hmProducts;    
+    private HashMap<String, float> hmProducts;    
 }
      
 class SchedulerStatusMessage{ // Scheduleragent->OrderProcessingagent
@@ -35,7 +35,7 @@ class SchedulerMessage{ // Scheduleragent -> Kneadingmachineagent ;
     private HashMap<String, int> hmProducts;  
 }
 
-class TruckStatusMessage{ // Truckagent -> Orderagent
+class TruckStatusMessage{ // Truckagent -> Truckscheduleragent
     private String sTruckId;
     private boolean bIsUtilizedtoCapacity;
 }

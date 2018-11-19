@@ -1,5 +1,39 @@
-\chapter*{Architecture}
+\section{Architecture}
 %\section*{Architecture}\markboth{Architecture}{}
 	\includegraphics[scale=0.7]{./images/architecture.jpg}
+	
+\newpage
+\textbf{ To which stage do these agents belong?}
+{\small 
+\begin{itemize}
+	\item Order processing
+	\begin{itemize}
+		\item Customer
+		\item Order Processing
+		\item Scheduler
+		\item Order
+	\end{itemize}
+	\item Dough preparation
+	\begin{itemize}
+		\item Order
+	\end{itemize}
+	\item Baking and Cooking
+	\begin{itemize}
+		\item Scheduler
+		\item Oven
+		\item Order
+	\end{itemize}
+	\item Packing and Loading
+	\begin{itemize}
+		\item Truck Scheduler
+		\item Order
+	\end{itemize}
+	\item Delivery
+	\begin{itemize}
+		\item Truck Scheduler
+		\item Truck
+		\item Order
+	\end{itemize}
+\end{itemize}}
  
 %\end{abstract}
