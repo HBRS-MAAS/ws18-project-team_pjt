@@ -89,8 +89,8 @@ public class Order {
         orderDate.put("hour", order_hour);
 
         JSONObject deliveryDate = new JSONObject();
-        orderDate.put("day", delivery_day);
-        orderDate.put("hour", delivery_hour);
+        deliveryDate.put("day", delivery_day);
+        deliveryDate.put("hour", delivery_hour);
 
         JSONObject loc_products = new JSONObject();
         for(String product_name : products.keySet()) {
@@ -99,7 +99,7 @@ public class Order {
 
         order.put("customerId", customer_agent_id);
         order.put("guid", guid);
-        order.put("orderDater", orderDate);
+        order.put("orderDate", orderDate);
         order.put("deliveryDate", deliveryDate);
         order.put("products", loc_products);
         return order.toString();
