@@ -25,6 +25,7 @@ public class OrderProcessing extends BaseAgent {
     private AID aidScheduler;
     private AID[] allAgents;
     private int endDays;
+    private boolean ordersDirstributed = true;
 
     protected void setup(){
         super.setup();
@@ -141,6 +142,9 @@ public class OrderProcessing extends BaseAgent {
 
     private class OfferRequestServer extends CyclicBehaviour {
         private boolean bFeasibleOrder;
+        private int step = 0;
+        private Order order;
+        private ACLMessage cfpMessage;
 
         private void sendNotFeasibleMessage(ACLMessage msg, String content) {
             ACLMessage clientReply = msg.createReply();
@@ -152,79 +156,92 @@ public class OrderProcessing extends BaseAgent {
 
         @Override
         public void action() {
-            if(getCurrentDay() >= endDays) {
-                System.out.println("system shutdown!");
+            if (getCurrentDay() >= endDays) {
                 addBehaviour(new shutdown());
             }
-            MessageTemplate cfpMT = MessageTemplate.MatchPerformative(ACLMessage.CFP);
-            ACLMessage cfpMsg = myAgent.receive(cfpMT);
-            if(cfpMsg != null) {
-                System.out.println("cfp received");
-                Order order = new Order(cfpMsg.getContent());
-                List<String> order_av_products = new LinkedList<>(order.getProducts().keySet());
-                bFeasibleOrder = checkForAvailableProducts(order_av_products);
-                System.out.println("checked available products");
+            switch (step) {
+                case 0:
+                    MessageTemplate cfpMT = MessageTemplate.MatchPerformative(ACLMessage.CFP);
+                    cfpMessage = myAgent.receive(cfpMT);
+                    if (cfpMessage != null) {
+                        ordersDirstributed = false;
+                        System.out.println("cfp received");
+                        order = new Order(cfpMessage.getContent());
+                        List<String> order_av_products = new LinkedList<>(order.getProducts().keySet());
+                        bFeasibleOrder = checkForAvailableProducts(order_av_products);
+                        System.out.println("checked available products");
 
-                if(!bFeasibleOrder) {
-                    sendNotFeasibleMessage(cfpMsg, "No needed Product available!");
-                    System.out.println("no product available");
-                    return;
-                }
-
-                ACLMessage schedulerRequest = new ACLMessage(ACLMessage.REQUEST);
-                Hashtable<String, Integer> order_products = order.getProducts();
-                Iterator<String> product_iterator = order_products.keySet().iterator();
-                while(product_iterator.hasNext()) {
-                    String product_name = product_iterator.next();
-                    if(!order_av_products.contains(product_name)) {
-                        product_iterator.remove();
-                    }
-                }
-
-                order.setProducts(order_products);
-                schedulerRequest.setConversationId(order.getGuid());
-                schedulerRequest.setContent(order.toJSONString());
-                schedulerRequest.addReceiver(aidScheduler);
-                sendMessage(schedulerRequest);
-
-                System.out.println("asked scheduler for feasibility");
-
-                MessageTemplate schedulerReply = MessageTemplate.and(MessageTemplate.MatchConversationId(order.getGuid()),
-                        MessageTemplate.MatchSender(aidScheduler));
-                ACLMessage schedulerMessage = myAgent.receive(schedulerReply);
-                if(schedulerMessage != null) {
-                    System.out.println("schedule reply received!");
-                    if(schedulerMessage.getPerformative() == ACLMessage.CONFIRM) {
-                        ACLMessage proposeMsg = cfpMsg.createReply();
-                        proposeMsg.setPerformative(ACLMessage.PROPOSE);
-
-                        JSONObject proposeObject = new JSONObject();
-                        JSONObject products = new JSONObject();
-                        proposeObject.put("guid", order.getGuid());
-                        for(String product_name : order.getProducts().keySet()) {
-                            double priceAllProductsOfType = hmProducts.get(product_name).getSalesPrice() * order.getProducts().get(product_name);
-                            products.put(product_name, priceAllProductsOfType);
+                        if (!bFeasibleOrder) {
+                            sendNotFeasibleMessage(cfpMessage, "No needed Product available!");
+                            System.out.println("no product available");
+                            step = 0;
+                            order = null;
+                            cfpMessage = null;
+                            return;
                         }
-                        proposeObject.put("products", products);
-                        proposeMsg.setContent(proposeObject.toString());
-                        proposeMsg.setConversationId(order.getGuid());
-                        sendMessage(proposeMsg);
-                        System.out.println("proposed available products");
+
+                        ACLMessage schedulerRequest = new ACLMessage(ACLMessage.REQUEST);
+                        Hashtable<String, Integer> order_products = order.getProducts();
+                        Iterator<String> product_iterator = order_products.keySet().iterator();
+                        while (product_iterator.hasNext()) {
+                            String product_name = product_iterator.next();
+                            if (!order_av_products.contains(product_name)) {
+                                product_iterator.remove();
+                            }
+                        }
+
+                        order.setProducts(order_products);
+                        schedulerRequest.setConversationId(order.getGuid());
+                        schedulerRequest.setContent(order.toJSONString());
+                        schedulerRequest.addReceiver(aidScheduler);
+                        sendMessage(schedulerRequest);
+                        System.out.println("asked scheduler for feasibility");
+                        step++;
                     }
-                    else if(schedulerMessage.getPerformative() == ACLMessage.DISCONFIRM) {
-                        bFeasibleOrder = false;
+                    else {
+                        block();
                     }
-                    if(!bFeasibleOrder) {
-                        sendNotFeasibleMessage(cfpMsg, "Not able to schedule Order!");
-                        return;
+                    break;
+                case 1:
+                    MessageTemplate schedulerReply = MessageTemplate.and(MessageTemplate.MatchConversationId(order.getGuid()),
+                            MessageTemplate.MatchConversationId(order.getGuid()));
+                    ACLMessage schedulerMessage = myAgent.receive(schedulerReply);
+                    if (schedulerMessage != null) {
+                        System.out.println("schedule reply received!");
+                        if (schedulerMessage.getPerformative() == ACLMessage.CONFIRM) {
+                            ACLMessage proposeMsg = cfpMessage.createReply();
+                            proposeMsg.setPerformative(ACLMessage.PROPOSE);
+
+                            JSONObject proposeObject = new JSONObject();
+                            JSONObject products = new JSONObject();
+                            proposeObject.put("guid", order.getGuid());
+                            for (String product_name : order.getProducts().keySet()) {
+                                double priceAllProductsOfType = hmProducts.get(product_name).getSalesPrice() * order.getProducts().get(product_name);
+                                products.put(product_name, priceAllProductsOfType);
+                            }
+                            proposeObject.put("products", products);
+                            proposeMsg.setContent(proposeObject.toString());
+                            proposeMsg.setConversationId(order.getGuid());
+                            sendMessage(proposeMsg);
+                            System.out.println("proposed available products");
+                        } else if (schedulerMessage.getPerformative() == ACLMessage.DISCONFIRM) {
+                            bFeasibleOrder = false;
+                        }
+                        if (!bFeasibleOrder) {
+                            sendNotFeasibleMessage(cfpMessage, "Not able to schedule Order!");
+                            return;
+                        }
+                    } else {
+                        block();
                     }
-                }
-                else {
-                    block();
-                }
+                    step = 0;
+                    order = null;
+                    cfpMessage = null;
+                    ordersDirstributed = true;
+                    break;
             }
-            else {
-                block();
+            if(ordersDirstributed) {
+                finished();
             }
         }
     }

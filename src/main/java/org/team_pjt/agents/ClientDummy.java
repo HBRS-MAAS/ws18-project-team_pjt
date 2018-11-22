@@ -2,10 +2,7 @@ package org.team_pjt.agents;
 
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
-import jade.core.behaviours.TickerBehaviour;
-import jade.core.behaviours.WakerBehaviour;
+import jade.core.behaviours.*;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -31,6 +28,7 @@ public class ClientDummy extends BaseAgent {
     private int type;
     private Location location;
     private int endDays;
+    private boolean placingOrder = false;
 
     protected void setup(){
         super.setup();
@@ -90,23 +88,26 @@ public class ClientDummy extends BaseAgent {
         @Override
         public void action() {
             if(getCurrentDay() >= endDays) {
-                System.out.println("system shutdown!");
                 addBehaviour(new shutdown());
             }
-            if(ordersToSent.get(0).getOrderDay() == getCurrentDay() && ordersToSent.get(0).getOrderHour() == getCurrentHour()) {
+            if(!ordersToSent.isEmpty() && ordersToSent.get(0).getOrderDay() == getCurrentDay() && ordersToSent.get(0).getOrderHour() == getCurrentHour()) {
+                placingOrder = true;
                 myAgent.addBehaviour(new RequestPerformer(ordersToSent.get(0)));
                 ordersSent.add(ordersToSent.remove(0));
+            }
+            if(!placingOrder) {
+                finished();
             }
         }
     }
 
-    private class RequestPerformer extends OneShotBehaviour {
+    private class RequestPerformer extends Behaviour {
         private AID[] orderProcessingAgents;
         private Order order;
         private Hashtable<String, Hashtable<String, Double>> proposedPrices;
         private ACLMessage lastSendMessage;
         private ACLMessage lastReceivedMessage;
-//        private int proposalStep = 0;
+        private int step = 0;
 
         public RequestPerformer(Order order) {
             super();
@@ -116,9 +117,23 @@ public class ClientDummy extends BaseAgent {
 
         @Override
         public void action() {
-            findOrderProcessingAgents();
-            sendCallForProposal();
-            receiveProposals();
+            switch (step) {
+                case 0:
+                    findOrderProcessingAgents();
+                    sendCallForProposal();
+                    step++;
+                    break;
+                case 1:
+                    receiveProposals();
+                    step++;
+                    break;
+            }
+            placingOrder = false;
+        }
+
+        @Override
+        public boolean done() {
+            return step >= 2;
         }
 
         private void sendCallForProposal() {
@@ -145,6 +160,7 @@ public class ClientDummy extends BaseAgent {
                         System.out.println(proposal.getContent());
                     }
                     else {
+                        System.out.println("proposal received!");
                         Hashtable<String, Double> available_products = new Hashtable<>();
                         JSONObject order = new JSONObject(proposal.getContent());
                         for(String product_name : order.getJSONObject("products").keySet()) {

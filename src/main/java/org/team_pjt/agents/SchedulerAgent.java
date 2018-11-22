@@ -27,6 +27,7 @@ public class SchedulerAgent extends BaseAgent {
     private HashMap<Integer, Order> scheduledOrders;
     private AID order_processing;
     private int endDays;
+    boolean newOrderSchedeuled = true;
 
     protected void setup(){
         super.setup();
@@ -39,6 +40,7 @@ public class SchedulerAgent extends BaseAgent {
         scheduledOrders = new HashMap<>();
 
         addBehaviour(new receiveOrder());
+        addBehaviour(new getAcceptedProposal());
         System.out.println("SchedulerAgent is ready");
     }
 
@@ -64,11 +66,11 @@ public class SchedulerAgent extends BaseAgent {
         @Override
         public void action() {
             if(getCurrentDay() >= endDays) {
-                System.out.println("system shutdown!");
                 addBehaviour(new shutdown());
             }
             ACLMessage schedule_request = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
             if(schedule_request != null) {
+                newOrderSchedeuled = false;
                 System.out.println("schedule request received!");
                 String sContent = schedule_request.getContent();
                 JSONObject jsoProducts = new JSONObject(sContent);
@@ -85,9 +87,13 @@ public class SchedulerAgent extends BaseAgent {
                 schedule_reply.setContent("Scheduling possible!");
                 sendMessage(schedule_reply);
                 System.out.println("schedule reply sent!");
+                newOrderSchedeuled = true;
             }
             else {
                 block();
+            }
+            if(newOrderSchedeuled) {
+                finished();
             }
         }
     }

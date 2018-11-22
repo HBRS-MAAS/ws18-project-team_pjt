@@ -80,7 +80,8 @@ public class Start {
 //    	  System.out.println(cmd.toString());
 //        System.out.println(cmd.size());
         jade.Boot.main(cmd.toArray(new String[cmd.size()]));
-        //Visualisation.showWindow();
+        // Visualisation.showWindow();
+        // Visualisation.main(null);
 
     }
 
