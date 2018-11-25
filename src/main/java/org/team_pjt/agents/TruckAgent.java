@@ -2,7 +2,7 @@ package org.team_pjt.agents;
 
 import jade.core.Agent;
 import org.team_pjt.objects.*;
-import org.team_pjt.behaviours.receiveKillMessage;
+//import org.team_pjt.behaviours.receiveKillMessage;
 import org.team_pjt.behaviours.shutdown;
 
 public class TruckAgent extends Agent {
