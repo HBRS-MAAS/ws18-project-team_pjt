@@ -241,7 +241,6 @@ public class OrderProcessing extends BaseAgent {
                     }
                     break;
                 case 2:
-                    System.out.println("in case 3");
                     distributeScheduledOrder();
                     break;
             }
@@ -249,9 +248,12 @@ public class OrderProcessing extends BaseAgent {
 
         @Override
         public boolean done() {
-            boolean isDone = step >= 3 || messageCounter == allCustomers.length;
+            boolean isDone = messageCounter == allCustomers.length;
             if(isDone) {
                 myAgent.addBehaviour(new schedulerSyncing());
+            }
+            isDone = isDone || step >= 3;
+            if(isDone) {
                 myAgent.addBehaviour(new OfferRequestServer());
                 finished();
             }

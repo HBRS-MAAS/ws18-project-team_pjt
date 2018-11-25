@@ -75,7 +75,7 @@ public class SchedulerAgent extends BaseAgent {
             ACLMessage newOrder = myAgent.receive(mtNewOrder);
             if(newOrder != null) {
                 if(newOrder.getContent().toUpperCase().equals("NO NEW ORDER")) {
-//                    System.out.println(myAgent.getName() + " called finished()");
+                    System.out.println(myAgent.getName() + " called finished()");
                     finished();
                 }
                 else {
