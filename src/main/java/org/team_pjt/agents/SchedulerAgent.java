@@ -1,7 +1,9 @@
 package org.team_pjt.agents;
 
 import jade.core.AID;
+import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -16,6 +18,7 @@ import org.team_pjt.objects.Location;
 import org.team_pjt.objects.Order;
 import org.team_pjt.objects.Product;
 
+import javax.swing.*;
 import java.util.*;
 
 public class SchedulerAgent extends BaseAgent {
@@ -27,7 +30,7 @@ public class SchedulerAgent extends BaseAgent {
     private HashMap<Integer, Order> scheduledOrders;
     private AID order_processing;
     private int endDays;
-    boolean newOrderSchedeuled = true;
+    boolean newOrderScheduled = true;
 
     protected void setup(){
         super.setup();
@@ -39,8 +42,8 @@ public class SchedulerAgent extends BaseAgent {
         findOrderProcessing();
         scheduledOrders = new HashMap<>();
 
-        addBehaviour(new receiveOrder());
-        addBehaviour(new getAcceptedProposal());
+        addBehaviour(new isNewOrderChecker());
+
         System.out.println("SchedulerAgent is ready");
     }
 
@@ -61,16 +64,51 @@ public class SchedulerAgent extends BaseAgent {
         System.out.println("OrderProcessing found! - " + order_processing);
     }
 
-    private class receiveOrder extends CyclicBehaviour {
-
+    private class isNewOrderChecker extends Behaviour {
+        boolean isDone = false;
         @Override
         public void action() {
+            if(!getAllowAction()) {
+                return;
+            }
+            MessageTemplate mtNewOrder = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                    MessageTemplate.MatchSender(order_processing));
+            ACLMessage newOrder = myAgent.receive(mtNewOrder);
+            if(newOrder != null) {
+                if(newOrder.getContent().toUpperCase().equals("NO NEW ORDER")) {
+//                    System.out.println(myAgent.getName() + " called finished()");
+                    finished();
+                }
+                else {
+                    myAgent.addBehaviour(new receiveOrder());
+                }
+                myAgent.addBehaviour(new isNewOrderChecker());
+                isDone = true;
+            }
+            else {
+                block();
+            }
+        }
+
+        @Override
+        public boolean done() {
+            return isDone;
+        }
+    }
+
+    private class receiveOrder extends Behaviour {
+        boolean isDone = false;
+        @Override
+        public void action() {
+            if(!getAllowAction()) {
+                return;
+            }
             if(getCurrentDay() >= endDays) {
                 addBehaviour(new shutdown());
             }
             ACLMessage schedule_request = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
             if(schedule_request != null) {
-                newOrderSchedeuled = false;
+                newOrderScheduled = false;
                 System.out.println("schedule request received!");
                 String sContent = schedule_request.getContent();
                 JSONObject jsoProducts = new JSONObject(sContent);
@@ -81,20 +119,28 @@ public class SchedulerAgent extends BaseAgent {
                     schedule_reply.setPerformative(ACLMessage.DISCONFIRM);
                     schedule_reply.setContent("Scheduling impossible!");
                     sendMessage(schedule_reply);
-                    return;
                 }
-                schedule_reply.setPerformative(ACLMessage.CONFIRM);
-                schedule_reply.setContent("Scheduling possible!");
-                sendMessage(schedule_reply);
-                System.out.println("schedule reply sent!");
-                newOrderSchedeuled = true;
+                else {
+                    schedule_reply.setPerformative(ACLMessage.CONFIRM);
+                    schedule_reply.setContent("Scheduling possible!");
+                    sendMessage(schedule_reply);
+                    System.out.println("schedule reply sent!");
+                }
+                newOrderScheduled = true;
+                isDone = true;
             }
             else {
                 block();
             }
-            if(newOrderSchedeuled) {
+            if(newOrderScheduled) {
+//                System.out.println(myAgent.getName() + " called finished()");
                 finished();
             }
+        }
+
+        @Override
+        public boolean done() {
+            return isDone;
         }
     }
 
@@ -102,6 +148,9 @@ public class SchedulerAgent extends BaseAgent {
 
         @Override
         public void action() {
+            if(!getAllowAction()) {
+                return;
+            }
             MessageTemplate accepted_proposalMT = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.PROPAGATE),
                     MessageTemplate.MatchSender(order_processing));
             ACLMessage accepted_proposal = receive(accepted_proposalMT);
@@ -117,8 +166,15 @@ public class SchedulerAgent extends BaseAgent {
         }
     }
 
-    public static HashMap<Integer, Order> sortOrders(HashMap<Integer, Order> hm)
-    {
+    private class QueueRequestServer extends CyclicBehaviour {
+        // TODO
+        @Override
+        public void action() {
+
+        }
+    }
+
+    public static HashMap<Integer, Order> sortOrders(HashMap<Integer, Order> hm) {
         List<Map.Entry<Integer, Order>> orders = new LinkedList<Map.Entry<Integer, Order>>(hm.entrySet());
 
         Collections.sort(orders, new Comparator<Map.Entry<Integer, Order> >() {

@@ -16,12 +16,12 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 @SuppressWarnings("serial")
 public abstract class BaseAgent extends Agent {
 
-    private int currentDay;
+	private int currentDay;
     private int currentHour;
     private boolean allowAction = false;
     protected AID clockAgent = new AID("TimeKeeper", AID.ISLOCALNAME);
     protected BaseAgent baseAgent = this;
-
+	
     /* Setup to add behaviour to talk with clockAgent
      * Call `super.setup()` from `setup()` function
      */
@@ -46,12 +46,12 @@ public abstract class BaseAgent extends Agent {
             fe.printStackTrace();
         }
     }
-
+    
     /* This function removes the agent from yellow pages
      * Call this in `doDelete()` function
      */
     protected void deRegister() {
-        try {
+    	try {
             DFService.deregister(this);
         }
         catch (FIPAException fe) {
@@ -114,10 +114,9 @@ public abstract class BaseAgent extends Agent {
      */
     private class PermitAction extends CyclicBehaviour {
         private MessageTemplate mt;
-        private BaseAgent ba;
 
         public void action(){
-            this.mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+            this.mt = MessageTemplate.and(MessageTemplate.MatchPerformative(55),
                     MessageTemplate.MatchSender(baseAgent.clockAgent));
             ACLMessage msg = myAgent.receive(this.mt);
             if (msg != null) {
@@ -133,5 +132,5 @@ public abstract class BaseAgent extends Agent {
                 block();
             }
         }
-    }
+   }
 }

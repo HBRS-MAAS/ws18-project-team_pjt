@@ -1,7 +1,6 @@
 package org.team_pjt.agents;
 
 import jade.core.AID;
-import jade.core.Agent;
 import jade.core.behaviours.*;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -11,7 +10,6 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.team_pjt.behaviours.receiveKillMessage;
 import org.team_pjt.behaviours.shutdown;
 import org.team_pjt.objects.Location;
 import org.team_pjt.objects.Order;
@@ -83,21 +81,46 @@ public class ClientDummy extends BaseAgent {
         return false;
     }
 
-    private class OrderTimeChecker extends CyclicBehaviour {
+    private void sendNoNewOrderMessage() {
+        AID[] orderProcessingAgents = findOrderProcessingAgents();
+        ACLMessage cfp = new ACLMessage(ACLMessage.INFORM);
+        cfp.setConversationId("syncing");
+        cfp.setContent("no new Order");
+        for(AID agent : orderProcessingAgents) {
+            cfp.addReceiver(agent);
+        }
+        sendMessage(cfp);
+//        System.out.println(this.getName() + " called finished()");
+        finished();
+        addBehaviour(new OrderTimeChecker());
+    }
 
+    private class OrderTimeChecker extends Behaviour {
+        boolean oneMessageSend = false;
         @Override
         public void action() {
+            if(!getAllowAction()) {
+                return;
+            }
             if(getCurrentDay() >= endDays) {
+                deRegister();
                 addBehaviour(new shutdown());
             }
             if(!ordersToSent.isEmpty() && ordersToSent.get(0).getOrderDay() == getCurrentDay() && ordersToSent.get(0).getOrderHour() == getCurrentHour()) {
                 placingOrder = true;
                 myAgent.addBehaviour(new RequestPerformer(ordersToSent.get(0)));
                 ordersSent.add(ordersToSent.remove(0));
+                oneMessageSend = true;
             }
-            if(!placingOrder) {
-                finished();
+            else {
+                sendNoNewOrderMessage();
+                oneMessageSend = true;
             }
+        }
+
+        @Override
+        public boolean done() {
+            return oneMessageSend;
         }
     }
 
@@ -105,8 +128,6 @@ public class ClientDummy extends BaseAgent {
         private AID[] orderProcessingAgents;
         private Order order;
         private Hashtable<String, Hashtable<String, Double>> proposedPrices;
-        private ACLMessage lastSendMessage;
-        private ACLMessage lastReceivedMessage;
         private int step = 0;
 
         public RequestPerformer(Order order) {
@@ -117,23 +138,33 @@ public class ClientDummy extends BaseAgent {
 
         @Override
         public void action() {
+            if(!getAllowAction()) {
+                return;
+            }
+
             switch (step) {
                 case 0:
-                    findOrderProcessingAgents();
+                    orderProcessingAgents = findOrderProcessingAgents();
                     sendCallForProposal();
                     step++;
                     break;
                 case 1:
                     receiveProposals();
-                    step++;
                     break;
             }
-            placingOrder = false;
         }
 
         @Override
         public boolean done() {
-            return step >= 2;
+            boolean isDone = step >= 2;
+            if(isDone) {
+                placingOrder = false;
+//                System.out.println(myAgent.getName() + " called finished()");
+                finished();
+                myAgent.addBehaviour(new OrderTimeChecker());
+            }
+
+            return isDone;
         }
 
         private void sendCallForProposal() {
@@ -151,8 +182,8 @@ public class ClientDummy extends BaseAgent {
             int proposalCounter = 0;
             MessageTemplate proposalTemplate = MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.PROPOSE),
                     MessageTemplate.MatchPerformative(ACLMessage.REFUSE));
-            ACLMessage proposal = myAgent.receive(proposalTemplate);
-            while(proposalCounter != orderProcessingAgents.length) {
+            while(proposalCounter < orderProcessingAgents.length) {
+                ACLMessage proposal = myAgent.receive(proposalTemplate);
                 if (proposal != null) {
                     proposalCounter++;
                     if(proposal.getPerformative() == ACLMessage.REFUSE) {
@@ -168,29 +199,33 @@ public class ClientDummy extends BaseAgent {
                         }
                         proposedPrices.put(proposal.getSender().getName(), available_products);
                     }
-                } else {
+                    step++;
+                }
+                else {
                     block();
                 }
             }
         }
+    }
 
-        private void findOrderProcessingAgents() {
-            DFAgentDescription template = new DFAgentDescription();
-            ServiceDescription sd = new ServiceDescription();
-            sd.setType("OrderProcessing");
-            template.addServices(sd);
-            try {
-                DFAgentDescription[] result = DFService.search(myAgent, template);
-                orderProcessingAgents = new AID[result.length];
-                for (int i = 0; i < result.length; ++i) {
-                    orderProcessingAgents[i] = result[i].getName();
-                }
+    private AID[] findOrderProcessingAgents() {
+        AID[] orderProcessingAgents = new AID[0];
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType("OrderProcessing");
+        template.addServices(sd);
+        try {
+            DFAgentDescription[] result = DFService.search(this, template);
+            orderProcessingAgents = new AID[result.length];
+            for (int i = 0; i < result.length; ++i) {
+                orderProcessingAgents[i] = result[i].getName();
             }
-            catch (FIPAException fe) {
-                System.out.println("Error searching OrderProcessingAgents");
-                fe.printStackTrace();
-            }
-            System.out.println(orderProcessingAgents.length + " OrderProcessingAgents found!");
+//            System.out.println(orderProcessingAgents.length + " OrderProcessingAgents found!");
         }
+        catch (FIPAException fe) {
+            System.out.println("Error searching OrderProcessingAgents");
+            fe.printStackTrace();
+        }
+        return orderProcessingAgents;
     }
 }

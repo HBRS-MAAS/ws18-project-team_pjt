@@ -47,8 +47,13 @@
   * Sender: OrderProcessingAgent
   * Receiver: SchedulerAgent
   * Content: JSONObject -> order with only available products
+* Propagate received Orders:
+  * Type: Propagate
+  * Sender: OrderProcessingAgent
+  * Receiver: all Agents
+  * Content: JSONObject -> received Order
 * Propagate accepted Orders:
   * Type: PROPAGATE
   * Sender: OrderProcessingAgent
-  * Receiver: allAgents
+  * Receiver: all Agents
   * Content: JSONArray -> sorted List of all received Orders -> according bakeryid
