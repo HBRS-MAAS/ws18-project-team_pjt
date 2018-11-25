@@ -63,7 +63,7 @@ public class SchedulerAgent extends BaseAgent {
         System.out.println("OrderProcessing found! - " + order_processing);
     }
 
-    private class isNewOrderChecker extends Behaviour {
+        private class isNewOrderChecker extends Behaviour {
         boolean isDone = false;
         @Override
         public void action() {
@@ -139,6 +139,23 @@ public class SchedulerAgent extends BaseAgent {
                         scheduledOrders.put(order.getDeliveryDay(), order);
                         scheduledOrders = sortOrders(scheduledOrders);
                         System.out.println("Order added");
+                        System.out.println("accept proposal received");
+                        AID[] allAgents = findAllAgents();
+                        ACLMessage propagate_accepted_order = new ACLMessage(ACLMessage.PROPAGATE);
+
+                        List<Order> orders = new LinkedList<>(scheduledOrders.values());
+                        JSONArray sortedOrders = new JSONArray();
+
+                        for(Order o : orders) {
+                            sortedOrders.put(new JSONObject(o.toJSONString()));
+                        }
+
+                        propagate_accepted_order.setContent(sortedOrders.toString());
+                        for(AID agent : allAgents) {
+                            propagate_accepted_order.addReceiver(agent);
+                        }
+                        sendMessage(propagate_accepted_order);
+                        System.out.println("Propagated all scheduled Orders");
                         step++;
                     }
                     else {
@@ -155,6 +172,28 @@ public class SchedulerAgent extends BaseAgent {
             }
             return isDone;
         }
+
+        private AID[] findAllAgents() {
+            DFAgentDescription template = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            template.addServices(sd);
+            AID[] allAgents;
+            try {
+                DFAgentDescription[] result = DFService.search(myAgent, template);
+                allAgents = new AID[result.length];
+                int counter = 0;
+                for(DFAgentDescription ad : result) {
+                    allAgents[counter] = ad.getName();
+                    counter++;
+                }
+            }
+            catch (FIPAException fe) {
+                fe.printStackTrace();
+                allAgents = new AID[0];
+            }
+            return allAgents;
+        }
+
     }
 
     private class QueueRequestServer extends CyclicBehaviour {

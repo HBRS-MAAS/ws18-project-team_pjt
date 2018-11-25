@@ -139,9 +139,7 @@ public class OrderProcessing extends BaseAgent {
                 findAllAgents();
                 ACLMessage propagate_accepted_order = new ACLMessage(ACLMessage.PROPAGATE);
                 propagate_accepted_order.setContent(accepted_proposal.getContent());
-                for(AID agent : allAgents) {
-                    propagate_accepted_order.addReceiver(agent);
-                }
+                propagate_accepted_order.addReceiver(aidScheduler);
                 sendMessage(propagate_accepted_order);
                 System.out.println("Propagated all scheduled Orders");
                 step++;
@@ -216,8 +214,6 @@ public class OrderProcessing extends BaseAgent {
                     if (schedulerMessage != null) {
                         System.out.println("schedule reply received!");
                         if (schedulerMessage.getPerformative() == ACLMessage.CONFIRM) {
-//                            myAgent.addBehaviour(new distributeScheduledOrder());
-
                             ACLMessage proposeMsg = cfpMessage.createReply();
                             proposeMsg.setPerformative(ACLMessage.PROPOSE);
 
