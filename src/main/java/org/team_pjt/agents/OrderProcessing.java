@@ -198,6 +198,7 @@ public class OrderProcessing extends BaseAgent {
                         schedulerRequest.addReceiver(aidScheduler);
                         sendMessage(schedulerRequest);
                         System.out.println("asked scheduler for feasibility");
+                        step++;
                     }
                     else {
                         block();
@@ -207,6 +208,7 @@ public class OrderProcessing extends BaseAgent {
                     MessageTemplate schedulerReply = MessageTemplate.and(MessageTemplate.MatchConversationId(order.getGuid()),
                             MessageTemplate.MatchConversationId(order.getGuid()));
                     ACLMessage schedulerMessage = myAgent.receive(schedulerReply);
+                    System.out.println("in case 1");
                     if (schedulerMessage != null) {
                         System.out.println("schedule reply received!");
                         if (schedulerMessage.getPerformative() == ACLMessage.CONFIRM) {
@@ -234,7 +236,6 @@ public class OrderProcessing extends BaseAgent {
                         if (!bFeasibleOrder) {
                             sendNotFeasibleMessage(cfpMessage, "Not able to schedule Order!");
                         }
-                        step++;
                     } else {
                         block();
                     }
