@@ -196,13 +196,28 @@ public class ClientDummy extends BaseAgent {
                     else {
                         System.out.println("proposal received!");
                         Hashtable<String, Double> available_products = new Hashtable<>();
-                        JSONObject order = new JSONObject(proposal.getContent());
-                        for(String product_name : order.getJSONObject("products").keySet()) {
-                            available_products.put(product_name, order.getJSONObject("products").getDouble(product_name));
+                        JSONObject json_order = new JSONObject(proposal.getContent());
+                        for(String product_name : json_order.getJSONObject("products").keySet()) {
+                            available_products.put(product_name, json_order.getJSONObject("products").getDouble(product_name));
                         }
                         proposedPrices.put(proposal.getSender().getName(), available_products);
                         ACLMessage accept_proposal = proposal.createReply();
-                        accept_proposal.setContent(proposal.getContent());
+
+                        JSONObject jsonOrder = new JSONObject(order.toJSONString());
+                        JSONObject newOrder = new JSONObject(jsonOrder.toString());
+                        JSONObject jsonProducts = jsonOrder.getJSONObject("products");
+                        JSONObject jsonProductsNew = newOrder.getJSONObject("products");
+                        Set<String> allOrderProductNames = jsonProducts.keySet();
+                        Set<String> allProposedProductNames = json_order.getJSONObject("products").keySet();
+
+                        for(String product_name : allOrderProductNames) {
+                            if(!allProposedProductNames.contains(product_name)) {
+                                jsonProductsNew.remove(product_name);
+                            }
+                        }
+                        newOrder.put("products", jsonProductsNew);
+
+                        accept_proposal.setContent(newOrder.toString());
                         accept_proposal.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
                         sendMessage(accept_proposal);
                         System.out.println("accept proposal send");
@@ -214,63 +229,6 @@ public class ClientDummy extends BaseAgent {
                 }
             }
         }
-
-//        private void sendAcceptedProposals() {
-//            Hashtable<String, List<String>> accepted_proposals = new Hashtable<>();
-//            for(String bakery : proposedPrices.keySet()) {
-//                accepted_proposals.put(bakery, new LinkedList<>());
-//            }
-//
-//            Hashtable<String, Integer> products = order.getProducts();
-//            int num_products = products.size();
-//
-//            for(int i = 0; i < num_products; ++i) {
-//                double lowest_price = -1;
-//                String bakery = null;
-//                String product = new LinkedList<String>(products.keySet()).get(i);
-//                for(String bak : proposedPrices.keySet()) {
-//                    if(proposedPrices.get(bak).containsKey(product)) {
-//                        if(bakery == null || lowest_price > proposedPrices.get(bak).get(product)) {
-//                            bakery = bak;
-//                            lowest_price = proposedPrices.get(bak).get(product);
-//                        }
-//                    }
-//                }
-//                if(bakery != null) {
-//                    accepted_proposals.get(bakery).add(product);
-//                }
-//            }
-//
-//            Iterator<String> bakeryIterator = accepted_proposals.keySet().iterator();
-//            for(int i = 0; i < accepted_proposals.size(); ++i) {
-//                String bakery = bakeryIterator.next();
-//                if(!accepted_proposals.get(bakery).isEmpty()) {
-//                    JSONObject jsonOrder = new JSONObject(order.toJSONString());
-//                    JSONObject jsonProducts = jsonOrder.getJSONObject("products");
-//                    Set<String> keys = jsonProducts.keySet();
-//                    List<String> accepted_products = accepted_proposals.get(bakery);
-//                    for(String pr : keys) {
-//                        if(!accepted_products.contains(pr)) {
-//                            jsonProducts.remove(pr);
-//                        }
-//                    }
-//                    jsonOrder.put("products", jsonProducts);
-//
-//                    ACLMessage accept_proposal = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-//                    accept_proposal.setConversationId(order.getGuid());
-//                    accept_proposal.setContent(jsonOrder.toString());
-//                    accept_proposal.addReceiver(new AID(bakery));
-//                    sendMessage(accept_proposal);
-//                }
-//                else {
-//                    ACLMessage refuse_proposal = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
-//                    refuse_proposal.setConversationId(order.getGuid());
-//                    refuse_proposal.addReceiver(new AID(bakery));
-//                    sendMessage(refuse_proposal);
-//                }
-//            }
-//            step++;
-//        }
     }
 
     private AID[] findOrderProcessingAgents() {
