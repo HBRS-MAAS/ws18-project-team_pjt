@@ -30,7 +30,6 @@ public class SchedulerAgent extends BaseAgent {
     private HashMap<Integer, Order> scheduledOrders;
     private AID order_processing;
     private int endDays;
-    boolean newOrderScheduled = true;
 
     protected void setup(){
         super.setup();
@@ -64,7 +63,7 @@ public class SchedulerAgent extends BaseAgent {
         System.out.println("OrderProcessing found! - " + order_processing);
     }
 
-    private class isNewOrderChecker extends Behaviour {
+        private class isNewOrderChecker extends Behaviour {
         boolean isDone = false;
         @Override
         public void action() {
@@ -97,7 +96,8 @@ public class SchedulerAgent extends BaseAgent {
     }
 
     private class receiveOrder extends Behaviour {
-        boolean isDone = false;
+        private boolean isDone = false;
+        private int step = 0;
         @Override
         public void action() {
             if(!getAllowAction()) {
@@ -106,64 +106,94 @@ public class SchedulerAgent extends BaseAgent {
             if(getCurrentDay() >= endDays) {
                 addBehaviour(new shutdown());
             }
-            ACLMessage schedule_request = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
-            if(schedule_request != null) {
-                newOrderScheduled = false;
-                System.out.println("schedule request received!");
-                String sContent = schedule_request.getContent();
-                JSONObject jsoProducts = new JSONObject(sContent);
-                int delivery_day = jsoProducts.getJSONObject("deliveryDate").getInt("day");
-                ACLMessage schedule_reply = schedule_request.createReply();
-                System.out.println(schedule_reply.getAllReceiver().next());
-                if(scheduledOrders.containsKey(delivery_day)) {
-                    schedule_reply.setPerformative(ACLMessage.DISCONFIRM);
-                    schedule_reply.setContent("Scheduling impossible!");
-                    sendMessage(schedule_reply);
-                }
-                else {
-                    schedule_reply.setPerformative(ACLMessage.CONFIRM);
-                    schedule_reply.setContent("Scheduling possible!");
-                    sendMessage(schedule_reply);
-                    System.out.println("schedule reply sent!");
-                }
-                newOrderScheduled = true;
-                isDone = true;
-            }
-            else {
-                block();
-            }
-            if(newOrderScheduled) {
-//                System.out.println(myAgent.getName() + " called finished()");
-                finished();
+            switch (step) {
+                case 0:
+                    ACLMessage schedule_request = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
+                    if (schedule_request != null) {
+                        System.out.println("schedule request received!");
+                        String sContent = schedule_request.getContent();
+                        JSONObject jsoProducts = new JSONObject(sContent);
+                        int delivery_day = jsoProducts.getJSONObject("deliveryDate").getInt("day");
+                        ACLMessage schedule_reply = schedule_request.createReply();
+                        System.out.println(schedule_reply.getAllReceiver().next());
+                        if (scheduledOrders.containsKey(delivery_day)) {
+                            schedule_reply.setPerformative(ACLMessage.DISCONFIRM);
+                            schedule_reply.setContent("Scheduling impossible!");
+                            sendMessage(schedule_reply);
+                        } else {
+                            schedule_reply.setPerformative(ACLMessage.CONFIRM);
+                            schedule_reply.setContent("Scheduling possible!");
+                            sendMessage(schedule_reply);
+                            System.out.println("schedule reply sent!");
+                        }
+                        step++;
+                    } else {
+                        block();
+                    }
+                case 1:
+                    MessageTemplate accepted_proposalMT = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.PROPAGATE),
+                            MessageTemplate.MatchSender(order_processing));
+                    ACLMessage accepted_proposal = receive(accepted_proposalMT);
+                    if(accepted_proposal != null) {
+                        Order order = new Order(accepted_proposal.getContent());
+                        scheduledOrders.put(order.getDeliveryDay(), order);
+                        scheduledOrders = sortOrders(scheduledOrders);
+                        System.out.println("Order added");
+                        System.out.println("accept proposal received");
+                        AID[] allAgents = findAllAgents();
+                        ACLMessage propagate_accepted_order = new ACLMessage(ACLMessage.PROPAGATE);
+
+                        List<Order> orders = new LinkedList<>(scheduledOrders.values());
+                        JSONArray sortedOrders = new JSONArray();
+
+                        for(Order o : orders) {
+                            sortedOrders.put(new JSONObject(o.toJSONString()));
+                        }
+
+                        propagate_accepted_order.setContent(sortedOrders.toString());
+                        for(AID agent : allAgents) {
+                            propagate_accepted_order.addReceiver(agent);
+                        }
+                        sendMessage(propagate_accepted_order);
+                        System.out.println("Propagated all scheduled Orders");
+                        step++;
+                    }
+                    else {
+                        block();
+                    }
             }
         }
 
         @Override
         public boolean done() {
+            isDone = step >= 2;
+            if(isDone) {
+                finished();
+            }
             return isDone;
         }
-    }
 
-    private class getAcceptedProposal extends CyclicBehaviour {
-
-        @Override
-        public void action() {
-            if(!getAllowAction()) {
-                return;
+        private AID[] findAllAgents() {
+            DFAgentDescription template = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            template.addServices(sd);
+            AID[] allAgents;
+            try {
+                DFAgentDescription[] result = DFService.search(myAgent, template);
+                allAgents = new AID[result.length];
+                int counter = 0;
+                for(DFAgentDescription ad : result) {
+                    allAgents[counter] = ad.getName();
+                    counter++;
+                }
             }
-            MessageTemplate accepted_proposalMT = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.PROPAGATE),
-                    MessageTemplate.MatchSender(order_processing));
-            ACLMessage accepted_proposal = receive(accepted_proposalMT);
-            if(accepted_proposal != null) {
-                Order order = new Order(accepted_proposal.getContent());
-                scheduledOrders.put(order.getDeliveryDay(), order);
-                scheduledOrders = sortOrders(scheduledOrders);
-                System.out.println("Order added");
+            catch (FIPAException fe) {
+                fe.printStackTrace();
+                allAgents = new AID[0];
             }
-            else {
-                block();
-            }
+            return allAgents;
         }
+
     }
 
     private class QueueRequestServer extends CyclicBehaviour {

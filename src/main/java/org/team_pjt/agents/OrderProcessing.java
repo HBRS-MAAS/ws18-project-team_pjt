@@ -127,18 +127,21 @@ public class OrderProcessing extends BaseAgent {
 
         private void distributeScheduledOrder() {
             System.out.println("waiting for accepted proposal");
-            MessageTemplate acceptedProposalMT = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
+            MessageTemplate acceptedProposalMT = MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
+                    MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL));
             ACLMessage accepted_proposal = receive(acceptedProposalMT);
             if(accepted_proposal != null) {
+                if(accepted_proposal.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
+                    step++;
+                    return;
+                }
+                System.out.println("accept proposal received");
                 findAllAgents();
                 ACLMessage propagate_accepted_order = new ACLMessage(ACLMessage.PROPAGATE);
                 propagate_accepted_order.setContent(accepted_proposal.getContent());
-                for(AID agent : allAgents) {
-                    propagate_accepted_order.addReceiver(agent);
-                }
+                propagate_accepted_order.addReceiver(aidScheduler);
                 sendMessage(propagate_accepted_order);
                 System.out.println("Propagated all scheduled Orders");
-                System.out.println(myAgent.getName() + " called finished()");
                 step++;
             }
             else {
@@ -208,12 +211,9 @@ public class OrderProcessing extends BaseAgent {
                     MessageTemplate schedulerReply = MessageTemplate.and(MessageTemplate.MatchConversationId(order.getGuid()),
                             MessageTemplate.MatchConversationId(order.getGuid()));
                     ACLMessage schedulerMessage = myAgent.receive(schedulerReply);
-                    System.out.println("in case 1");
                     if (schedulerMessage != null) {
                         System.out.println("schedule reply received!");
                         if (schedulerMessage.getPerformative() == ACLMessage.CONFIRM) {
-//                            myAgent.addBehaviour(new distributeScheduledOrder());
-
                             ACLMessage proposeMsg = cfpMessage.createReply();
                             proposeMsg.setPerformative(ACLMessage.PROPOSE);
 
@@ -229,7 +229,7 @@ public class OrderProcessing extends BaseAgent {
                             proposeMsg.setConversationId(order.getGuid());
                             sendMessage(proposeMsg);
                             System.out.println("proposed available products");
-                            distributeScheduledOrder();
+                            step++;
                         } else if (schedulerMessage.getPerformative() == ACLMessage.DISCONFIRM) {
                             bFeasibleOrder = false;
                         }
@@ -240,12 +240,16 @@ public class OrderProcessing extends BaseAgent {
                         block();
                     }
                     break;
+                case 2:
+                    System.out.println("in case 3");
+                    distributeScheduledOrder();
+                    break;
             }
         }
 
         @Override
         public boolean done() {
-            boolean isDone = step >= 2 || messageCounter == allCustomers.length;
+            boolean isDone = step >= 3 || messageCounter == allCustomers.length;
             if(isDone) {
                 myAgent.addBehaviour(new schedulerSyncing());
                 myAgent.addBehaviour(new OfferRequestServer());
