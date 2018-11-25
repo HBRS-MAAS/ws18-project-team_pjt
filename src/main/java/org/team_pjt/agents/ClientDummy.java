@@ -151,6 +151,9 @@ public class ClientDummy extends BaseAgent {
                 case 1:
                     receiveProposals();
                     break;
+//                case 2:
+//                    sendAcceptedProposals();
+//                    break;
             }
         }
 
@@ -198,6 +201,11 @@ public class ClientDummy extends BaseAgent {
                             available_products.put(product_name, order.getJSONObject("products").getDouble(product_name));
                         }
                         proposedPrices.put(proposal.getSender().getName(), available_products);
+                        ACLMessage accept_proposal = proposal.createReply();
+                        accept_proposal.setContent(proposal.getContent());
+                        accept_proposal.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+                        sendMessage(accept_proposal);
+                        System.out.println("accept proposal send");
                     }
                     step++;
                 }
@@ -206,6 +214,63 @@ public class ClientDummy extends BaseAgent {
                 }
             }
         }
+
+//        private void sendAcceptedProposals() {
+//            Hashtable<String, List<String>> accepted_proposals = new Hashtable<>();
+//            for(String bakery : proposedPrices.keySet()) {
+//                accepted_proposals.put(bakery, new LinkedList<>());
+//            }
+//
+//            Hashtable<String, Integer> products = order.getProducts();
+//            int num_products = products.size();
+//
+//            for(int i = 0; i < num_products; ++i) {
+//                double lowest_price = -1;
+//                String bakery = null;
+//                String product = new LinkedList<String>(products.keySet()).get(i);
+//                for(String bak : proposedPrices.keySet()) {
+//                    if(proposedPrices.get(bak).containsKey(product)) {
+//                        if(bakery == null || lowest_price > proposedPrices.get(bak).get(product)) {
+//                            bakery = bak;
+//                            lowest_price = proposedPrices.get(bak).get(product);
+//                        }
+//                    }
+//                }
+//                if(bakery != null) {
+//                    accepted_proposals.get(bakery).add(product);
+//                }
+//            }
+//
+//            Iterator<String> bakeryIterator = accepted_proposals.keySet().iterator();
+//            for(int i = 0; i < accepted_proposals.size(); ++i) {
+//                String bakery = bakeryIterator.next();
+//                if(!accepted_proposals.get(bakery).isEmpty()) {
+//                    JSONObject jsonOrder = new JSONObject(order.toJSONString());
+//                    JSONObject jsonProducts = jsonOrder.getJSONObject("products");
+//                    Set<String> keys = jsonProducts.keySet();
+//                    List<String> accepted_products = accepted_proposals.get(bakery);
+//                    for(String pr : keys) {
+//                        if(!accepted_products.contains(pr)) {
+//                            jsonProducts.remove(pr);
+//                        }
+//                    }
+//                    jsonOrder.put("products", jsonProducts);
+//
+//                    ACLMessage accept_proposal = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+//                    accept_proposal.setConversationId(order.getGuid());
+//                    accept_proposal.setContent(jsonOrder.toString());
+//                    accept_proposal.addReceiver(new AID(bakery));
+//                    sendMessage(accept_proposal);
+//                }
+//                else {
+//                    ACLMessage refuse_proposal = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
+//                    refuse_proposal.setConversationId(order.getGuid());
+//                    refuse_proposal.addReceiver(new AID(bakery));
+//                    sendMessage(refuse_proposal);
+//                }
+//            }
+//            step++;
+//        }
     }
 
     private AID[] findOrderProcessingAgents() {
