@@ -1,9 +1,12 @@
 package org.team_pjt.agents;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
+import com.sun.deploy.util.ArrayUtil;
+import com.sun.tools.javac.util.ArrayUtils;
 import jade.core.Agent;
 import jade.core.AID;
 import jade.core.behaviours.*;
@@ -46,7 +49,15 @@ public class TimeKeeper extends Agent{
 		template.addServices(sd);
 		try {
 			DFAgentDescription[] result = DFService.search(this, template);
-			return Arrays.asList(result);
+//			result[0].getName();
+//			DFAgentDescription[] dfFinalResult = new DFAgentDescription[2];
+			List<DFAgentDescription> lAgents = new ArrayList<>();
+			for (int i = 0; i < result.length; i++){
+				if((result[i].getName().getName().contains("scheduler")) || (result[i].getName().getName().contains("bakery")) || result[i].getName().getName().contains("customer")){
+					lAgents.add(result[i]);
+				}
+			}
+			return lAgents;
 		}
 		catch (FIPAException fe) {
 			fe.printStackTrace();

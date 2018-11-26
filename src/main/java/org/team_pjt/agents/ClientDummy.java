@@ -27,6 +27,7 @@ public class ClientDummy extends BaseAgent {
     private Location location;
     private int endDays;
     private boolean placingOrder = false;
+    JSONArray jsaDoughPrepArray;
 
     protected void setup(){
         super.setup();
@@ -52,11 +53,15 @@ public class ClientDummy extends BaseAgent {
             ordersToSent = new LinkedList<>();
 
             Iterator<Object> order_iterator = joClient.getJSONArray("orders").iterator();
+            jsaDoughPrepArray = new JSONArray();
             while(order_iterator.hasNext()) {
                 JSONObject joOrder = (JSONObject)order_iterator.next();
+                jsaDoughPrepArray.put(joOrder);
                 ordersToSent.add(new Order(joOrder.toString()));
             }
-
+            addBehaviour(new sendOneOrderToDoughPrep());
+//            ordersToSent.to
+//            new JSONArray(ordersToSent.toString());
             Collections.sort(ordersToSent, new Comparator<Order>() {
                 @Override
                 public int compare(Order o1, Order o2) {
@@ -80,7 +85,28 @@ public class ClientDummy extends BaseAgent {
         }
         return false;
     }
+    // provisorisch
 
+    private class sendOneOrderToDoughPrep extends OneShotBehaviour{
+        @Override
+        public void action() {
+            DFAgentDescription template = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            sd.setType("Dough-manager");
+            template.addServices(sd);
+            DFAgentDescription[] dfSearch = null;
+            try {
+                dfSearch = DFService.search(myAgent, template);
+            } catch (FIPAException e) {
+                e.printStackTrace();
+            }
+            ACLMessage aclMessage = new ACLMessage(ACLMessage.PROPOSE);
+            aclMessage.addReceiver(dfSearch[0].getName());
+            aclMessage.setContent(jsaDoughPrepArray.toString());
+            sendMessage(aclMessage);
+        }
+    }
+    // provisorisch
     private void sendNoNewOrderMessage() {
         AID[] orderProcessingAgents = findOrderProcessingAgents();
         ACLMessage cfp = new ACLMessage(ACLMessage.INFORM);
