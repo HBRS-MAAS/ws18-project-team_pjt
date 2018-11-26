@@ -1,39 +1,27 @@
 package org.team_pjt.doughprep.mas_maas.agents;
+
+import com.google.gson.Gson;
+import jade.core.AID;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.domain.DFService;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.team_pjt.doughprep.mas_maas.JSONConverter;
+import org.team_pjt.doughprep.mas_maas.messages.*;
+import org.team_pjt.doughprep.mas_maas.objects.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Vector;
-
-import jade.core.behaviours.OneShotBehaviour;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.team_pjt.doughprep.mas_maas.JSONConverter;
-import org.team_pjt.doughprep.mas_maas.messages.KneadingNotification;
-import org.team_pjt.doughprep.mas_maas.messages.KneadingRequest;
-import org.team_pjt.doughprep.mas_maas.messages.PreparationNotification;
-import org.team_pjt.doughprep.mas_maas.messages.PreparationRequest;
-import org.team_pjt.doughprep.mas_maas.messages.ProofingRequest;
-import org.team_pjt.doughprep.mas_maas.objects.BakedGood;
-import org.team_pjt.doughprep.mas_maas.objects.Bakery;
-import org.team_pjt.doughprep.mas_maas.objects.Order;
-import org.team_pjt.doughprep.mas_maas.objects.Product;
-import org.team_pjt.doughprep.mas_maas.objects.ProductStatus;
-import org.team_pjt.doughprep.mas_maas.objects.Step;
-import org.team_pjt.doughprep.mas_maas.objects.WorkQueue;
-
-import com.google.gson.Gson;
-
-import jade.core.AID;
-import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
-import jade.domain.DFService;
-import jade.domain.FIPAException;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
 
 
 public class DoughManager extends BaseAgent {
@@ -54,68 +42,8 @@ public class DoughManager extends BaseAgent {
     protected void setup() {
         super.setup();
         System.out.println(getAID().getLocalName() + " is ready.");
-
-        // Load bakery information (includes recipes for each product)
-//        getbakery();
-//
-//        // Queue of productStatus which require kneading
-//        needsKneading = new WorkQueue();
-//        // Queue of productStatus which require preparation (resting, item preparation, ...)
-//        needsPreparation = new WorkQueue();
-//        // Queue of productStatus which require proofing
-//        needsProofing = new WorkQueue();
-
-        // Register the Dough-manager in the yellow pages
         this.register("Dough-manager", "JADE-bakery");
-
-//        this.getOrderProcessingAIDs();
-//        this.getProoferAIDs();
-//        this.getPreparationTableAIDS();
-//        this.getKneadingMachineAIDs();
-
-        // Activate behavior that receives orders
-        // addBehaviour(new ReceiveOrders());
-
-        // For now, the orderProcessingAgents do not exist. The manager has an order object.
-
-        // Create order object
-
-//        String productName = "Bagel";
-//        int amount = 5;
-//        BakedGood bakedGood = new BakedGood(productName, amount);
-//
-//        String customerId = "001";
-//        String guid = "order-001";
-//        int orderDay = 12;
-//        int orderHour = 4;
-//        int deliveryDate = 13;
-//        int deliveryHour = 4;
-//        Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
-//        bakedGoods.add(bakedGood);
-//        order = new Order(customerId, guid, orderDay, orderHour, deliveryDate, deliveryHour, bakedGoods);
         addBehaviour(new receiveOrder());
-
-//        System.out.println(getAID().getName() + " received the order " + order);
-//
-//        orders.put(order.getGuid(), order);
-//
-//        // Add order to the needKneading WorkQueue
-//        queueOrder(order);
-//
-//        // System.out.println("Needs kneading queue " + needsKneading.getFirstProduct().getGuid());
-//
-//        KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
-//
-//        // Convert the kneadingRequest object to a String.
-//        Gson gson = new Gson();
-//        String kneadingRequestString = gson.toJson(kneadingRequestMessage);
-//
-//        // Add behavior to send the kneadingRequest to the Kneading Agents
-//        addBehaviour(new RequestKneading( kneadingRequestString, kneadingMachineAgents));
-//
-//        addBehaviour(new ReceiveKneadingNotification());
-//
-//        addBehaviour(new ReceivePreparationNotification());
     }
 
     private class receiveOrder extends CyclicBehaviour {
@@ -129,21 +57,20 @@ public class DoughManager extends BaseAgent {
             if(aclReceive != null ){
                 String sContent = aclReceive.getContent();
                 jsaArray = new JSONArray(sContent);
-                jsoObject = jsaArray.getJSONObject(0);
-                String sGuid = jsoObject.getString("guid");
-                String sCustomerId = jsoObject.getString("customerId");
-                JSONObject jsoDeliveryDate = jsoObject.getJSONObject("deliveryDate");
-                JSONObject jsoOrderDate = jsoObject.getJSONObject("orderDate");
-                JSONObject jsoProducts = jsoObject.getJSONObject("products");
-//                new Order(customerId, guid, orderDay, orderHour, deliveryDate, deliveryHour, bakedGoods);
-                Iterator<String> iKeys = jsoProducts.keys();
-                while(iKeys.hasNext()){
-                    String sNext = iKeys.next();
-                    jsoProducts.get(sNext);
-                    bakedGoods.add(new BakedGood(sNext, (Integer) jsoProducts.get(sNext)));
+                Iterator<Object> iArray = jsaArray.iterator();
+                while (iArray.hasNext()) {
+                    jsoObject = (JSONObject) iArray.next();
+                    JSONObject jsoDeliveryDate = jsoObject.getJSONObject("deliveryDate");
+                    JSONObject jsoOrderDate = jsoObject.getJSONObject("orderDate");
+                    JSONObject jsoProducts = jsoObject.getJSONObject("products");
+                    Iterator<String> iKeys = jsoProducts.keys();
+                    while(iKeys.hasNext()){
+                        String sNext = iKeys.next();
+                        jsoProducts.get(sNext);
+                        bakedGoods.add(new BakedGood(sNext, (Integer) jsoProducts.get(sNext)));
+                    }
+                    order = new Order(jsoObject.getString("customerId"), jsoObject.getString("guid"), jsoOrderDate.getInt("day"), jsoOrderDate.getInt("hour"), jsoDeliveryDate.getInt("day"), jsoDeliveryDate.getInt("hour"), bakedGoods);
                 }
-                order = new Order(jsoObject.getString("customerId"), jsoObject.getString("guid"), jsoOrderDate.getInt("day"), jsoOrderDate.getInt("hour"), jsoDeliveryDate.getInt("day"), jsoDeliveryDate.getInt("hour"), bakedGoods);
-//                jsoObject.get();
             } else {
                 block();
             }
