@@ -56,6 +56,7 @@ public class Start {
 
 //        int duration_days = joMeta.getInt("duration_days");
 //    	List<String> agents = new Vector<>();
+//        agents.add("TimeKeeperDough:org.team_pjt.doughprep.mas_maas.agents.TimeKeeper");
     	if(isHost) {
             agents.add(sTPrefix);
             Iterator<Object> bakery_iterator = jaBakeries.iterator();
@@ -66,6 +67,11 @@ public class Start {
                 agents.add(id + sOPPrefix);
                 agents.add("scheduler-" + bakery_idNum + sSchPrefix2);
             }
+//            agents.add("BakingInterface:org.team_pjt.doughprep.mas_maas.agents.BakingInterface");
+            agents.add("DoughManager:org.team_pjt.doughprep.mas_maas.agents.DoughManager");
+//            agents.add("KneadingMachineAgent:org.team_pjt.doughprep.mas_maas.agents.KneadingMachineAgent");
+//            agents.add("PreparationTableAgent:org.team_pjt.doughprep.mas_maas.agents.PreparationTableAgent");
+//            agents.add("Proofer:org.team_pjt.doughprep.mas_maas.agents.Proofer");
         }
         else {
             Iterator<Object> client_iterator = jaClients.iterator();
@@ -80,7 +86,8 @@ public class Start {
 //    	  System.out.println(cmd.toString());
 //        System.out.println(cmd.size());
         jade.Boot.main(cmd.toArray(new String[cmd.size()]));
-        //Visualisation.showWindow();
+        // Visualisation.showWindow();
+        // Visualisation.main(null);
 
     }
 
@@ -227,7 +234,7 @@ public class Start {
             }
 			if (args[i].equals("-h")) {
 				// TODO: implement help output
-				System.out.println("");
+				System.out.println();
 			}
 		}
 		if (!isHost && (port == null || host == null)) {

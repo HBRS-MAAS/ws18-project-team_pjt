@@ -8,6 +8,7 @@ import jade.domain.FIPANames;
 import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.ShutdownPlatform;
 import jade.lang.acl.ACLMessage;
+import org.team_pjt.agents.BaseAgent;
 
 public class shutdown extends OneShotBehaviour {
     public void action() {
@@ -20,6 +21,7 @@ public class shutdown extends OneShotBehaviour {
         shutdownMessage.setOntology(JADEManagementOntology.getInstance().getName());
         System.out.println("shutdown " + myAgent.getName());
         try {
+            myAgent.doDelete();
             myAgent.getContentManager().fillContent(shutdownMessage,new Action(myAgent.getAID(), new ShutdownPlatform()));
             myAgent.send(shutdownMessage);
         }
