@@ -39,38 +39,6 @@ public class OrderProcessing extends BaseAgent {
         System.out.println("OrderProcessing " + getName() + " ready");
     }
 
-//    private class distributeScheduledOrder extends Behaviour {
-//        boolean isDone = false;
-//
-//        @Override
-//        public void action() {
-//            System.out.println("waiting for accepted proposal");
-//            MessageTemplate acceptedProposalMT = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
-//            ACLMessage accepted_proposal = receive(acceptedProposalMT);
-//            if(accepted_proposal != null) {
-//                findAllAgents();
-//                ACLMessage propagate_accepted_order = new ACLMessage(ACLMessage.PROPAGATE);
-//                propagate_accepted_order.setContent(accepted_proposal.getContent());
-//                for(AID agent : allAgents) {
-//                    propagate_accepted_order.addReceiver(agent);
-//                }
-//                sendMessage(propagate_accepted_order);
-//                System.out.println("Propagated all scheduled Orders");
-//                System.out.println(myAgent.getName() + " called finished()");
-//                finished();
-//                isDone = true;
-//            }
-//            else {
-//                block();
-//            }
-//        }
-//
-//        @Override
-//        public boolean done() {
-//            return isDone;
-//        }
-//    }
-
     private class distributeFullOrder extends OneShotBehaviour {
         Order order;
 
@@ -119,7 +87,7 @@ public class OrderProcessing extends BaseAgent {
             ACLMessage clientReply = msg.createReply();
             clientReply.setPerformative(ACLMessage.REFUSE);
             clientReply.setContent(content);
-            myAgent.send(clientReply);
+            sendMessage(clientReply);
             System.out.println("not feasible message sent");
             System.out.println(myAgent.getName() + " called finished()");
             finished();
@@ -209,7 +177,7 @@ public class OrderProcessing extends BaseAgent {
                     break;
                 case 1:
                     MessageTemplate schedulerReply = MessageTemplate.and(MessageTemplate.MatchConversationId(order.getGuid()),
-                            MessageTemplate.MatchConversationId(order.getGuid()));
+                            MessageTemplate.MatchSender(aidScheduler));
                     ACLMessage schedulerMessage = myAgent.receive(schedulerReply);
                     if (schedulerMessage != null) {
                         System.out.println("schedule reply received!");
