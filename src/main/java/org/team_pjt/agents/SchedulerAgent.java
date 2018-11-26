@@ -3,8 +3,6 @@ package org.team_pjt.agents;
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
-import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -17,9 +15,6 @@ import org.team_pjt.behaviours.shutdown;
 import org.team_pjt.objects.Location;
 import org.team_pjt.objects.Order;
 import org.team_pjt.objects.Product;
-import sun.plugin2.message.Message;
-
-import javax.swing.*;
 import java.util.*;
 
 public class SchedulerAgent extends BaseAgent {
