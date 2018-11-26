@@ -24,6 +24,13 @@
   * Receiver: SchedulerAgent
   * Content: String -> "NO NEW ORDER"
   
+* Get Queue Position:
+  * Type: REQUEST
+  * Sender: Any agent
+  * Receiver: SchedulerAgent
+  * ConversationId: queue request
+  * Content: String -> {orderId}
+  
 ## Messages sent:
 * Confirm Schedule:
   * Type: CONFIRM
@@ -42,3 +49,10 @@
   * Sender: SchedulerAgent
   * Receiver: All Agents
   * Content: JSONArray -> sorted List of accepted Orders
+  
+* Queue request reply:
+  * Type: INFORM
+  * Sender: SchedulerAgent
+  * Receiver: Any agent
+  * ConversationId: queue request
+  * Content: String -> Order position if order in queue else -1
