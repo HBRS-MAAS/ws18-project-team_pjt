@@ -17,6 +17,7 @@ import org.team_pjt.behaviours.shutdown;
 import org.team_pjt.objects.Location;
 import org.team_pjt.objects.Order;
 import org.team_pjt.objects.Product;
+import sun.plugin2.message.Message;
 
 import javax.swing.*;
 import java.util.*;
@@ -42,6 +43,7 @@ public class SchedulerAgent extends BaseAgent {
         scheduledOrders = new HashMap<>();
 
         addBehaviour(new isNewOrderChecker());
+        addBehaviour(new QueueRequestServer());
 
         System.out.println("SchedulerAgent is ready");
     }
@@ -200,7 +202,36 @@ public class SchedulerAgent extends BaseAgent {
         // TODO
         @Override
         public void action() {
+            MessageTemplate mtQueueRequest = MessageTemplate.and(MessageTemplate.MatchConversationId("queue request"),
+                    MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
+            ACLMessage queue_request = myAgent.receive(mtQueueRequest);
+            if(queue_request != null) {
+                String order_id = queue_request.getContent();
+                int pos = 0;
 
+                Iterator<Integer> order_date_iterator = scheduledOrders.keySet().iterator();
+                boolean found = false;
+                while(order_date_iterator.hasNext()) {
+                    int day = order_date_iterator.next();
+                    if(scheduledOrders.get(day).getGuid().equals(order_id)) {
+                        found = true;
+                        break;
+                    }
+                    pos++;
+                }
+                ACLMessage reply = queue_request.createReply();
+                reply.setPerformative(ACLMessage.INFORM);
+                if(found) {
+                    reply.setContent(Integer.toString(pos));
+                }
+                else {
+                    reply.setContent(Integer.toString(-1));
+                }
+                sendMessage(reply);
+            }
+            else {
+                block();
+            }
         }
     }
 
