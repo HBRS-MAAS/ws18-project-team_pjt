@@ -338,8 +338,8 @@ public class OrderProcessing extends BaseAgent {
                 Product product = new Product(jsoProduct.toString());
                 hmProducts.put(product.getGuid(), product);
             }
-            JSONObject jsoLocation = bakery.getJSONObject("location");
-            lLocation = new Location(jsoLocation.getDouble("y"), jsoLocation.getDouble("x"));
+//            JSONObject jsoLocation = bakery.getJSONObject("location");
+//            lLocation = new Location(jsoLocation.getDouble("y"), jsoLocation.getDouble("x"));
 
             JSONObject meta_data = new JSONObject(((String)oArgs[1]).replaceAll("###", ","));
             this.endDays = meta_data.getInt("durationInDays");
