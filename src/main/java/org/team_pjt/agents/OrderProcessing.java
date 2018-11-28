@@ -63,10 +63,16 @@ public class OrderProcessing extends BaseAgent {
 
         @Override
         public void action() {
+            if(!getAllowAction()) {
+                myAgent.addBehaviour(new schedulerSyncing());
+                return;
+            }
             ACLMessage syncMessage = new ACLMessage(ACLMessage.INFORM);
             syncMessage.setContent("NO NEW ORDER");
+            syncMessage.setConversationId("syncing scheduler");
             syncMessage.addReceiver(aidScheduler);
             sendMessage(syncMessage);
+            finished();
         }
     }
 
@@ -81,6 +87,7 @@ public class OrderProcessing extends BaseAgent {
         public OfferRequestServer() {
             super();
             allCustomers = findAllCustomers();
+            messageCounter = 0;
         }
 
         private void sendNotFeasibleMessage(ACLMessage msg, String content) {
@@ -90,6 +97,16 @@ public class OrderProcessing extends BaseAgent {
             sendMessage(clientReply);
             System.out.println("not feasible message sent");
             System.out.println(myAgent.getName() + " called finished()");
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             finished();
         }
 
@@ -218,11 +235,21 @@ public class OrderProcessing extends BaseAgent {
         public boolean done() {
             boolean isDone = messageCounter == allCustomers.length;
             if(isDone) {
-                myAgent.addBehaviour(new schedulerSyncing());
+                ACLMessage syncMessage = new ACLMessage(ACLMessage.INFORM);
+                syncMessage.setContent("NO NEW ORDER");
+                syncMessage.setConversationId("syncing scheduler");
+                syncMessage.addReceiver(aidScheduler);
+                sendMessage(syncMessage);
+                //myAgent.addBehaviour(new schedulerSyncing());
             }
             isDone = isDone || step >= 3;
             if(isDone) {
                 myAgent.addBehaviour(new OfferRequestServer());
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 finished();
             }
             return isDone;
