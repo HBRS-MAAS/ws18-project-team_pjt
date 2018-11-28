@@ -60,6 +60,7 @@ public class DoughManager extends BaseAgent {
                 Iterator<Object> iArray = jsaArray.iterator();
                 while (iArray.hasNext()) {
                     jsoObject = (JSONObject) iArray.next();
+                    System.out.println("The following order was received: " + jsoObject.toString());
                     JSONObject jsoDeliveryDate = jsoObject.getJSONObject("deliveryDate");
                     JSONObject jsoOrderDate = jsoObject.getJSONObject("orderDate");
                     JSONObject jsoProducts = jsoObject.getJSONObject("products");
