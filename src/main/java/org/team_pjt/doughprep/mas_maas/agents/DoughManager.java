@@ -49,7 +49,7 @@ public class DoughManager extends BaseAgent {
     private class receiveOrder extends CyclicBehaviour {
         @Override
         public void action() {
-            MessageTemplate acceptedProposalMT = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
+            MessageTemplate acceptedProposalMT = MessageTemplate.MatchPerformative(ACLMessage.PROPAGATE);
             ACLMessage aclReceive = receive(acceptedProposalMT);
             JSONArray jsaArray = null;
             JSONObject jsoObject = null;
