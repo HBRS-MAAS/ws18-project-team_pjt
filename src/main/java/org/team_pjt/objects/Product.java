@@ -69,7 +69,7 @@ Product {
             }
         }
         this.bakingTemp = recipe.getInt("bakingTemp");
-        this.coolingRate = recipe.getInt("coolingRate");
+//        this.coolingRate = recipe.getInt("coolingRate");
     }
 
     public int getCoolingRate() {

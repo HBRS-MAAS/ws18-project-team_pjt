@@ -59,7 +59,7 @@ public class ClientDummy extends BaseAgent {
                 jsaDoughPrepArray.put(joOrder);
                 ordersToSent.add(new Order(joOrder.toString()));
             }
-            addBehaviour(new sendOneOrderToDoughPrep());
+//            addBehaviour(new sendOneOrderToDoughPrep());
 //            ordersToSent.to
 //            new JSONArray(ordersToSent.toString());
             Collections.sort(ordersToSent, new Comparator<Order>() {
