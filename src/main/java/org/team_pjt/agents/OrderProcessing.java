@@ -35,6 +35,11 @@ public class OrderProcessing extends BaseAgent {
         }
         this.register("OrderProcessing", this.sBakeryId);
         findScheduler();
+//        try {
+//            Thread.sleep(30000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         addBehaviour(new OfferRequestServer());
         System.out.println("OrderProcessing " + getName() + " ready");
     }
@@ -97,16 +102,11 @@ public class OrderProcessing extends BaseAgent {
             sendMessage(clientReply);
             System.out.println("not feasible message sent");
             System.out.println(myAgent.getName() + " called finished()");
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                Thread.sleep(200);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
             finished();
         }
 
@@ -245,11 +245,11 @@ public class OrderProcessing extends BaseAgent {
             isDone = isDone || step >= 3;
             if(isDone) {
                 myAgent.addBehaviour(new OfferRequestServer());
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    Thread.sleep(200);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
                 finished();
             }
             return isDone;
