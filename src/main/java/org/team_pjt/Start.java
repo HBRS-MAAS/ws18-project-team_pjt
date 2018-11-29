@@ -36,15 +36,11 @@ public class Start {
     	if (!decodeArguments(args)) {
             isHost = true;
 		}
-
         String bakeries = readScenarioFile(bakeries_path);
     	String clients = readScenarioFile(clients_path);
         String delivery = readScenarioFile(delivery_path);
         String meta = readScenarioFile(meta_path);
         String street_network = readScenarioFile(street_network_path);
-    	// new scenarioFile
-//        readNewScenarioFile(sNewPath);
-        // new scenarioFile
         if(bakeries == null || clients == null || delivery == null || meta == null || street_network == null) {
             System.exit(-1);
         }
@@ -53,10 +49,6 @@ public class Start {
         JSONArray jaDelivery = new JSONArray(delivery);
         JSONObject joMeta = new JSONObject(meta);
         JSONObject joStreet_network = new JSONObject(street_network);
-
-//        int duration_days = joMeta.getInt("duration_days");
-//    	List<String> agents = new Vector<>();
-//        agents.add("TimeKeeperDough:org.team_pjt.doughprep.mas_maas.agents.TimeKeeper");
     	if(isHost) {
             agents.add(sTPrefix);
             Iterator<Object> bakery_iterator = jaBakeries.iterator();
@@ -67,11 +59,7 @@ public class Start {
                 agents.add(id + sOPPrefix);
                 agents.add("scheduler-" + bakery_idNum + sSchPrefix2);
             }
-//            agents.add("BakingInterface:org.team_pjt.doughprep.mas_maas.agents.BakingInterface");
             agents.add("DoughManager:org.team_pjt.doughprep.mas_maas.agents.DoughManager");
-//            agents.add("KneadingMachineAgent:org.team_pjt.doughprep.mas_maas.agents.KneadingMachineAgent");
-//            agents.add("PreparationTableAgent:org.team_pjt.doughprep.mas_maas.agents.PreparationTableAgent");
-//            agents.add("Proofer:org.team_pjt.doughprep.mas_maas.agents.Proofer");
         }
         else {
             Iterator<Object> client_iterator = jaClients.iterator();
@@ -83,45 +71,8 @@ public class Start {
             }
         }
     	List<String> cmd = buildCMD(agents, jaBakeries, jaClients, jaDelivery, joMeta, joStreet_network);
-//    	  System.out.println(cmd.toString());
-//        System.out.println(cmd.size());
         jade.Boot.main(cmd.toArray(new String[cmd.size()]));
-        // Visualisation.showWindow();
-        // Visualisation.main(null);
 
-    }
-
-//    private static void readNewScenarioFile(String sDirectory) {
-//        File fDir = new File(sDirectory);
-//        File[] directoryListing = fDir.listFiles();
-//        if (directoryListing != null) {
-//            for (File fChild : directoryListing) {
-//                if(fChild.isFile()){
-//                    String sReadFile = readScenarioFile(fChild.getAbsolutePath());
-//                    if(fChild.getName().contains("bakeries")){
-//                        jsaBakeries = prepareOvenandBakery(sReadFile);
-//                    }
-//                    if(fChild.getName().contains("delivery")){
-//                        jsaTruck = prepareTruck(sReadFile);
-//                    }
-//                    if(fChild.getName().contains("clients")){
-//                        jsaClients = prepareClients(sReadFile);
-//                    }
-//                }
-//            }
-//        }
-////        return sbBuilder.toString();
-//    }
-
-    private static JSONArray prepareClients(String sReadFile) {
-        JSONArray joObjectScenario = new JSONArray(sReadFile);
-        Iterator<Object> iCustomerIterator = joObjectScenario.iterator();
-        while(iCustomerIterator.hasNext()){
-            JSONObject jsoCustomer = (JSONObject) iCustomerIterator.next();
-            // ToDo [Jan] richtige ID vergeben
-            agents.add(jsoCustomer.get("guid")+ sCPrefix);
-        }
-        return joObjectScenario;
     }
 
     public static List<String> buildCMD(List<String> agents, JSONArray jaBakeries, JSONArray jaClients, JSONArray jaDelivery, JSONObject joMeta, JSONObject joStreet_network) {
@@ -129,13 +80,6 @@ public class Start {
         List<String> cmd = new Vector<>();
         Iterator<Object> customer_iterator = jaClients.iterator();
         Iterator<Object> bakery_iterator = jaBakeries.iterator();
-//        Iterator<Object> delivery_iterator = jaDelivery.iterator();
-
-//        Hashtable<String, JSONObject> htCustomers = new Hashtable<>();
-//        while(customer_iterator.hasNext()) {
-//            JSONObject json_cust = (JSONObject) customer_iterator.next();
-//            htCustomers.put(json_cust.getString("guid"), json_cust);
-//        }
 
     	if(isHost) {
             cmd.add("-local-port");
@@ -189,9 +133,7 @@ public class Start {
     }
 
     private static void parsingBakeryId(StringBuilder sb, JSONObject joObject) {
-//        if (joObject.get("guid") instanceof JSONObject) {
-            sb.append(joObject.get("guid"));
-//        }
+        sb.append(joObject.get("guid"));
         sb.append("#");
     }
 
