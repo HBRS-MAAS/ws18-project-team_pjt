@@ -18,11 +18,30 @@ public class Order {
     public Order(String json_order_string) {
         products = new Hashtable<>();
         JSONObject order = new JSONObject(json_order_string);
-        customer_agent_id = order.getString("customerId");
-        order_day = order.getJSONObject("orderDate").getInt("day");
-        order_hour = order.getJSONObject("orderDate").getInt("hour");
-        delivery_day = order.getJSONObject("deliveryDate").getInt("day");
-        delivery_hour = order.getJSONObject("deliveryDate").getInt("hour");
+        // Distinction because "_" is cut off when sending messages
+        if (order.has("customer_id")) {
+            customer_agent_id = order.getString("customer_id");
+        }
+        if(order.has("customerId")){
+            customer_agent_id = order.getString("customerId");
+        }
+        if (order.has("order_date")) {
+            order_day = order.getJSONObject("order_date").getInt("day");
+            order_hour = order.getJSONObject("order_date").getInt("hour");
+        }
+        if(order.has("orderDate")){
+            order_day = order.getJSONObject("orderDate").getInt("day");
+            order_hour = order.getJSONObject("orderDate").getInt("hour");
+        }
+
+        if (order.has("delivery_date")) {
+            delivery_day = order.getJSONObject("delivery_date").getInt("day");
+            delivery_hour = order.getJSONObject("delivery_date").getInt("hour");
+        }
+        if (order.has("deliveryDate")) {
+            delivery_day = order.getJSONObject("deliveryDate").getInt("day");
+            delivery_hour = order.getJSONObject("deliveryDate").getInt("hour");
+        }
         guid = order.getString("guid");
 
         Iterator<String> prouct_name_it = order.getJSONObject("products").keys();

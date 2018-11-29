@@ -48,7 +48,7 @@ public class ClientDummy extends BaseAgent {
             this.guid = joClient.getString("guid");
             this.name = joClient.getString("name");
             this.type = joClient.getInt("type");
-            this.location = new Location(joClient.getJSONObject("location").getDouble("y"),joClient.getJSONObject("location").getDouble("x"));
+//            this.location = new Location(joClient.getJSONObject("location").getDouble("y"),joClient.getJSONObject("location").getDouble("x"));
 
             ordersToSent = new LinkedList<>();
 

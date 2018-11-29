@@ -58,8 +58,9 @@ public class Start {
                 String bakery_idNum = id.split("-")[1];
                 agents.add(id + sOPPrefix);
                 agents.add("scheduler-" + bakery_idNum + sSchPrefix2);
+
             }
-            agents.add("DoughManager:org.team_pjt.doughprep.mas_maas.agents.DoughManager");
+
         }
         else {
             Iterator<Object> client_iterator = jaClients.iterator();
