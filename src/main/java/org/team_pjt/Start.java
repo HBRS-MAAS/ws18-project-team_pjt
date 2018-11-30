@@ -25,6 +25,7 @@ public class Start {
     private static final String sSchPrefix2 = ":org.team_pjt.agents.SchedulerAgent";
     private static final String sCPrefix = ":org.team_pjt.agents.ClientDummy";
     private static final String sTPrefix = "timekeeper:org.team_pjt.agents.TimeKeeper";
+    private static final String sDougManagerPrefix =":org.team_pjt.agents.DoughManager";
     private static List<String> agents = new Vector<>();
 
     public static void main(String[] args) {
@@ -58,7 +59,10 @@ public class Start {
                 String bakery_idNum = id.split("-")[1];
                 agents.add(id + sOPPrefix);
                 agents.add("scheduler-" + bakery_idNum + sSchPrefix2);
-
+                agents.add("doughmanager-" + bakery_idNum + sDougManagerPrefix);
+//                JSONArray jsaDoughPrepTables = bakery.getJSONArray("doughPrepTables");
+//                Iterator<Object> jsaIterator = jsaDoughPrepTables.iterator();
+//                while(jsaIterator.hasNext())
             }
 
         }
@@ -105,6 +109,12 @@ public class Start {
                 if(a.contains("OrderProcessing")) {
                     bakery = (JSONObject)bakery_iterator.next();
                     appendAgentAndArguments(sb, bakery.toString().replaceAll(",", "###") + "," + joMeta.toString().replaceAll(",", "###"), a);
+                    sb.append(";");
+                    continue;
+                }
+                if(a.contains("doughmanager")){
+//                    bakery = (JSONObject)bakery_iterator.next();
+                    appendAgentAndArguments(sb, bakery.toString().replaceAll(",", "###"), a);
                     sb.append(";");
                     continue;
                 }
