@@ -153,7 +153,7 @@ public class SchedulerAgent extends BaseAgent {
                             propagate_accepted_order.addReceiver(agent);
                         }
                         sendMessage(propagate_accepted_order);
-                        System.out.println("Propagated all scheduled Orders");
+                        System.out.println("Scheduler Agent Propagated all scheduled Orders");
                         step++;
                     }
                     else {

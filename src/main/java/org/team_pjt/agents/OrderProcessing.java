@@ -126,7 +126,7 @@ public class OrderProcessing extends BaseAgent {
                 propagate_accepted_order.setContent(accepted_proposal.getContent());
                 propagate_accepted_order.addReceiver(aidScheduler);
                 sendMessage(propagate_accepted_order);
-                System.out.println("Propagated all scheduled Orders");
+                System.out.println("Order Processing Propagated all scheduled Orders");
                 step++;
             }
             else {
