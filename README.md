@@ -12,8 +12,11 @@ Add a brief description of your project. Make sure to keep this README updated, 
 * Maximilian Mensingn - [@madmax2012](https://github.com/madmax2012)
 
 ## Dependencies
-* JADE v.4.5.0
-* ...
+* JADE 4.5.0+
+* org.json 2.1+
+* com.google.gson 2.7+
+* JAVA-8-jdk
+* JAVAfx 8.0+
 
 ## How to run
 Just install gradle and run:
