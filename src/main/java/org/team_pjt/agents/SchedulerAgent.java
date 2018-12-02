@@ -231,6 +231,38 @@ public class SchedulerAgent extends BaseAgent {
         }
     }
 
+    private class ScheduledOrderRequestServer extends CyclicBehaviour {
+        /*
+                Behaviour for getting orders for visualization
+         */
+        @Override
+        public void action() {
+            MessageTemplate allOrderRequestMT = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),
+                    MessageTemplate.MatchConversationId("allOrders"));
+            ACLMessage allOrderRequest = myAgent.receive(allOrderRequestMT);
+            if(allOrderRequest != null) {
+                ACLMessage reply = allOrderRequest.createReply();
+                if(scheduledOrders.isEmpty()) {
+                    reply.setContent("No scheduled Order");
+                }
+                else {
+                    JSONArray orders = new JSONArray();
+                    Iterator<Integer> keys = scheduledOrders.keySet().iterator();
+                    while(keys.hasNext()) {
+                        Integer key = keys.next();
+                        Order order = scheduledOrders.get(key);
+                        orders.put(new JSONObject(order.toJSONString()));
+                    }
+                    reply.setContent(orders.toString());
+                }
+                sendMessage(reply);
+            }
+            else {
+                block();
+            }
+        }
+    }
+
     public static HashMap<Integer, Order> sortOrders(HashMap<Integer, Order> hm) {
         List<Map.Entry<Integer, Order>> orders = new LinkedList<Map.Entry<Integer, Order>>(hm.entrySet());
 
