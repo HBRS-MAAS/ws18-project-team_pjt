@@ -1,7 +1,8 @@
 package org.team_pjt.agents;
 
 import jade.core.AID;
-import jade.core.behaviours.*;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;

@@ -22,6 +22,9 @@ public class DoughPreparationTable implements Runnable {
 //    public int getiAmountOfItem() {
 //        return iAmountOfItem;
 //    }
+    public int getiAmountOfItem() {
+        return iAmountOfItem;
+    }
 
     public void setiAmountOfItem(int iAmountOfItem) {
         this.iAmountOfItem = iAmountOfItem;

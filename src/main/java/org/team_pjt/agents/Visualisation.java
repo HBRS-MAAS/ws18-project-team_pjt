@@ -1,18 +1,18 @@
 package org.team_pjt.agents;
 
 import javafx.application.Application;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.stage.Stage;
+import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.control.TreeView;
-import javafx.util.Callback;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.paint.Color;
-import javafx.geometry.Insets;
-import javafx.scene.control.Label;
+import javafx.stage.Stage;
+import javafx.util.Callback;
 
 
 public class Visualisation extends Application {
