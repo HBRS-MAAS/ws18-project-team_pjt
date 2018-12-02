@@ -1,19 +1,18 @@
 package org.team_pjt.agents;
 
-import jade.core.AID;
-import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
-import jade.domain.DFService;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.domain.FIPAException;
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
-
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+
+import jade.core.Agent;
+import jade.core.AID;
+import jade.core.behaviours.*;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 @SuppressWarnings("serial")
 public class TimeKeeper extends Agent{
@@ -47,15 +46,7 @@ public class TimeKeeper extends Agent{
 		template.addServices(sd);
 		try {
 			DFAgentDescription[] result = DFService.search(this, template);
-//			result[0].getName();
-//			DFAgentDescription[] dfFinalResult = new DFAgentDescription[2];
-			List<DFAgentDescription> lAgents = new ArrayList<>();
-			for (int i = 0; i < result.length; i++){
-				if((result[i].getName().getName().contains("scheduler")) || (result[i].getName().getName().contains("bakery")) || result[i].getName().getName().contains("customer")){
-					lAgents.add(result[i]);
-				}
-			}
-			return lAgents;
+			return Arrays.asList(result);
 		}
 		catch (FIPAException fe) {
 			fe.printStackTrace();

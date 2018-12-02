@@ -39,6 +39,7 @@ public class SchedulerAgent extends BaseAgent {
 
         addBehaviour(new isNewOrderChecker());
         addBehaviour(new QueueRequestServer());
+        addBehaviour(new ScheduledOrderRequestServer());
 
         System.out.println("SchedulerAgent is ready");
     }
@@ -195,7 +196,6 @@ public class SchedulerAgent extends BaseAgent {
     }
 
     private class QueueRequestServer extends CyclicBehaviour {
-        // TODO
         @Override
         public void action() {
             MessageTemplate mtQueueRequest = MessageTemplate.and(MessageTemplate.MatchConversationId("queue request"),
