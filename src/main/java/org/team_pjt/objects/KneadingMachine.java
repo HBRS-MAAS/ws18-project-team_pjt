@@ -1,10 +1,22 @@
 package org.team_pjt.objects;
 
+import java.util.Iterator;
+import java.util.Vector;
+
 public class KneadingMachine implements Runnable {
     private String sGuid;
     private String sCurrentKneadedProduct;
-    private Integer iKneadingTime;
-    private Integer iRestingTime;
+    private Vector<Integer> vTime;
+
+    public void setvTime(Integer iTime) {
+        if(vTime != null){
+            vTime.add(iTime);
+        } else {
+            vTime = new Vector<>();
+            vTime.add(iTime);
+        }
+
+    }
 
     public String getsCurrentKneadedProduct() {
         return sCurrentKneadedProduct;
@@ -14,13 +26,13 @@ public class KneadingMachine implements Runnable {
         this.sCurrentKneadedProduct = sCurrentKneadedProduct;
     }
 
-    public void setiKneadingTime(Integer iKneadingTime) {
-        this.iKneadingTime = iKneadingTime;
-    }
-
-    public void setiRestingTime(Integer iRestingTime) {
-        this.iRestingTime = iRestingTime;
-    }
+//    public void setiKneadingTime(Integer iKneadingTime) {
+//        this.iKneadingTime = iKneadingTime;
+//    }
+//
+//    public void setiRestingTime(Integer iRestingTime) {
+//        this.iRestingTime = iRestingTime;
+//    }
 
     public boolean isbBusy() {
         return bBusy;
@@ -32,6 +44,7 @@ public class KneadingMachine implements Runnable {
         this.sGuid = sGuid;
         sCurrentKneadedProduct = null;
         bBusy = false;
+        vTime = new Vector();
     }
 
     public void run(){
@@ -40,7 +53,12 @@ public class KneadingMachine implements Runnable {
 
     public void startKneading(){
         bBusy = true;
-        int iBusyTime = this.iKneadingTime + this.iRestingTime;
+        Iterator<Integer> iVTimeIterator = vTime.iterator();
+        int iBusyTime = 0;
+        while(iVTimeIterator.hasNext()){
+          iBusyTime += iVTimeIterator.next();
+        }
+//        int iBusyTime = this.iKneadingTime + this.iRestingTime;
         int iWorkTime = 0;
         System.out.println(sGuid + " is Kneading and Resting");
         while(iWorkTime < iBusyTime){
@@ -51,6 +69,7 @@ public class KneadingMachine implements Runnable {
 //            }
             iWorkTime ++;
         }
+        vTime.clear();
         bBusy = false;
         System.out.println(sGuid + " finished kneading and resting");
         Thread.currentThread().interrupt();
