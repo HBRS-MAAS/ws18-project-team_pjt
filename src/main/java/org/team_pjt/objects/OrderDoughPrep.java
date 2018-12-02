@@ -1,8 +1,8 @@
-package org.team_pjt.doughprep.mas_maas.objects;
+package org.team_pjt.objects;
 
 import java.util.Vector;
 
-public class Order {
+public class OrderDoughPrep {
 
     private String customerId;
     private String guid;
@@ -15,10 +15,10 @@ public class Order {
     private int deliveryHour;
     private Vector<BakedGood> bakedGoods;
 
-    public Order() {}
+    public OrderDoughPrep() {}
 
-    public Order(String customerId, String guid, int orderDay, int orderHour, int deliveryDate, int deliveryHour,
-            Vector<BakedGood> bakedGoods) {
+    public OrderDoughPrep(String customerId, String guid, int orderDay, int orderHour, int deliveryDate, int deliveryHour,
+                 Vector<BakedGood> bakedGoods) {
         super();
         this.customerId = customerId;
         this.guid = guid;

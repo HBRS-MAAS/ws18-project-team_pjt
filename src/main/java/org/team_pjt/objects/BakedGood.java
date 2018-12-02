@@ -1,4 +1,4 @@
-package org.team_pjt.doughprep.mas_maas.objects;
+package org.team_pjt.objects;
 
 
 // TODO this is just a shell for testing json
@@ -9,13 +9,13 @@ public class BakedGood
     // TODO this will have to change when the real BakedGood class is created
     // e.g. this is a temp hack
     public static final String bakedGoodNames[] =
-        {
-                "Bagel",
-                "Donut",
-                "Berliner",
-                "Muffin",
-                "Bread"
-        };
+            {
+                    "Bagel",
+                    "Donut",
+                    "Berliner",
+                    "Muffin",
+                    "Bread"
+            };
 
     public BakedGood() {}
 

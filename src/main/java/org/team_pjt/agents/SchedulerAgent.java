@@ -12,9 +12,9 @@ import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.team_pjt.behaviours.shutdown;
-import org.team_pjt.objects.Location;
 import org.team_pjt.objects.Order;
 import org.team_pjt.objects.Product;
+
 import java.util.*;
 
 public class SchedulerAgent extends BaseAgent {
@@ -153,8 +153,14 @@ public class SchedulerAgent extends BaseAgent {
                         for(AID agent : allAgents) {
                             propagate_accepted_order.addReceiver(agent);
                         }
+//                        try {
+//                            System.out.println("Now SchedulerAgent " + getName() + " sleeps");
+//                            Thread.sleep(10000);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
                         sendMessage(propagate_accepted_order);
-                        System.out.println("Propagated all scheduled Orders");
+                        System.out.println("Scheduler Agent Propagated all scheduled Orders");
                         step++;
                     }
                     else {

@@ -1,7 +1,8 @@
 package org.team_pjt.agents;
 
 import jade.core.AID;
-import jade.core.behaviours.*;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -48,7 +49,7 @@ public class ClientDummy extends BaseAgent {
             this.guid = joClient.getString("guid");
             this.name = joClient.getString("name");
             this.type = joClient.getInt("type");
-            this.location = new Location(joClient.getJSONObject("location").getDouble("y"),joClient.getJSONObject("location").getDouble("x"));
+//            this.location = new Location(joClient.getJSONObject("location").getDouble("y"),joClient.getJSONObject("location").getDouble("x"));
 
             ordersToSent = new LinkedList<>();
 

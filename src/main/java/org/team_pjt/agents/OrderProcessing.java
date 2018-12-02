@@ -2,7 +2,6 @@ package org.team_pjt.agents;
 
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -13,9 +12,9 @@ import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.team_pjt.behaviours.shutdown;
+import org.team_pjt.objects.Location;
 import org.team_pjt.objects.Order;
 import org.team_pjt.objects.Product;
-import org.team_pjt.objects.Location;
 
 import java.util.*;
 // ToDo OrderProcessing in OrderProcessingAgent umbenennen
@@ -35,6 +34,11 @@ public class OrderProcessing extends BaseAgent {
         }
         this.register("OrderProcessing", this.sBakeryId);
         findScheduler();
+//        try {
+//            Thread.sleep(30000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         addBehaviour(new OfferRequestServer());
         System.out.println("OrderProcessing " + getName() + " ready");
     }
@@ -97,16 +101,11 @@ public class OrderProcessing extends BaseAgent {
             sendMessage(clientReply);
             System.out.println("not feasible message sent");
             System.out.println(myAgent.getName() + " called finished()");
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                Thread.sleep(200);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
             finished();
         }
 
@@ -126,7 +125,7 @@ public class OrderProcessing extends BaseAgent {
                 propagate_accepted_order.setContent(accepted_proposal.getContent());
                 propagate_accepted_order.addReceiver(aidScheduler);
                 sendMessage(propagate_accepted_order);
-                System.out.println("Propagated all scheduled Orders");
+                System.out.println("Order Processing Propagated all scheduled Orders");
                 step++;
             }
             else {
@@ -245,11 +244,11 @@ public class OrderProcessing extends BaseAgent {
             isDone = isDone || step >= 3;
             if(isDone) {
                 myAgent.addBehaviour(new OfferRequestServer());
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    Thread.sleep(200);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
                 finished();
             }
             return isDone;
