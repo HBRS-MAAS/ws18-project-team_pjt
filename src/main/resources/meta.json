@@ -1,11 +1,12 @@
 {
-  "bakeries": 2,
+  "orders": 1074,
+  "bakeries": 5,
+  "durationInDays": 30,
+  "products": 30,
   "customers": {
-    "1": 10,
-    "2": 10,
+    "1": 15,
+    "2": 5,
     "3": 10
   },
-  "durationInDays": 15,
-  "products": 5,
-  "orders": 343
+  "delivery": 5
 }

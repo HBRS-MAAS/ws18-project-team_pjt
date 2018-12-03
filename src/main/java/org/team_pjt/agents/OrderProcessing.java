@@ -2,7 +2,6 @@ package org.team_pjt.agents;
 
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -13,9 +12,9 @@ import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.team_pjt.behaviours.shutdown;
+import org.team_pjt.objects.Location;
 import org.team_pjt.objects.Order;
 import org.team_pjt.objects.Product;
-import org.team_pjt.objects.Location;
 
 import java.util.*;
 // ToDo OrderProcessing in OrderProcessingAgent umbenennen
@@ -35,6 +34,11 @@ public class OrderProcessing extends BaseAgent {
         }
         this.register("OrderProcessing", this.sBakeryId);
         findScheduler();
+//        try {
+//            Thread.sleep(30000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         addBehaviour(new OfferRequestServer());
         System.out.println("OrderProcessing " + getName() + " ready");
     }
@@ -63,10 +67,16 @@ public class OrderProcessing extends BaseAgent {
 
         @Override
         public void action() {
+            if(!getAllowAction()) {
+                myAgent.addBehaviour(new schedulerSyncing());
+                return;
+            }
             ACLMessage syncMessage = new ACLMessage(ACLMessage.INFORM);
             syncMessage.setContent("NO NEW ORDER");
+            syncMessage.setConversationId("syncing scheduler");
             syncMessage.addReceiver(aidScheduler);
             sendMessage(syncMessage);
+            finished();
         }
     }
 
@@ -81,6 +91,7 @@ public class OrderProcessing extends BaseAgent {
         public OfferRequestServer() {
             super();
             allCustomers = findAllCustomers();
+            messageCounter = 0;
         }
 
         private void sendNotFeasibleMessage(ACLMessage msg, String content) {
@@ -90,6 +101,11 @@ public class OrderProcessing extends BaseAgent {
             sendMessage(clientReply);
             System.out.println("not feasible message sent");
             System.out.println(myAgent.getName() + " called finished()");
+//            try {
+//                Thread.sleep(200);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
             finished();
         }
 
@@ -109,7 +125,7 @@ public class OrderProcessing extends BaseAgent {
                 propagate_accepted_order.setContent(accepted_proposal.getContent());
                 propagate_accepted_order.addReceiver(aidScheduler);
                 sendMessage(propagate_accepted_order);
-                System.out.println("Propagated all scheduled Orders");
+                System.out.println("Order Processing Propagated all scheduled Orders");
                 step++;
             }
             else {
@@ -218,11 +234,21 @@ public class OrderProcessing extends BaseAgent {
         public boolean done() {
             boolean isDone = messageCounter == allCustomers.length;
             if(isDone) {
-                myAgent.addBehaviour(new schedulerSyncing());
+                ACLMessage syncMessage = new ACLMessage(ACLMessage.INFORM);
+                syncMessage.setContent("NO NEW ORDER");
+                syncMessage.setConversationId("syncing scheduler");
+                syncMessage.addReceiver(aidScheduler);
+                sendMessage(syncMessage);
+                //myAgent.addBehaviour(new schedulerSyncing());
             }
             isDone = isDone || step >= 3;
             if(isDone) {
                 myAgent.addBehaviour(new OfferRequestServer());
+//                try {
+//                    Thread.sleep(200);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
                 finished();
             }
             return isDone;
@@ -311,8 +337,8 @@ public class OrderProcessing extends BaseAgent {
                 Product product = new Product(jsoProduct.toString());
                 hmProducts.put(product.getGuid(), product);
             }
-            JSONObject jsoLocation = bakery.getJSONObject("location");
-            lLocation = new Location(jsoLocation.getDouble("y"), jsoLocation.getDouble("x"));
+//            JSONObject jsoLocation = bakery.getJSONObject("location");
+//            lLocation = new Location(jsoLocation.getDouble("y"), jsoLocation.getDouble("x"));
 
             JSONObject meta_data = new JSONObject(((String)oArgs[1]).replaceAll("###", ","));
             this.endDays = meta_data.getInt("durationInDays");

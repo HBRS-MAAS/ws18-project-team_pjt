@@ -1,19 +1,43 @@
 [
   {
-    "guid": "delivery-company-004",
-    "location": {
-      "y": 7.19,
-      "x": -0.82
-    },
+    "location": null,
+    "guid": "delivery-company-001",
     "trucks": [
       {
-        "guid": "truck-004",
-        "load_capacity": 30,
-        "location": {
-          "y": 7.19,
-          "x": -0.82
-        }
+        "location": null,
+        "guid": "truck-001",
+        "load_capacity": 4.0
+      },
+      {
+        "location": null,
+        "guid": "truck-002",
+        "load_capacity": 2.6
+      },
+      {
+        "location": null,
+        "guid": "truck-003",
+        "load_capacity": 3.4
       }
     ]
+  },
+  {
+    "location": null,
+    "guid": "delivery-company-002",
+    "trucks": []
+  },
+  {
+    "location": null,
+    "guid": "delivery-company-003",
+    "trucks": []
+  },
+  {
+    "location": null,
+    "guid": "delivery-company-004",
+    "trucks": []
+  },
+  {
+    "location": null,
+    "guid": "delivery-company-005",
+    "trucks": []
   }
 ]

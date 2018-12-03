@@ -12,14 +12,14 @@ import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.team_pjt.behaviours.shutdown;
-import org.team_pjt.objects.Location;
 import org.team_pjt.objects.Order;
 import org.team_pjt.objects.Product;
+
 import java.util.*;
 
 public class SchedulerAgent extends BaseAgent {
     private String sBakeryId;
-    private Location lLocation;
+//    private Location lLocation;
     private HashMap<String, Float> hmPrepTables;
     private HashMap<String, Float> hmKneadingMachine;
     private HashMap<String, Product> hmProducts; // = Available Products
@@ -39,6 +39,7 @@ public class SchedulerAgent extends BaseAgent {
 
         addBehaviour(new isNewOrderChecker());
         addBehaviour(new QueueRequestServer());
+        addBehaviour(new ScheduledOrderRequestServer());
 
         System.out.println("SchedulerAgent is ready");
     }
@@ -72,7 +73,8 @@ public class SchedulerAgent extends BaseAgent {
             ACLMessage newOrder = myAgent.receive(mtNewOrder);
             if(newOrder != null) {
                 if(newOrder.getContent().toUpperCase().equals("NO NEW ORDER")) {
-                    System.out.println(myAgent.getName() + " called finished()");
+                    //System.out.println(myAgent.getName() + " called finished()");
+                    while(myAgent.receive() != null){}
                     finished();
                 }
                 else {
@@ -151,8 +153,14 @@ public class SchedulerAgent extends BaseAgent {
                         for(AID agent : allAgents) {
                             propagate_accepted_order.addReceiver(agent);
                         }
+//                        try {
+//                            System.out.println("Now SchedulerAgent " + getName() + " sleeps");
+//                            Thread.sleep(10000);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
                         sendMessage(propagate_accepted_order);
-                        System.out.println("Propagated all scheduled Orders");
+                        System.out.println("Scheduler Agent Propagated all scheduled Orders");
                         step++;
                     }
                     else {
@@ -194,7 +202,6 @@ public class SchedulerAgent extends BaseAgent {
     }
 
     private class QueueRequestServer extends CyclicBehaviour {
-        // TODO
         @Override
         public void action() {
             MessageTemplate mtQueueRequest = MessageTemplate.and(MessageTemplate.MatchConversationId("queue request"),
@@ -221,6 +228,38 @@ public class SchedulerAgent extends BaseAgent {
                 }
                 else {
                     reply.setContent(Integer.toString(-1));
+                }
+                sendMessage(reply);
+            }
+            else {
+                block();
+            }
+        }
+    }
+
+    private class ScheduledOrderRequestServer extends CyclicBehaviour {
+        /*
+                Behaviour for getting orders for visualization
+         */
+        @Override
+        public void action() {
+            MessageTemplate allOrderRequestMT = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),
+                    MessageTemplate.MatchConversationId("allOrders"));
+            ACLMessage allOrderRequest = myAgent.receive(allOrderRequestMT);
+            if(allOrderRequest != null) {
+                ACLMessage reply = allOrderRequest.createReply();
+                if(scheduledOrders.isEmpty()) {
+                    reply.setContent("No scheduled Order");
+                }
+                else {
+                    JSONArray orders = new JSONArray();
+                    Iterator<Integer> keys = scheduledOrders.keySet().iterator();
+                    while(keys.hasNext()) {
+                        Integer key = keys.next();
+                        Order order = scheduledOrders.get(key);
+                        orders.put(new JSONObject(order.toJSONString()));
+                    }
+                    reply.setContent(orders.toString());
                 }
                 sendMessage(reply);
             }
@@ -268,8 +307,8 @@ public class SchedulerAgent extends BaseAgent {
                 Product product = new Product(jsoProduct.toString());
                 hmProducts.put(product.getGuid(), product);
             }
-            JSONObject jsoLocation = bakery.getJSONObject("location");
-            lLocation = new Location(jsoLocation.getDouble("y"), jsoLocation.getDouble("x"));
+//            JSONObject jsoLocation = bakery.getJSONObject("location");
+//            lLocation = new Location(jsoLocation.getDouble("y"), jsoLocation.getDouble("x"));
 
             JSONObject meta_data = new JSONObject(((String)oArgs[1]).replaceAll("###", ","));
             this.endDays = meta_data.getInt("durationInDays");

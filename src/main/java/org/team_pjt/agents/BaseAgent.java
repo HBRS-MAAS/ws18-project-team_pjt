@@ -1,17 +1,14 @@
 package org.team_pjt.agents;
 
-import jade.core.Agent;
 import jade.core.AID;
-import jade.core.behaviours.*;
-import jade.domain.FIPAAgentManagement.*;
-import jade.domain.FIPAException;
+import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
-import jade.domain.DFService;
-import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 @SuppressWarnings("serial")
 public abstract class BaseAgent extends Agent {
@@ -45,6 +42,7 @@ public abstract class BaseAgent extends Agent {
         catch (FIPAException fe) {
             fe.printStackTrace();
         }
+        System.out.println("\nWARNING: getCurrentDay and getCurrentHour will be deprecated in future.\n");
     }
     
     /* This function removes the agent from yellow pages
@@ -57,6 +55,7 @@ public abstract class BaseAgent extends Agent {
         catch (FIPAException fe) {
             fe.printStackTrace();
         }
+        System.out.println("\nWARNING: getCurrentDay and getCurrentHour will be deprecated in future.\n");
     }
 
     /* This function sends finished message to clockAgent
