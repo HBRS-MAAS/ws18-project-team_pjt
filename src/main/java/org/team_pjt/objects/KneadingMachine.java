@@ -3,10 +3,17 @@ package org.team_pjt.objects;
 import java.util.Iterator;
 import java.util.Vector;
 
-public class KneadingMachine implements Runnable {
+public class KneadingMachine{
     private String sGuid;
     private String sCurrentKneadedProduct;
     private Vector<Integer> vTime;
+    private int iBusyTime = 0;
+
+    public void setiWorkTime() {
+        this.iWorkTime++;
+    }
+
+    private int iWorkTime = 0;
 
     public void setvTime(Integer iTime) {
         if(vTime != null){
@@ -26,14 +33,6 @@ public class KneadingMachine implements Runnable {
         this.sCurrentKneadedProduct = sCurrentKneadedProduct;
     }
 
-//    public void setiKneadingTime(Integer iKneadingTime) {
-//        this.iKneadingTime = iKneadingTime;
-//    }
-//
-//    public void setiRestingTime(Integer iRestingTime) {
-//        this.iRestingTime = iRestingTime;
-//    }
-
     public boolean isbBusy() {
         return bBusy;
     }
@@ -47,33 +46,31 @@ public class KneadingMachine implements Runnable {
         vTime = new Vector();
     }
 
-    public void run(){
-        startKneading();
-    }
+//    public void run(){
+//        startKneading();
+//    }
 
-    public void startKneading(){
+    public void startKneading(String sKneadingMachineGuid){
         bBusy = true;
         Iterator<Integer> iVTimeIterator = vTime.iterator();
-        int iBusyTime = 0;
+
         while(iVTimeIterator.hasNext()){
           iBusyTime += iVTimeIterator.next();
         }
-//        int iBusyTime = this.iKneadingTime + this.iRestingTime;
-        int iWorkTime = 0;
-        System.out.println(sGuid + " is Kneading and Resting");
-        while(iWorkTime < iBusyTime){
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-            iWorkTime ++;
+//        System.out.println(sKneadingMachineGuid + sGuid + " is Kneading and Resting product " + sCurrentKneadedProduct);
+    }
+
+    public boolean checkKneadingMachineState(String sDoughManager){
+        if(iWorkTime < iBusyTime){
+            System.out.println("DoughManager: " + sDoughManager + " KneadingMachine: " + sGuid + " Momentane Arbeitszeit " + iWorkTime + " momentan gebackenes Produkt" + sCurrentKneadedProduct);
+            return false;
+        } else {
+            iWorkTime = 0;
+            vTime.clear();
+            bBusy = false;
+            System.out.println(sGuid + " finished kneading and resting");
+            return true;
         }
-        vTime.clear();
-        bBusy = false;
-        System.out.println(sGuid + " finished kneading and resting");
-        Thread.currentThread().interrupt();
-        return;
     }
 
 

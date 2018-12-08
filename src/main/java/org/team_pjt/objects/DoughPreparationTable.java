@@ -6,6 +6,22 @@ public class DoughPreparationTable implements Runnable {
     private int iAmountOfItem;
     private String sCurrentPreparedProduct;
     private Boolean bBusy;
+    private int iPreparingTime;
+
+    public int getiWorkTime() {
+        return iWorkTime;
+    }
+
+    public void setiWorkTime() {
+        iWorkTime++;
+    }
+
+    private int iWorkTime = 0;
+
+    public Boolean getbBusy() {
+        return bBusy;
+    }
+
     public DoughPreparationTable(String sGuid) {
         this.sGuid = sGuid;
         sCurrentPreparedProduct = null;
@@ -51,22 +67,25 @@ public class DoughPreparationTable implements Runnable {
         startPreparing();
     }
 
-    private void startPreparing() {
+    public void startPreparing() {
         bBusy = true;
-        int iPreparingTime = iAmountOfItem * iRestingTime;
-        int iWorkTime = 0;
+        iPreparingTime = iAmountOfItem * iRestingTime;
+
         System.out.println(sGuid + " is preparing");
-        while(iWorkTime < iPreparingTime){
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-            iWorkTime++;
-        }
-        bBusy = false;
-        System.out.println(sGuid + " finished Preparing for product " + sCurrentPreparedProduct);
-        Thread.currentThread().interrupt();
+//        bBusy = false;
+//        System.out.println(sGuid + " finished Preparing for product " + sCurrentPreparedProduct);
+//        Thread.currentThread().interrupt();
         return;
+    }
+
+    public boolean checkPreparingStage(){
+        if(iWorkTime > iPreparingTime){
+            bBusy = false;
+            iWorkTime = 0;
+            return true;
+        }
+        else
+            System.out.println("WorkingTime is " + iWorkTime);
+            return false;
     }
 }
