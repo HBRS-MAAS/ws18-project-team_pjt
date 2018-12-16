@@ -63,6 +63,7 @@ public abstract class BaseAgent extends Agent {
      * after the agent is done with the task it has to perform in a time step.
      */
     protected void finished(){
+//        System.out.println(getName() + "called finished");
         this.allowAction = false;
         ACLMessage finish = new ACLMessage(ACLMessage.INFORM);
         finish.addReceiver(this.clockAgent);
@@ -126,6 +127,7 @@ public abstract class BaseAgent extends Agent {
                 currentDay = day;
                 currentHour = hour;
                 allowAction = true;
+//                System.out.println("allowAction was set to true" + getName());
             }
             else {
                 block();

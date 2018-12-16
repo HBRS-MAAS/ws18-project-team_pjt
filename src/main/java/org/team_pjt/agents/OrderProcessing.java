@@ -225,7 +225,7 @@ public class OrderProcessing extends BaseAgent {
             clientReply.setContent(content);
             sendMessage(clientReply);
             System.out.println("not feasible message sent");
-            System.out.println(myAgent.getName() + " called finished()");
+//            System.out.println(myAgent.getName() + " called finished()");
 //            try {
 //                Thread.sleep(200);
 //            } catch (InterruptedException e) {

@@ -88,6 +88,7 @@ public class TimeKeeper extends Agent{
                 if (!this.agents.contains(agent)){
                     this.agents.add(agent);
                     countAgentsReplied--;
+//					System.out.println(countAgentsReplied);
                     if (countAgentsReplied <= 0){
                         myAgent.addBehaviour(new SendTimeStep());
                         this.agents.clear();
