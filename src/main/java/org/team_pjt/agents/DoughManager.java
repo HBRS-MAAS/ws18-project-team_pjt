@@ -146,7 +146,7 @@ public class DoughManager extends BaseAgent {
                             jsoProducts.get(sNext);
                             bakedGoods.add(new BakedGood(sNext, (Integer) jsoProducts.get(sNext)));
                         }
-                        System.out.println("Order is: " + jsoObject.toString());
+//                        System.out.println("Order is: " + jsoObject.toString());
                         vOrder.add(new OrderDoughPrep(jsoObject.getString("customerId"), jsoObject.getString("guid"), jsoOrderDate.getInt("day"), jsoOrderDate.getInt("hour"), jsoDeliveryDate.getInt("day"), jsoDeliveryDate.getInt("hour"), bakedGoods));
                         if (iCurrentSize == iSize) {
                             odpCurrentOrder = vOrder.lastElement();

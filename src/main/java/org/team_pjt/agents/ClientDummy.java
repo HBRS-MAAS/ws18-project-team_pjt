@@ -63,19 +63,19 @@ public class ClientDummy extends BaseAgent {
         }
     }
     // provisorisch
-    private void sendNoNewOrderMessage() {
-        AID[] orderProcessingAgents = findOrderProcessingAgents();
-        ACLMessage cfp = new ACLMessage(ACLMessage.INFORM);
-        cfp.setConversationId("syncing");
-        cfp.setContent("no new Order");
-        for(AID agent : orderProcessingAgents) {
-            cfp.addReceiver(agent);
-        }
-        sendMessage(cfp);
-//        System.out.println(this.getName() + " called finished()");
-        finished();
-        addBehaviour(new OrderTimeChecker());
-    }
+//    private void sendNoNewOrderMessage() {
+//        AID[] orderProcessingAgents = findOrderProcessingAgents();
+//        ACLMessage cfp = new ACLMessage(ACLMessage.INFORM);
+//        cfp.setConversationId("syncing");
+//        cfp.setContent("no new Order");
+//        for(AID agent : orderProcessingAgents) {
+//            cfp.addReceiver(agent);
+//        }
+//        sendMessage(cfp);
+////        System.out.println(this.getName() + " called finished()");
+//        finished();
+//        addBehaviour(new OrderTimeCheckerNew());
+//    }
 
 //    private class TimeChecker extends CyclicBehaviour {
 //        @Override
@@ -211,20 +211,26 @@ public class ClientDummy extends BaseAgent {
         public void action() {
             if(!ordersToSent.isEmpty() && ordersToSent.get(0).getOrderDay() == getCurrentDay() && ordersToSent.get(0).getOrderHour() == getCurrentHour()) {
                 placingOrder = true;
-                myAgent.addBehaviour(new RequestPerformer(ordersToSent.get(0)));
+                myAgent.addBehaviour(new RequestPerformerNew(ordersToSent.get(0)));
                 ordersSent.add(ordersToSent.remove(0));
                 oneMessageSend = true;
             }
+//            else {
+
+//            }
             if(!getAllowAction()) {
                 return;
+            }
+            while (!oneMessageSend && myAgent.receive() != null){
+                ;
             }
             if(getCurrentDay() >= endDays) {
                 deRegister();
                 addBehaviour(new shutdown());
             }
-//            if(!oneMessageSend) {
-                finished();
-//            }
+            finished();
+//            System.out.println(myAgent.getName() + " called finished");
+            System.out.println(getCurrentDay() + " - " + getCurrentHour());
         }
 
         @Override
@@ -273,7 +279,7 @@ public class ClientDummy extends BaseAgent {
                 placingOrder = false;
 //                finished();
 //                System.out.println(myAgent.getName() + " called finished()");
-                myAgent.addBehaviour(new OrderTimeChecker());
+                myAgent.addBehaviour(new OrderTimeCheckerNew());
             }
 
             return isDone;
@@ -340,141 +346,141 @@ public class ClientDummy extends BaseAgent {
         }
     }
 
-    private class OrderTimeChecker extends Behaviour {
-        boolean oneMessageSend = false;
-        @Override
-        public void action() {
-            if(!getAllowAction()) {
-                return;
-            }
-            if(getCurrentDay() >= endDays) {
-                deRegister();
-                addBehaviour(new shutdown());
-            }
-            if(!ordersToSent.isEmpty() && ordersToSent.get(0).getOrderDay() == getCurrentDay() && ordersToSent.get(0).getOrderHour() == getCurrentHour()) {
-                placingOrder = true;
-                myAgent.addBehaviour(new RequestPerformer(ordersToSent.get(0)));
-                ordersSent.add(ordersToSent.remove(0));
-                oneMessageSend = true;
-            }
-            else {
-                sendNoNewOrderMessage();
-                oneMessageSend = true;
-            }
-        }
+//    private class OrderTimeChecker extends Behaviour {
+//        boolean oneMessageSend = false;
+//        @Override
+//        public void action() {
+//            if(!getAllowAction()) {
+//                return;
+//            }
+//            if(getCurrentDay() >= endDays) {
+//                deRegister();
+//                addBehaviour(new shutdown());
+//            }
+//            if(!ordersToSent.isEmpty() && ordersToSent.get(0).getOrderDay() == getCurrentDay() && ordersToSent.get(0).getOrderHour() == getCurrentHour()) {
+//                placingOrder = true;
+//                myAgent.addBehaviour(new RequestPerformer(ordersToSent.get(0)));
+//                ordersSent.add(ordersToSent.remove(0));
+//                oneMessageSend = true;
+//            }
+//            else {
+//                sendNoNewOrderMessage();
+//                oneMessageSend = true;
+//            }
+//        }
+//
+//        @Override
+//        public boolean done() {
+//            return oneMessageSend;
+//        }
+//    }
 
-        @Override
-        public boolean done() {
-            return oneMessageSend;
-        }
-    }
-
-    private class RequestPerformer extends Behaviour {
-        private AID[] orderProcessingAgents;
-        private Order order;
-        private Hashtable<String, Hashtable<String, Double>> proposedPrices;
-        private int step = 0;
-
-        public RequestPerformer(Order order) {
-            super();
-            proposedPrices = new Hashtable<>();
-            this.order = order;
-        }
-
-        @Override
-        public void action() {
-            if(!getAllowAction()) {
-                return;
-            }
-
-            switch (step) {
-                case 0:
-                    orderProcessingAgents = findOrderProcessingAgents();
-                    sendCallForProposal();
-                    step++;
-                    break;
-                case 1:
-                    receiveProposals();
-                    break;
-//                case 2:
-//                    sendAcceptedProposals();
+//    private class RequestPerformer extends Behaviour {
+//        private AID[] orderProcessingAgents;
+//        private Order order;
+//        private Hashtable<String, Hashtable<String, Double>> proposedPrices;
+//        private int step = 0;
+//
+//        public RequestPerformer(Order order) {
+//            super();
+//            proposedPrices = new Hashtable<>();
+//            this.order = order;
+//        }
+//
+//        @Override
+//        public void action() {
+//            if(!getAllowAction()) {
+//                return;
+//            }
+//
+//            switch (step) {
+//                case 0:
+//                    orderProcessingAgents = findOrderProcessingAgents();
+//                    sendCallForProposal();
+//                    step++;
 //                    break;
-            }
-        }
-
-        @Override
-        public boolean done() {
-            boolean isDone = step >= 2;
-            if(isDone) {
-                placingOrder = false;
-//                System.out.println(myAgent.getName() + " called finished()");
-                finished();
-                myAgent.addBehaviour(new OrderTimeChecker());
-            }
-
-            return isDone;
-        }
-
-        private void sendCallForProposal() {
-            ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
-            cfp.setConversationId(order.getGuid());
-            cfp.setContent(order.toJSONString());
-            for(AID agent : orderProcessingAgents) {
-                cfp.addReceiver(agent);
-            }
-            sendMessage(cfp);
-            System.out.println("day: " + getCurrentDay() + " hour: " + getCurrentHour() + " cfp send " + order.getGuid());
-        }
-
-        private void receiveProposals() {
-            int proposalCounter = 0;
-            MessageTemplate proposalTemplate = MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.PROPOSE),
-                    MessageTemplate.MatchPerformative(ACLMessage.REFUSE));
-            while(proposalCounter < orderProcessingAgents.length) {
-                ACLMessage proposal = myAgent.receive(proposalTemplate);
-                if (proposal != null) {
-                    proposalCounter++;
-                    if(proposal.getPerformative() == ACLMessage.REFUSE) {
-                        System.out.println("Bakery " + proposal.getSender() + " refused call for proposal with message:");
-                        System.out.println(proposal.getContent());
-                    }
-                    else {
-                        System.out.println("proposal received!");
-                        Hashtable<String, Double> available_products = new Hashtable<>();
-                        JSONObject json_order = new JSONObject(proposal.getContent());
-                        for(String product_name : json_order.getJSONObject("products").keySet()) {
-                            available_products.put(product_name, json_order.getJSONObject("products").getDouble(product_name));
-                        }
-                        proposedPrices.put(proposal.getSender().getName(), available_products);
-                        ACLMessage accept_proposal = proposal.createReply();
-
-                        JSONObject jsonOrder = new JSONObject(order.toJSONString());
-                        JSONObject newOrder = new JSONObject(jsonOrder.toString());
-                        JSONObject jsonProducts = jsonOrder.getJSONObject("products");
-                        JSONObject jsonProductsNew = newOrder.getJSONObject("products");
-                        Set<String> allOrderProductNames = jsonProducts.keySet();
-                        Set<String> allProposedProductNames = json_order.getJSONObject("products").keySet();
-
-                        for(String product_name : allOrderProductNames) {
-                            if(!allProposedProductNames.contains(product_name)) {
-                                jsonProductsNew.remove(product_name);
-                            }
-                        }
-                        newOrder.put("products", jsonProductsNew);
-
-                        accept_proposal.setContent(newOrder.toString());
-                        accept_proposal.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                        sendMessage(accept_proposal);
-                        System.out.println("accept proposal send");
-                    }
-                    step++;
-                }
-                else {
-                    block();
-                }
-            }
-        }
-    }
+//                case 1:
+//                    receiveProposals();
+//                    break;
+////                case 2:
+////                    sendAcceptedProposals();
+////                    break;
+//            }
+//        }
+//
+//        @Override
+//        public boolean done() {
+//            boolean isDone = step >= 2;
+//            if(isDone) {
+//                placingOrder = false;
+////                System.out.println(myAgent.getName() + " called finished()");
+//                finished();
+//                myAgent.addBehaviour(new OrderTimeChecker());
+//            }
+//
+//            return isDone;
+//        }
+//
+//        private void sendCallForProposal() {
+//            ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+//            cfp.setConversationId(order.getGuid());
+//            cfp.setContent(order.toJSONString());
+//            for(AID agent : orderProcessingAgents) {
+//                cfp.addReceiver(agent);
+//            }
+//            sendMessage(cfp);
+//            System.out.println("day: " + getCurrentDay() + " hour: " + getCurrentHour() + " cfp send " + order.getGuid());
+//        }
+//
+//        private void receiveProposals() {
+//            int proposalCounter = 0;
+//            MessageTemplate proposalTemplate = MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.PROPOSE),
+//                    MessageTemplate.MatchPerformative(ACLMessage.REFUSE));
+//            while(proposalCounter < orderProcessingAgents.length) {
+//                ACLMessage proposal = myAgent.receive(proposalTemplate);
+//                if (proposal != null) {
+//                    proposalCounter++;
+//                    if(proposal.getPerformative() == ACLMessage.REFUSE) {
+//                        System.out.println("Bakery " + proposal.getSender() + " refused call for proposal with message:");
+//                        System.out.println(proposal.getContent());
+//                    }
+//                    else {
+//                        System.out.println("proposal received!");
+//                        Hashtable<String, Double> available_products = new Hashtable<>();
+//                        JSONObject json_order = new JSONObject(proposal.getContent());
+//                        for(String product_name : json_order.getJSONObject("products").keySet()) {
+//                            available_products.put(product_name, json_order.getJSONObject("products").getDouble(product_name));
+//                        }
+//                        proposedPrices.put(proposal.getSender().getName(), available_products);
+//                        ACLMessage accept_proposal = proposal.createReply();
+//
+//                        JSONObject jsonOrder = new JSONObject(order.toJSONString());
+//                        JSONObject newOrder = new JSONObject(jsonOrder.toString());
+//                        JSONObject jsonProducts = jsonOrder.getJSONObject("products");
+//                        JSONObject jsonProductsNew = newOrder.getJSONObject("products");
+//                        Set<String> allOrderProductNames = jsonProducts.keySet();
+//                        Set<String> allProposedProductNames = json_order.getJSONObject("products").keySet();
+//
+//                        for(String product_name : allOrderProductNames) {
+//                            if(!allProposedProductNames.contains(product_name)) {
+//                                jsonProductsNew.remove(product_name);
+//                            }
+//                        }
+//                        newOrder.put("products", jsonProductsNew);
+//
+//                        accept_proposal.setContent(newOrder.toString());
+//                        accept_proposal.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+//                        sendMessage(accept_proposal);
+//                        System.out.println("accept proposal send");
+//                    }
+//                    step++;
+//                }
+//                else {
+//                    block();
+//                }
+//            }
+//        }
+//    }
 
     private AID[] findOrderProcessingAgents() {
         AID[] orderProcessingAgents = new AID[0];
