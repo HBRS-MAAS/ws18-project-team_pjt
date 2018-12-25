@@ -1,4 +1,4 @@
-package org.team_pjt.objects;
+package org.team_pjt.Objects;
 
 public class Edges {
     String sSource;

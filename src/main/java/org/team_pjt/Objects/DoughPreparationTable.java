@@ -1,6 +1,6 @@
-package org.team_pjt.objects;
+package org.team_pjt.Objects;
 
-public class DoughPreparationTable implements Runnable {
+public class DoughPreparationTable {
     private String sGuid;
     private int iRestingTime;
     private int iAmountOfItem;
@@ -62,10 +62,10 @@ public class DoughPreparationTable implements Runnable {
 //        this.bBusy = bBusy;
 //    }
 
-    @Override
-    public void run() {
-        startPreparing();
-    }
+//    @Override
+//    public void run() {
+//        startPreparing();
+//    }
 
     public void startPreparing() {
         bBusy = true;
@@ -75,6 +75,12 @@ public class DoughPreparationTable implements Runnable {
 //        bBusy = false;
 //        System.out.println(sGuid + " finished Preparing for product " + sCurrentPreparedProduct);
 //        Thread.currentThread().interrupt();
+//        bBusy = true;
+//        Iterator<Integer> iVTimeIterator = vTime.iterator();
+//
+//        while(iVTimeIterator.hasNext()){
+//            iBusyTime += iVTimeIterator.next();
+//        }
         return;
     }
 
@@ -88,4 +94,14 @@ public class DoughPreparationTable implements Runnable {
             System.out.println("WorkingTime is " + iWorkTime);
             return false;
     }
+//    if(iWorkTime < iBusyTime){
+//        System.out.println("DoughManager: " + sDoughManager + " KneadingPreparingMachine: " + sGuid + " Momentane Arbeitszeit " + iWorkTime + " momentan gebackenes Produkt" + sCurrentKneadedProduct);
+//        return false;
+//    } else {
+//        iWorkTime = 0;
+//        vTime.clear();
+//        bBusy = false;
+//        System.out.println(sGuid + " finished kneading and resting");
+//        return true;
+//    }
 }

@@ -12,8 +12,8 @@ import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.team_pjt.behaviours.shutdown;
-import org.team_pjt.objects.Order;
-import org.team_pjt.objects.Product;
+import org.team_pjt.Objects.Order;
+import org.team_pjt.Objects.Product;
 
 import java.util.*;
 

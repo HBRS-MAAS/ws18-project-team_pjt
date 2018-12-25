@@ -1,4 +1,4 @@
-package org.team_pjt.objects;
+package org.team_pjt.Objects;
 
 public class Box {
     private int iCapacity;

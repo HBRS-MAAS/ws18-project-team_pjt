@@ -1,13 +1,22 @@
-package org.team_pjt.objects;
+package org.team_pjt.Objects;
 
 import java.util.Iterator;
 import java.util.Vector;
 
-public class KneadingMachine{
+public class KneadingPreparingMachine {
     private String sGuid;
     private String sCurrentKneadedProduct;
     private Vector<Integer> vTime;
     private int iBusyTime = 0;
+    private int iAmount = -1;
+
+    public void setiAmount(int iAmount) {
+        this.iAmount = iAmount;
+    }
+
+    public int getiAmount() {
+        return iAmount;
+    }
 
     public void setiWorkTime() {
         this.iWorkTime++;
@@ -39,33 +48,33 @@ public class KneadingMachine{
 
     private boolean bBusy;
 
-    public KneadingMachine(String sGuid) {
+    public KneadingPreparingMachine(String sGuid) {
         this.sGuid = sGuid;
         sCurrentKneadedProduct = null;
         bBusy = false;
         vTime = new Vector();
     }
 
-//    public void run(){
-//        startKneading();
-//    }
-
     public void startKneading(String sKneadingMachineGuid){
         bBusy = true;
         Iterator<Integer> iVTimeIterator = vTime.iterator();
 
         while(iVTimeIterator.hasNext()){
-          iBusyTime += iVTimeIterator.next();
+            Integer iNext = iVTimeIterator.next();
+            iBusyTime += iNext;
         }
-//        System.out.println(sKneadingMachineGuid + sGuid + " is Kneading and Resting product " + sCurrentKneadedProduct);
+
+        iBusyTime = iBusyTime * iAmount;
+        System.out.println("Gesamte PreparationTime " + iBusyTime);
     }
 
     public boolean checkKneadingMachineState(String sDoughManager){
         if(iWorkTime < iBusyTime){
-            System.out.println("DoughManager: " + sDoughManager + " KneadingMachine: " + sGuid + " Momentane Arbeitszeit " + iWorkTime + " momentan gebackenes Produkt" + sCurrentKneadedProduct);
+            System.out.println("DoughManager: " + sDoughManager + " KneadingPreparingMachine: " + sGuid + " Momentane Arbeitszeit " + iWorkTime + " momentan gebackenes Produkt" + sCurrentKneadedProduct);
             return false;
         } else {
             iWorkTime = 0;
+            iBusyTime = 0;
             vTime.clear();
             bBusy = false;
             System.out.println(sGuid + " finished kneading and resting");
