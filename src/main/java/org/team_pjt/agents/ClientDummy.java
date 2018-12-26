@@ -2,7 +2,6 @@ package org.team_pjt.agents;
 
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -13,8 +12,8 @@ import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.team_pjt.behaviours.shutdown;
-import org.team_pjt.objects.Location;
-import org.team_pjt.objects.Order;
+import org.team_pjt.Objects.Location;
+import org.team_pjt.Objects.Order;
 
 import java.util.*;
 
@@ -222,7 +221,6 @@ public class ClientDummy extends BaseAgent {
                 return;
             }
             while (!oneMessageSend && myAgent.receive() != null){
-                ;
             }
             if(getCurrentDay() >= endDays) {
                 deRegister();

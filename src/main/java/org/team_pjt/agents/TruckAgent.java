@@ -1,7 +1,7 @@
 package org.team_pjt.agents;
 
 import jade.core.Agent;
-import org.team_pjt.objects.Location;
+import org.team_pjt.Objects.Location;
 
 public class TruckAgent extends Agent {
 //    {

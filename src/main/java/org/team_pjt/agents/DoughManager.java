@@ -10,30 +10,33 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
-//import org.team_pjt.doughprep.mas_maas.agents.BaseAgent;
-import org.team_pjt.objects.BakedGood;
-import org.team_pjt.objects.DoughPreparationTable;
-import org.team_pjt.objects.OrderDoughPrep;
+import org.team_pjt.Objects.BakedGood;
+import org.team_pjt.Objects.KneadingPreparingMachine;
+import org.team_pjt.Objects.OrderDoughPrep;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
+//import org.team_pjt.doughprep.mas_maas.agents.BaseAgent;
+
 
 public class DoughManager extends BaseAgent {
     private Vector<OrderDoughPrep> vOrder;
     private String sIdBakery;
-    private Vector<org.team_pjt.objects.KneadingMachine> vKneadingMachine;
-    private Vector<DoughPreparationTable> vDoughPrepTable;
+    private Vector<KneadingPreparingMachine> vKneadingPreparingMachine;
+    private Vector<KneadingPreparingMachine> vDoughPrepTable;
+    private Vector<OrderDoughPrep> vPreparationOrders;
     private JSONArray jsaProducts;
     private HashMap<String, HashMap<String, Integer>> hmRecipeProducts;
     private AID aidSchedulerAgent;
-    private int iSize = 0;
-    private int iCurrentSize = 0;
-    private OrderDoughPrep odpCurrentOrder;
+    private OrderDoughPrep odpCurrentKneadedOrder;
+    private OrderDoughPrep odpCurrentPreparedOrder;
     private HashMap<String, Integer> hmBakedProducts;
+    private HashMap<String, Integer> hmPreparedProducts;
     private HashMap<String, Integer> hmSetTimeStep;
+    private HashMap<String, Integer> hmPrepTableTimeStep;
     protected void setup() {
         super.setup();
         Object[] oArguments = getArguments();
@@ -41,8 +44,11 @@ public class DoughManager extends BaseAgent {
             System.out.println("No parameters given for DoughManager" + getName());
         }
         vOrder = new Vector<>();
+        vPreparationOrders = new Vector<>();
         hmBakedProducts = new HashMap<String, Integer>();
+        hmPreparedProducts = new HashMap<>();
         hmSetTimeStep = new HashMap<>();
+        hmPrepTableTimeStep = new HashMap<>();
         findScheduler();
         System.out.println(getAID().getLocalName() + " is ready.");
         this.register("Dough-manager", "JADE-bakery");
@@ -68,7 +74,7 @@ public class DoughManager extends BaseAgent {
 
     private boolean readArgs(Object [] o) {
         if(o!= null){
-            vKneadingMachine = new Vector<>();
+            vKneadingPreparingMachine = new Vector<>();
             JSONObject jsoBakery = new JSONObject(o[0].toString().replace("###",","));
             sIdBakery = jsoBakery.getString("guid");
             JSONObject jsoEquipment = (JSONObject) jsoBakery.get("equipment");
@@ -86,7 +92,7 @@ public class DoughManager extends BaseAgent {
         Iterator<Object> iKneadingMachines = jsoEquipment.getJSONArray("kneadingMachines").iterator();
         while(iKneadingMachines.hasNext()){
             JSONObject jsoKneadingMachine = (JSONObject) iKneadingMachines.next();
-            vKneadingMachine.add(new org.team_pjt.objects.KneadingMachine(jsoKneadingMachine.getString("guid")));
+            vKneadingPreparingMachine.add(new KneadingPreparingMachine(jsoKneadingMachine.getString("guid")));
         }
     }
 
@@ -95,7 +101,7 @@ public class DoughManager extends BaseAgent {
         Iterator<Object> iDoughPrepTables = jsoEquipment.getJSONArray("doughPrepTables").iterator();
         while(iDoughPrepTables.hasNext()){
             JSONObject jsoDoughPrepTablenext = (JSONObject) iDoughPrepTables.next();
-            vDoughPrepTable.add(new DoughPreparationTable(jsoDoughPrepTablenext.getString("guid")));
+            vDoughPrepTable.add(new KneadingPreparingMachine(jsoDoughPrepTablenext.getString("guid")));
         }
     }
 
@@ -120,6 +126,10 @@ public class DoughManager extends BaseAgent {
     }
 
     private class receiveOrder extends CyclicBehaviour {
+        private int iKneadingSize = 0;
+        private int iCurrentKneadingSize = 0;
+        private int iPreparingSize = 0;
+        private int iCurrentPreparingSize = 0;
 //        boolean isDone = false;
         @Override
         public void action() {
@@ -148,23 +158,29 @@ public class DoughManager extends BaseAgent {
                         }
 //                        System.out.println("Order is: " + jsoObject.toString());
                         vOrder.add(new OrderDoughPrep(jsoObject.getString("customerId"), jsoObject.getString("guid"), jsoOrderDate.getInt("day"), jsoOrderDate.getInt("hour"), jsoDeliveryDate.getInt("day"), jsoDeliveryDate.getInt("hour"), bakedGoods));
-                        if (iCurrentSize == iSize) {
-                            odpCurrentOrder = vOrder.lastElement();
-                            calculateKneadingAndPreparationTime(odpCurrentOrder.getBakedGoods());
-                        } else {
-                            calculateKneadingAndPreparationTime(odpCurrentOrder.getBakedGoods());
+                        checkWhetherKneadingSizeIsEqual();
+                        calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
+                        checkWhetherKneadingSizeIsEqual();
+                        checkWhetherPrearingSizeIsEqual();
+                        if (odpCurrentPreparedOrder != null) {
+                            JSONObject jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
                         }
-                        finished();
-//                        JSONObject jsoProofedProducts = calculatePreaparationTime(bakedGoods);
+                        checkWhetherPrearingSizeIsEqual();
 //                        jsoProofedProducts.toString();
                     }
+                    finished();
                     bakedGoods = null;
-//                    vOrder = null;
 
                 }
                 else {
-                    if (odpCurrentOrder != null) {
-                        calculateKneadingAndPreparationTime(odpCurrentOrder.getBakedGoods());
+                    if (odpCurrentKneadedOrder != null) {
+                        calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
+                        checkWhetherKneadingSizeIsEqual();
+                        checkWhetherPrearingSizeIsEqual();
+                        if (odpCurrentPreparedOrder != null) {
+                            JSONObject jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
+                        }
+                        checkWhetherPrearingSizeIsEqual();
                     }
                     finished();
                     block();
@@ -172,15 +188,37 @@ public class DoughManager extends BaseAgent {
 
         }
 
-        private JSONObject calculatePreaparationTime(Vector<BakedGood> bakedGoods) {
-            HashMap<String, Integer> hmPreparedProducts = new HashMap<String, Integer>();
-//            hmPreparedProducts.
-            if (iCurrentSize == iSize) {
-                iSize = bakedGoods.size();
-                iCurrentSize = 0;
+        private void checkWhetherPrearingSizeIsEqual() {
+            if(iCurrentPreparingSize == iPreparingSize){
+                if(vPreparationOrders != null && vPreparationOrders.size() != 0){
+                    odpCurrentPreparedOrder = vPreparationOrders.firstElement();
+                    vPreparationOrders.remove(odpCurrentPreparedOrder);
+                }
+            }
+
+        }
+
+        private void checkWhetherKneadingSizeIsEqual() {
+            if (iCurrentKneadingSize == iKneadingSize){
+                if (odpCurrentKneadedOrder != null) {
+                    vPreparationOrders.add(odpCurrentKneadedOrder);
+                    vOrder.remove(odpCurrentKneadedOrder);
+                    System.out.println(odpCurrentKneadedOrder.getGuid() + "wurde entfernt");
+                }
+                if (vOrder.iterator().hasNext()) {
+                    odpCurrentKneadedOrder = vOrder.firstElement();
+                }
+            }
+        }
+
+        private JSONObject calculatePreaparationTime(Vector<BakedGood> bakedGoods, boolean bPreparing) {
+            if (iCurrentPreparingSize == iPreparingSize) {
+                hmPreparedProducts.clear();
+                iPreparingSize = bakedGoods.size();
+                iCurrentPreparingSize = 0;
             }
             JSONObject jsoPreparedItems = new JSONObject();
-//            while (iCurrentSize < iSize) {
+//            while (iCurrentPreparingSize < iPreparingSize) {
 //                finished();
                 if (getAllowAction()) {
                     Iterator<BakedGood> iBakedGoods = bakedGoods.iterator();
@@ -188,82 +226,70 @@ public class DoughManager extends BaseAgent {
                         BakedGood bgNext = iBakedGoods.next();
                         HashMap<String, Integer> hmDuration = hmRecipeProducts.get(bgNext.getName());
                         if (hmPreparedProducts.get(bgNext.getName()) == null) {
-                            Iterator<DoughPreparationTable> iDoughPrepTables = vDoughPrepTable.iterator();
+                            Iterator<KneadingPreparingMachine> iDoughPrepTables = vDoughPrepTable.iterator();
                             while (iDoughPrepTables.hasNext()) {
-                                DoughPreparationTable dptNext = iDoughPrepTables.next();
-                                if (!(dptNext.isBusy())) {
-                                    if (dptNext.getsCurrentPreparedProduct() != null) {
-                                        if (hmPreparedProducts.get(dptNext.getsCurrentPreparedProduct()) == null) {
-                                            hmPreparedProducts.put(dptNext.getsCurrentPreparedProduct(), 1);
-                                            jsoPreparedItems.put(dptNext.getsCurrentPreparedProduct(), dptNext.getiAmountOfItem());
-                                            iCurrentSize++;
-                                            if (iCurrentSize == iSize)
+                                KneadingPreparingMachine dptNext = iDoughPrepTables.next();
+                                if (!(dptNext.isbBusy())) {
+                                    if (dptNext.getsCurrentKneadedProduct() != null) {
+                                        if (hmPreparedProducts.get(dptNext.getsCurrentKneadedProduct()) == null) {
+                                            hmPreparedProducts.put(dptNext.getsCurrentKneadedProduct(), 1);
+                                            jsoPreparedItems.put(dptNext.getsCurrentKneadedProduct(), dptNext.getiAmount());
+                                            iCurrentPreparingSize++;
+                                            if (iCurrentPreparingSize == iPreparingSize)
                                                 break;
                                         }
                                     }
-                                    if (hmPreparedProducts.get(bgNext.getName()) == null) {
-                                        dptNext.setiAmountOfItem(bgNext.getAmount());
-                                        dptNext.setiRestingTime(hmDuration.get("resting"));
-                                        dptNext.setsCurrentPreparedProduct(bgNext.getName());
-                                        dptNext.startPreparing();
+                                    if (hmPreparedProducts.get(bgNext.getName()) == null && !bPreparing) {
+                                        setKneadingTime(bgNext,hmDuration, dptNext, "item preparation", bgNext.getAmount());
                                         break;
                                     }
                                 }
-                                if (dptNext.getsCurrentPreparedProduct() != null) {
+                                if (dptNext.getsCurrentKneadedProduct() != null) {
                                     dptNext.setiWorkTime();
-                                    dptNext.checkPreparingStage();
+                                    dptNext.checkKneadingMachineState(getName());
+                                    hmPrepTableTimeStep.put(dptNext.getsCurrentKneadedProduct(),1);
                                 }
                             }
 
-                            if (iCurrentSize == iSize)
+                            if (iCurrentPreparingSize == iPreparingSize)
+                                hmPrepTableTimeStep.clear();
                                 break;
                         }
                     }
-                    finished();
                 }
+            hmPrepTableTimeStep.clear();
 //            }
             return jsoPreparedItems;
 
         }
 
-        private void calculateKneadingAndPreparationTime(Vector<BakedGood> bakedGoods) {
+        private void calculateKneadingTime(Vector<BakedGood> bakedGoods, boolean bPreparing) {
 
-            if (iCurrentSize == iSize) {
+            if (iCurrentKneadingSize == iKneadingSize) {
                 hmBakedProducts.clear();
-                iSize = bakedGoods.size();
-                iCurrentSize = 0;
+                iKneadingSize = bakedGoods.size();
+                iCurrentKneadingSize = 0;
             }
-//            while (iCurrentSize < iSize) {
-//                finished();
                 if (getAllowAction()) {
                     Iterator<BakedGood> iBakedGoods = bakedGoods.iterator();
                     while (iBakedGoods.hasNext()) {
                         BakedGood bgNext = iBakedGoods.next();
                         HashMap<String, Integer> hmDuration = hmRecipeProducts.get(bgNext.getName());
-                        Iterator<org.team_pjt.objects.KneadingMachine> iKneadingMachines = vKneadingMachine.iterator();
+                        Iterator<KneadingPreparingMachine> iKneadingMachines = vKneadingPreparingMachine.iterator();
                         if (hmBakedProducts.get(bgNext.getName()) == null) {
                             while (iKneadingMachines.hasNext()) {
-                                org.team_pjt.objects.KneadingMachine kmNext = iKneadingMachines.next();
+                                KneadingPreparingMachine kmNext = iKneadingMachines.next();
                                 if (!(kmNext.isbBusy())) {
                                     if (kmNext.getsCurrentKneadedProduct() != null) {
                                         if (hmBakedProducts.get(kmNext.getsCurrentKneadedProduct()) == null) {
                                             hmBakedProducts.put(kmNext.getsCurrentKneadedProduct(), 1);
-                                            iCurrentSize++;
-                                            if (iCurrentSize == iSize)
+                                            iCurrentKneadingSize++;
+                                            if (iCurrentKneadingSize == iKneadingSize)
                                                 break;
                                         }
                                     }
-                                    if (hmBakedProducts.get(bgNext.getName()) == null) {
-                                        Set<String> sStrings = hmDuration.keySet();
-                                        Iterator<String> sIterator = sStrings.iterator();
-                                        while (sIterator.hasNext()) {
-                                            String sTmp = sIterator.next();
-                                            if (!(sTmp.contains("item"))) {
-                                                kmNext.setvTime(hmDuration.get(sTmp));
-                                            }
-                                        }
-                                        kmNext.setsCurrentKneadedProduct(bgNext.getName());
-                                        kmNext.startKneading(getName());
+                                    if (hmBakedProducts.get(bgNext.getName()) == null && !bPreparing) {
+                                        setKneadingTime(bgNext, hmDuration, kmNext, "item", 1);
                                         break;
                                     }
                                 }
@@ -276,18 +302,33 @@ public class DoughManager extends BaseAgent {
                                 }
                             }
                         }
-                        if (iCurrentSize == iSize)
+                        if (iCurrentKneadingSize == iKneadingSize)
                             {
                                 hmSetTimeStep.clear();
                                 break;
                             }
                     }
-//                    finished();
-//                    break;
-//                }
-//                finished();
             }
             hmSetTimeStep.clear();
+        }
+
+        private void setKneadingTime(BakedGood bgNext, HashMap<String, Integer> hmDuration, KneadingPreparingMachine kmNext, String sItem, int iAmount) {
+            Set<String> sStrings = hmDuration.keySet();
+            Iterator<String> sIterator = sStrings.iterator();
+            if (sItem.equals("item")) {
+                while (sIterator.hasNext()) {
+                    String sTmp = sIterator.next();
+    //                String sItem = "item";
+                    if (!(sTmp.contains(sItem))) {
+                        kmNext.setvTime(hmDuration.get(sTmp));
+                    }
+                }
+            } else {
+                kmNext.setvTime(hmDuration.get(sItem));
+            }
+            kmNext.setsCurrentKneadedProduct(bgNext.getName());
+            kmNext.setiAmount(iAmount);
+            kmNext.startKneading(getName());
         }
     }
 

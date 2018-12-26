@@ -1,6 +1,5 @@
-package org.team_pjt.objects;
+package org.team_pjt.Objects;
 
-import jade.core.AID;
 import org.json.JSONObject;
 
 import java.util.Hashtable;

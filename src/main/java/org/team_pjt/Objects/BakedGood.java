@@ -1,4 +1,4 @@
-package org.team_pjt.objects;
+package org.team_pjt.Objects;
 
 
 // TODO this is just a shell for testing json
