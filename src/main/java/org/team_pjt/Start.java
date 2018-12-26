@@ -11,7 +11,7 @@ public class Start {
     private static String localPort = "8133";
 
     private static boolean customerStage = false;
-    private static boolean orderProcessingStage = false;
+    private static boolean orderProcessingStage = true;
     private static boolean doughPrepStage = false;
     private static boolean bakingStage = false;
     private static boolean packagingStage = false;
