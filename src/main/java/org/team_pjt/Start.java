@@ -24,8 +24,10 @@ public class Start {
     private static final String sOPPrefix = ":org.team_pjt.agents.OrderProcessing";
     private static final String sSchPrefix2 = ":org.team_pjt.agents.SchedulerAgent";
     private static final String sCPrefix = ":org.team_pjt.agents.ClientDummy";
+    private static final String sProoferPrefix =":org.team_pjt.agents.Proofer";
     private static final String sTPrefix = "timekeeper:org.team_pjt.agents.TimeKeeper";
     private static final String sDougManagerPrefix =":org.team_pjt.agents.DoughManager";
+    private static final String sBakingInterfacePrefix =":org.team_pjt.agents.BakingInterface";
     private static List<String> agents = new Vector<>();
 
     public static void main(String[] args) {
@@ -59,7 +61,9 @@ public class Start {
                 String bakery_idNum = id.split("-")[1];
                 agents.add(id + sOPPrefix);
                 agents.add("scheduler-" + bakery_idNum + sSchPrefix2);
+                agents.add("proofer-"+ bakery_idNum + sProoferPrefix);
                 agents.add("doughmanager-" + bakery_idNum + sDougManagerPrefix);
+                agents.add("bakeryinterface-"+ bakery_idNum + sBakingInterfacePrefix);
 //                JSONArray jsaDoughPrepTables = bakery.getJSONArray("doughPrepTables");
 //                Iterator<Object> jsaIterator = jsaDoughPrepTables.iterator();
 //                while(jsaIterator.hasNext())

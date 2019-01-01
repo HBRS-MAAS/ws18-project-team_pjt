@@ -1,5 +1,6 @@
 package org.team_pjt.agents;
 
+import com.google.gson.Gson;
 import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -13,6 +14,7 @@ import org.json.JSONObject;
 import org.team_pjt.Objects.BakedGood;
 import org.team_pjt.Objects.KneadingPreparingMachine;
 import org.team_pjt.Objects.OrderDoughPrep;
+import org.team_pjt.messages.ProofingRequest;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,6 +25,7 @@ import java.util.Vector;
 
 
 public class DoughManager extends BaseAgent {
+    private AID [] prooferAgents;
     private Vector<OrderDoughPrep> vOrder;
     private String sIdBakery;
     private Vector<KneadingPreparingMachine> vKneadingPreparingMachine;
@@ -37,6 +40,7 @@ public class DoughManager extends BaseAgent {
     private HashMap<String, Integer> hmPreparedProducts;
     private HashMap<String, Integer> hmSetTimeStep;
     private HashMap<String, Integer> hmPrepTableTimeStep;
+    private JSONObject jsoPreparedItems;
     protected void setup() {
         super.setup();
         Object[] oArguments = getArguments();
@@ -49,6 +53,8 @@ public class DoughManager extends BaseAgent {
         hmPreparedProducts = new HashMap<>();
         hmSetTimeStep = new HashMap<>();
         hmPrepTableTimeStep = new HashMap<>();
+        jsoPreparedItems = new JSONObject();
+        getProoferAIDs();
         findScheduler();
         System.out.println(getAID().getLocalName() + " is ready.");
         this.register("Dough-manager", "JADE-bakery");
@@ -130,6 +136,7 @@ public class DoughManager extends BaseAgent {
         private int iCurrentKneadingSize = 0;
         private int iPreparingSize = 0;
         private int iCurrentPreparingSize = 0;
+        private JSONObject jsoProofedProducts;
 //        boolean isDone = false;
         @Override
         public void action() {
@@ -158,29 +165,28 @@ public class DoughManager extends BaseAgent {
                         }
 //                        System.out.println("Order is: " + jsoObject.toString());
                         vOrder.add(new OrderDoughPrep(jsoObject.getString("customerId"), jsoObject.getString("guid"), jsoOrderDate.getInt("day"), jsoOrderDate.getInt("hour"), jsoDeliveryDate.getInt("day"), jsoDeliveryDate.getInt("hour"), bakedGoods));
-                        checkWhetherKneadingSizeIsEqual();
-                        calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
-                        checkWhetherKneadingSizeIsEqual();
-                        checkWhetherPrearingSizeIsEqual();
-                        if (odpCurrentPreparedOrder != null) {
-                            JSONObject jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
-                        }
-                        checkWhetherPrearingSizeIsEqual();
 //                        jsoProofedProducts.toString();
                     }
+                    checkWhetherKneadingSizeIsEqual();
+                    calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
+                    checkWhetherKneadingSizeIsEqual();
+                    checkWhetherPreparingSizeIsEqual();
+                    if (odpCurrentPreparedOrder != null) {
+                        jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
+                    }
+                    checkWhetherPreparingSizeIsEqual();
                     finished();
-                    bakedGoods = null;
 
                 }
                 else {
                     if (odpCurrentKneadedOrder != null) {
                         calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
                         checkWhetherKneadingSizeIsEqual();
-                        checkWhetherPrearingSizeIsEqual();
+                        checkWhetherPreparingSizeIsEqual();
                         if (odpCurrentPreparedOrder != null) {
-                            JSONObject jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
+                            jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
                         }
-                        checkWhetherPrearingSizeIsEqual();
+                        checkWhetherPreparingSizeIsEqual();
                     }
                     finished();
                     block();
@@ -188,8 +194,27 @@ public class DoughManager extends BaseAgent {
 
         }
 
-        private void checkWhetherPrearingSizeIsEqual() {
+        private void checkWhetherPreparingSizeIsEqual() {
             if(iCurrentPreparingSize == iPreparingSize){
+                if(odpCurrentPreparedOrder != null && jsoProofedProducts != null){
+//                    if(){
+                        Iterator<String> iProofedKeys = jsoProofedProducts.keys();
+                        while(iProofedKeys.hasNext()){
+                            String sGuid = iProofedKeys.next();
+                            Integer iQuantiti = (Integer) jsoProofedProducts.get(sGuid);
+                            Float fProofingTime = Float.valueOf(hmRecipeProducts.get(sGuid).get("proofing"));
+                            Vector<String> vGuids = new Vector<String>();
+                            vGuids.add(odpCurrentPreparedOrder.getGuid());
+                            Vector<Integer> vProductQuantities = new Vector<>();
+                            vProductQuantities.add(iQuantiti);
+//                            ProofingRequest prRequest = null;
+                            ProofingRequest prRequest = new ProofingRequest(sGuid,vGuids,fProofingTime,vProductQuantities );
+                            Gson gson = new Gson();
+                            String sProofingMesssage = gson.toJson(prRequest);
+                            sendProofingRequest(sProofingMesssage);
+                        }
+//                    }
+                }
                 if(vPreparationOrders != null && vPreparationOrders.size() != 0){
                     odpCurrentPreparedOrder = vPreparationOrders.firstElement();
                     vPreparationOrders.remove(odpCurrentPreparedOrder);
@@ -215,9 +240,9 @@ public class DoughManager extends BaseAgent {
             if (iCurrentPreparingSize == iPreparingSize) {
                 hmPreparedProducts.clear();
                 iPreparingSize = bakedGoods.size();
+                jsoPreparedItems = new JSONObject();
                 iCurrentPreparingSize = 0;
             }
-            JSONObject jsoPreparedItems = new JSONObject();
 //            while (iCurrentPreparingSize < iPreparingSize) {
 //                finished();
                 if (getAllowAction()) {
@@ -330,7 +355,41 @@ public class DoughManager extends BaseAgent {
             kmNext.setiAmount(iAmount);
             kmNext.startKneading(getName());
         }
+
+        private void sendProofingRequest(String sContent) {
+            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+            msg.setContent(sContent);
+            msg.setConversationId("proofing-request");
+            // Send proofingRequest msg to all prooferAgents
+            for (int i=0; i<prooferAgents.length; i++){
+                msg.addReceiver(prooferAgents[i]);
+            }
+            msg.setReplyWith("msg"+System.currentTimeMillis());
+            baseAgent.sendMessage(msg);
+        }
+
     }
 
+    public void getProoferAIDs() {
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType("Proofer");
+        sd.setName("proofer-"+sIdBakery.split("-")[1]);
+        template.addServices(sd);
+        try {
+            DFAgentDescription [] result = DFService.search(this, template);
+            System.out.println("Found the following Proofer agents:");
+            prooferAgents = new AID [result.length];
+
+            for (int i = 0; i < result.length; ++i) {
+                prooferAgents[i] = result[i].getName();
+                System.out.println(prooferAgents[i].getName());
+            }
+
+        }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+    }
 
 }
