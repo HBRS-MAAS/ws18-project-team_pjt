@@ -10,7 +10,7 @@ public class Start {
     private static String port = "8133";
     private static String localPort = "8133";
 
-    private static boolean customerStage = false;
+    private static boolean customerStage = true;
     private static boolean orderProcessingStage = true;
     private static boolean doughPrepStage = false;
     private static boolean bakingStage = false;
