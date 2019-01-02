@@ -1,0 +1,17 @@
+{
+  "delivery": 10,
+  "durationInDays": 30,
+  "orders": 1579,
+  "bakeries": 20,
+  "customers": {
+    "1": 20,
+    "2": 10,
+    "3": 15
+  },
+  "products": 30,
+  "timeStep": {
+    "day": 0,
+    "minute": 10,
+    "hour": 0
+  }
+}
