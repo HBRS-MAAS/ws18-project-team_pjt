@@ -10,7 +10,7 @@ public class Start {
     private static String port = "8133";
     private static String localPort = "8133";
 
-    private static boolean customerStage = false;
+    private static boolean customerStage = true;
     private static boolean orderProcessingStage = true;
     private static boolean doughPrepStage = false;
     private static boolean bakingStage = false;
@@ -49,11 +49,13 @@ public class Start {
         cmd.add("-agents");
 
         if(customerStage) {
-            
+            Initializer init = new CustomerInitializer();
+            sb.append(init.initialize(scenarioDirectory));
+//            endTime = "000.06.00";
         }
         if(orderProcessingStage) {
 			Initializer init = new OrderProcessingInitializer();
-            sb.append(init.initialize());
+            sb.append(init.initialize(scenarioDirectory));
         }
         if(doughPrepStage) {
 

@@ -38,7 +38,7 @@ public class OrderProcessing extends BaseAgent {
         order_received = false;
         addBehaviour(new OfferRequestServerNew());
         addBehaviour(new TimeManager());
-        System.out.println("OrderProcessing " + getName() + " ready");
+//        System.out.println("OrderProcessing " + getName() + " ready");
     }
 
     private class distributeFullOrder extends OneShotBehaviour {
@@ -235,7 +235,7 @@ public class OrderProcessing extends BaseAgent {
             }
         }
         aidScheduler = dfSchedulerAgentResult[0].getName();
-        System.out.println("Scheduler found! - " + aidScheduler);
+//        System.out.println("Scheduler found! - " + aidScheduler);
     }
 
     private void findAllAgents() {
