@@ -57,7 +57,7 @@ public class DoughManager extends BaseAgent {
         getProoferAIDs();
         findScheduler();
         System.out.println(getAID().getLocalName() + " is ready.");
-        this.register("Dough-manager", "JADE-bakery");
+        this.register("Dough-manager", getName().split("@")[0]);
         addBehaviour(new receiveOrder());
     }
 
@@ -378,12 +378,15 @@ public class DoughManager extends BaseAgent {
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println("Found the following Proofer agents:");
-            prooferAgents = new AID [result.length];
+            while (result.length == 0) {
+                result = DFService.search(this, template);
+                System.out.println("Found the following Proofer agents:");
+                prooferAgents = new AID [result.length];
 
-            for (int i = 0; i < result.length; ++i) {
-                prooferAgents[i] = result[i].getName();
-                System.out.println(prooferAgents[i].getName());
+                for (int i = 0; i < result.length; ++i) {
+                    prooferAgents[i] = result[i].getName();
+                    System.out.println(prooferAgents[i].getName());
+                }
             }
 
         }

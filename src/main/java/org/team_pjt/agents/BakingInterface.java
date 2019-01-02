@@ -10,11 +10,12 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 public class BakingInterface extends BaseAgent {
-
+    private String sBakeryId;
     protected void setup() {
         super.setup();
         System.out.println(getAID().getLocalName() + " is ready.");
-        this.register("Baking-interface", "JADE-bakery");
+        this.register("Baking-interface", getName().split("@")[0]);
+        sBakeryId = getName().split("@")[0].split("-")[1];
         this.getProoferAIDs();
 
         addBehaviour(new ReceiveDoughNotifications());
@@ -22,26 +23,41 @@ public class BakingInterface extends BaseAgent {
     }
 
     public void getProoferAIDs() {
+        boolean bFound = false;
         AID [] prooferAgents;
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
-
+        sd.setName("proofer-"+sBakeryId);
         sd.setType("Proofer");
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println(getAID().getLocalName() + "Found the following Proofer agents:");
-            prooferAgents = new AID [result.length];
-
-            for (int i = 0; i < result.length; ++i) {
-                prooferAgents[i] = result[i].getName();
-                System.out.println(prooferAgents[i].getName());
+            while (result.length == 0) {
+                bFound = true;
+                result = getDfAgentDescriptions(template);
+            }
+            if(!bFound){
+                result = getDfAgentDescriptions(template);
             }
 
         }
         catch (FIPAException fe) {
             fe.printStackTrace();
         }
+    }
+
+    private DFAgentDescription[] getDfAgentDescriptions(DFAgentDescription template) throws FIPAException {
+        DFAgentDescription[] result;
+        AID[] prooferAgents;
+        result = DFService.search(this, template);
+//                System.out.println(getAID().getLocalName() + "Found the following Proofer agents:");
+        prooferAgents = new AID[result.length];
+
+        for (int i = 0; i < result.length; ++i) {
+            prooferAgents[i] = result[i].getName();
+            System.out.println(getName() + "found the following proofer: " + prooferAgents[i].getName());
+        }
+        return result;
     }
 
     protected void takeDown() {

@@ -15,6 +15,8 @@ public class OrderProcessingInitializer extends Initializer {
     private static final String sOPPrefix = ":org.team_pjt.agents.OrderProcessing";
     private static final String sSchPrefix2 = ":org.team_pjt.agents.SchedulerAgent";
     private static final String sDougManagerPrefix =":org.team_pjt.agents.DoughManager";
+    private static final String sProoferPrefix =":org.team_pjt.agents.Proofer";
+    private static final String sBakingInterfacePrefix =":org.team_pjt.agents.BakingInterface";
 
     @Override
     public String initialize(String scenarioDirectory) {
@@ -45,7 +47,8 @@ public class OrderProcessingInitializer extends Initializer {
             String orderProcAgent = id + sOPPrefix;
             String schedulerAgent = "scheduler-" + bakery_idNum + sSchPrefix2;
             String doughManaAgent = "doughmanager-" + bakery_idNum + sDougManagerPrefix;
-
+            String bakeringinterfaceAgent = "bakeryinterface-"+ bakery_idNum + sBakingInterfacePrefix;
+            String proofAgent = "proofer-"+ bakery_idNum + sProoferPrefix;
             appendAgentAndArguments(
                     agentSB,
                     bakeryString + "," + metaString,
@@ -61,6 +64,10 @@ public class OrderProcessingInitializer extends Initializer {
             agentSB.append(";");
 
             appendAgentAndArguments(agentSB, bakery.toString().replaceAll(",", "###"), doughManaAgent);
+            agentSB.append(";");
+            appendAgentAndArguments(agentSB, bakery.toString().replaceAll(",", "###"), proofAgent);
+            agentSB.append(";");
+            appendAgentAndArguments(agentSB, bakery.toString().replaceAll(",", "###"), bakeringinterfaceAgent);
             agentSB.append(";");
         }
         return agentSB.toString();

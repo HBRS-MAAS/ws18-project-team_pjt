@@ -18,7 +18,7 @@ import java.util.Vector;
 
 public class Proofer extends BaseAgent {
     private AID [] bakingInterfaceAgents;
-
+    private String sBakeryId;
     private Vector<String> guids;
     private String productType;
     private Vector<Integer> productQuantities;
@@ -29,7 +29,7 @@ public class Proofer extends BaseAgent {
         System.out.println(getAID().getLocalName() + " is ready.");
 
         this.register("Proofer", getName().split("@")[0]);
-
+        sBakeryId = getName().split("@")[0].split("-")[1];
         // Get Agents AIDS
         this.getDoughManagerAIDs();
         this.getBakingInterfaceAIDs();
@@ -46,17 +46,20 @@ public class Proofer extends BaseAgent {
         AID [] doughManagerAgents;
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
-
         sd.setType("Dough-manager");
+        sd.setName("doughmanager-"+sBakeryId);
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println(getAID().getLocalName() + "Found the following Dough-manager agents:");
-            doughManagerAgents = new AID [result.length];
+            while (result.length == 0) {
+                result = DFService.search(this, template);
+                System.out.println(getAID().getLocalName() + "Found the following Dough-manager agents:");
+                doughManagerAgents = new AID [result.length];
 
-            for (int i = 0; i < result.length; ++i) {
-                doughManagerAgents[i] = result[i].getName();
-                System.out.println(doughManagerAgents[i].getName());
+                for (int i = 0; i < result.length; ++i) {
+                    doughManagerAgents[i] = result[i].getName();
+                    System.out.println(doughManagerAgents[i].getName());
+                }
             }
 
         }
@@ -69,17 +72,20 @@ public class Proofer extends BaseAgent {
     public void getBakingInterfaceAIDs() {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
-
+        sd.setName("bakeryinterface-"+sBakeryId);
         sd.setType("Baking-interface");
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println(getAID().getLocalName() + "Found the following Baking-interface agents:");
-            bakingInterfaceAgents = new AID [result.length];
+            while (result.length == 0) {
+                result = DFService.search(this, template);
+                System.out.println(getAID().getLocalName() + "Found the following Baking-interface agents:");
+                bakingInterfaceAgents = new AID [result.length];
 
-            for (int i = 0; i < result.length; ++i) {
-                bakingInterfaceAgents[i] = result[i].getName();
-                System.out.println(bakingInterfaceAgents[i].getName());
+                for (int i = 0; i < result.length; ++i) {
+                    bakingInterfaceAgents[i] = result[i].getName();
+                    System.out.println(bakingInterfaceAgents[i].getName());
+                }
             }
 
         }
