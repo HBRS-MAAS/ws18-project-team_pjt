@@ -43,7 +43,7 @@ public class SchedulerAgent extends BaseAgent {
         addBehaviour(new QueueRequestServer());
         addBehaviour(new ScheduledOrderRequestServer());
 
-        System.out.println("SchedulerAgent is ready");
+//        System.out.println("SchedulerAgent is ready");
     }
 
     private void findOrderProcessing() {
@@ -60,7 +60,7 @@ public class SchedulerAgent extends BaseAgent {
             }
         }
         order_processing = dfSchedulerAgentResult[0].getName();
-        System.out.println("OrderProcessing found! - " + order_processing);
+//        System.out.println("OrderProcessing found! - " + order_processing);
     }
 
     private class TimeManager extends Behaviour {

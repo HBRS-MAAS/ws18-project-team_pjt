@@ -11,16 +11,17 @@ import java.util.Iterator;
 public class OrderProcessingInitializer extends Initializer {
     private static String bakeries_path;
     private static String meta_path;
-    private static final String configPath = "src/main/resources/config/small/";
+    private String configPath = "src/main/resources/config/";
     private static final String sOPPrefix = ":org.team_pjt.agents.OrderProcessing";
     private static final String sSchPrefix2 = ":org.team_pjt.agents.SchedulerAgent";
     private static final String sDougManagerPrefix =":org.team_pjt.agents.DoughManager";
 
     @Override
-    public String initialize() {
+    public String initialize(String scenarioDirectory) {
         StringBuilder agentSB = new StringBuilder();
+        configPath += scenarioDirectory + "/";
         bakeries_path = configPath + "bakeries.json";
-        meta_path = configPath + "/meta.json";
+        meta_path = configPath + "meta.json";
 
         String bakeries = readScenarioFile(bakeries_path);
         String meta = readScenarioFile(meta_path);
