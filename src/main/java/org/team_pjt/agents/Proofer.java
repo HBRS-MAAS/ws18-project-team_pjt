@@ -70,6 +70,7 @@ public class Proofer extends BaseAgent {
 
 
     public void getBakingInterfaceAIDs() {
+        boolean bFound = false;
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
         sd.setName("bakeryinterface-"+sBakeryId);
@@ -78,14 +79,11 @@ public class Proofer extends BaseAgent {
         try {
             DFAgentDescription [] result = DFService.search(this, template);
             while (result.length == 0) {
-                result = DFService.search(this, template);
-                System.out.println(getAID().getLocalName() + "Found the following Baking-interface agents:");
-                bakingInterfaceAgents = new AID [result.length];
-
-                for (int i = 0; i < result.length; ++i) {
-                    bakingInterfaceAgents[i] = result[i].getName();
-                    System.out.println(bakingInterfaceAgents[i].getName());
-                }
+                bFound = true;
+                result = getDfAgentDescriptions(template);
+            }
+            if(!bFound){
+                result = getDfAgentDescriptions(template);
             }
 
         }
@@ -94,7 +92,20 @@ public class Proofer extends BaseAgent {
         }
     }
 
-      /* This is the behaviour used for receiving proofing requests */
+    private DFAgentDescription[] getDfAgentDescriptions(DFAgentDescription template) throws FIPAException {
+        DFAgentDescription[] result;
+        result = DFService.search(this, template);
+        System.out.println(getAID().getLocalName() + "Found the following Baking-interface agents:");
+        bakingInterfaceAgents = new AID[result.length];
+
+        for (int i = 0; i < result.length; ++i) {
+            bakingInterfaceAgents[i] = result[i].getName();
+            System.out.println(bakingInterfaceAgents[i].getName());
+        }
+        return result;
+    }
+
+    /* This is the behaviour used for receiving proofing requests */
     private class ReceiveProofingRequests extends CyclicBehaviour {
         public void action() {
             finished();

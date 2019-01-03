@@ -16,10 +16,7 @@ import org.team_pjt.Objects.KneadingPreparingMachine;
 import org.team_pjt.Objects.OrderDoughPrep;
 import org.team_pjt.messages.ProofingRequest;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 //import org.team_pjt.doughprep.mas_maas.agents.BaseAgent;
 
@@ -40,6 +37,7 @@ public class DoughManager extends BaseAgent {
     private HashMap<String, Integer> hmPreparedProducts;
     private HashMap<String, Integer> hmSetTimeStep;
     private HashMap<String, Integer> hmPrepTableTimeStep;
+    private HashMap<String, Integer> hmDuplicateProductCheck;
     private JSONObject jsoPreparedItems;
     protected void setup() {
         super.setup();
@@ -143,11 +141,13 @@ public class DoughManager extends BaseAgent {
 //                if(!getAllowAction()){
 //                    return;
 //                }
+            if (getAllowAction()) {
                 MessageTemplate acceptedProposalMT = MessageTemplate.and((MessageTemplate.MatchPerformative(ACLMessage.PROPAGATE)), MessageTemplate.MatchSender(aidSchedulerAgent));
                 ACLMessage aclReceive = receive(acceptedProposalMT);
                 if(aclReceive != null ){
                     String sContent = aclReceive.getContent();
                     Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
+                    hmDuplicateProductCheck = new HashMap<>();
                     JSONArray jsaArray = null;
                     JSONObject jsoObject = null;
                     jsaArray = new JSONArray(sContent);
@@ -161,14 +161,31 @@ public class DoughManager extends BaseAgent {
                         while(iKeys.hasNext()){
                             String sNext = iKeys.next();
                             jsoProducts.get(sNext);
-                            bakedGoods.add(new BakedGood(sNext, (Integer) jsoProducts.get(sNext)));
+                            if (hmDuplicateProductCheck.get(sNext)== null) {
+                                hmDuplicateProductCheck.put(sNext, (Integer)jsoProducts.get(sNext));
+                            } else {
+                                Integer iAmount = hmDuplicateProductCheck.get(sNext);
+                                iAmount = iAmount + (Integer)jsoProducts.get(sNext);
+                                hmDuplicateProductCheck.put(sNext, iAmount);
+                            }
+
                         }
+                        Set<Map.Entry<String, Integer>> mEntries = hmDuplicateProductCheck.entrySet();
+                        Iterator<Map.Entry<String, Integer>> iEntrySet = mEntries.iterator();
+                        bakedGoods = new Vector<>();
+                        while(iEntrySet.hasNext()){
+                            Map.Entry<String, Integer> mNext = iEntrySet.next();
+                            bakedGoods.add(new BakedGood(mNext.getKey(),mNext.getValue()));
+                        }
+
 //                        System.out.println("Order is: " + jsoObject.toString());
                         vOrder.add(new OrderDoughPrep(jsoObject.getString("customerId"), jsoObject.getString("guid"), jsoOrderDate.getInt("day"), jsoOrderDate.getInt("hour"), jsoDeliveryDate.getInt("day"), jsoDeliveryDate.getInt("hour"), bakedGoods));
 //                        jsoProofedProducts.toString();
                     }
                     checkWhetherKneadingSizeIsEqual();
-                    calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
+                    if (odpCurrentKneadedOrder != null) {
+                        calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
+                    }
                     checkWhetherKneadingSizeIsEqual();
                     checkWhetherPreparingSizeIsEqual();
                     if (odpCurrentPreparedOrder != null) {
@@ -176,7 +193,6 @@ public class DoughManager extends BaseAgent {
                     }
                     checkWhetherPreparingSizeIsEqual();
                     finished();
-
                 }
                 else {
                     if (odpCurrentKneadedOrder != null) {
@@ -191,6 +207,7 @@ public class DoughManager extends BaseAgent {
                     finished();
                     block();
                 }
+            }
 
         }
 
@@ -218,6 +235,8 @@ public class DoughManager extends BaseAgent {
                 if(vPreparationOrders != null && vPreparationOrders.size() != 0){
                     odpCurrentPreparedOrder = vPreparationOrders.firstElement();
                     vPreparationOrders.remove(odpCurrentPreparedOrder);
+                } else {
+                    odpCurrentPreparedOrder = null;
                 }
             }
 
@@ -232,6 +251,8 @@ public class DoughManager extends BaseAgent {
                 }
                 if (vOrder.iterator().hasNext()) {
                     odpCurrentKneadedOrder = vOrder.firstElement();
+                } else {
+                    odpCurrentKneadedOrder = null;
                 }
             }
         }
@@ -245,7 +266,7 @@ public class DoughManager extends BaseAgent {
             }
 //            while (iCurrentPreparingSize < iPreparingSize) {
 //                finished();
-                if (getAllowAction()) {
+//                if (getAllowAction()) {
                     Iterator<BakedGood> iBakedGoods = bakedGoods.iterator();
                     while (iBakedGoods.hasNext()) {
                         BakedGood bgNext = iBakedGoods.next();
@@ -281,7 +302,7 @@ public class DoughManager extends BaseAgent {
                                 break;
                         }
                     }
-                }
+//                }
             hmPrepTableTimeStep.clear();
 //            }
             return jsoPreparedItems;
@@ -295,7 +316,6 @@ public class DoughManager extends BaseAgent {
                 iKneadingSize = bakedGoods.size();
                 iCurrentKneadingSize = 0;
             }
-                if (getAllowAction()) {
                     Iterator<BakedGood> iBakedGoods = bakedGoods.iterator();
                     while (iBakedGoods.hasNext()) {
                         BakedGood bgNext = iBakedGoods.next();
@@ -307,7 +327,7 @@ public class DoughManager extends BaseAgent {
                                 if (!(kmNext.isbBusy())) {
                                     if (kmNext.getsCurrentKneadedProduct() != null) {
                                         if (hmBakedProducts.get(kmNext.getsCurrentKneadedProduct()) == null) {
-                                            hmBakedProducts.put(kmNext.getsCurrentKneadedProduct(), 1);
+                                            hmBakedProducts.put(kmNext.getsCurrentKneadedProduct(), kmNext.getiAmount());
                                             iCurrentKneadingSize++;
                                             if (iCurrentKneadingSize == iKneadingSize)
                                                 break;
@@ -333,7 +353,7 @@ public class DoughManager extends BaseAgent {
                                 break;
                             }
                     }
-            }
+
             hmSetTimeStep.clear();
         }
 
@@ -371,6 +391,7 @@ public class DoughManager extends BaseAgent {
     }
 
     public void getProoferAIDs() {
+        boolean bFound = false;
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
         sd.setType("Proofer");
@@ -379,20 +400,30 @@ public class DoughManager extends BaseAgent {
         try {
             DFAgentDescription [] result = DFService.search(this, template);
             while (result.length == 0) {
-                result = DFService.search(this, template);
-                System.out.println("Found the following Proofer agents:");
-                prooferAgents = new AID [result.length];
-
-                for (int i = 0; i < result.length; ++i) {
-                    prooferAgents[i] = result[i].getName();
-                    System.out.println(prooferAgents[i].getName());
-                }
+                bFound = true;
+                result = getDfAgentDescriptions(template);
+            }
+            if(!bFound){
+                result = getDfAgentDescriptions(template);
             }
 
         }
         catch (FIPAException fe) {
             fe.printStackTrace();
         }
+    }
+
+    private DFAgentDescription[] getDfAgentDescriptions(DFAgentDescription template) throws FIPAException {
+        DFAgentDescription[] result;
+        result = DFService.search(this, template);
+        System.out.println("Found the following Proofer agents:");
+        prooferAgents = new AID[result.length];
+
+        for (int i = 0; i < result.length; ++i) {
+            prooferAgents[i] = result[i].getName();
+            System.out.println(prooferAgents[i].getName());
+        }
+        return result;
     }
 
 }

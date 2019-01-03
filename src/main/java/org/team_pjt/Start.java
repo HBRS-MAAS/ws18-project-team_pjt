@@ -17,7 +17,7 @@ public class Start {
     private static boolean packagingStage = false;
     private static boolean deliveryStage = false;
     private static boolean visualizationStage = false;
-    private static boolean noAgentStarting = true;
+    private static boolean noAgentStarting = false;
 
     private static String endTime = "030.00.00";
     private static String scenarioDirectory = "small";
