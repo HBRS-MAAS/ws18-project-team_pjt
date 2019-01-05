@@ -24,6 +24,7 @@ import java.util.*;
 public class DoughManager extends BaseAgent {
     private AID [] prooferAgents;
     private Vector<OrderDoughPrep> vOrder;
+    private Vector<OrderDoughPrep> vOrderInterm;
     private String sIdBakery;
     private Vector<KneadingPreparingMachine> vKneadingPreparingMachine;
     private Vector<KneadingPreparingMachine> vDoughPrepTable;
@@ -46,6 +47,7 @@ public class DoughManager extends BaseAgent {
             System.out.println("No parameters given for DoughManager" + getName());
         }
         vOrder = new Vector<>();
+        vOrderInterm = new Vector<>();
         vPreparationOrders = new Vector<>();
         hmBakedProducts = new HashMap<String, Integer>();
         hmPreparedProducts = new HashMap<>();
@@ -119,6 +121,7 @@ public class DoughManager extends BaseAgent {
             JSONObject jsoRecipe = (JSONObject) jsoProductInformation.get("recipe");
             Iterator iSteps = jsoRecipe.getJSONArray("steps").iterator();
             HashMap<String, Integer> hmRecipe = new HashMap<>();
+//            @ToDo Check calculation of recipe duration
             while(iSteps.hasNext()){
                 JSONObject jsoRecipeInfo = (JSONObject) iSteps.next();
                 if (jsoRecipeInfo.getString("action").equals("proofing") || jsoRecipeInfo.getString("action").equals("resting") || jsoRecipeInfo.getString("action").equals("sheeting") || jsoRecipeInfo.getString("action").equals("twisting") || jsoRecipeInfo.getString("action").equals("filling") || jsoRecipeInfo.getString("action").equals("kneading") || jsoRecipeInfo.getString("action").equals("item preparation") || jsoRecipeInfo.getString("action").equals("resting")) {
@@ -179,9 +182,11 @@ public class DoughManager extends BaseAgent {
                         }
 
 //                        System.out.println("Order is: " + jsoObject.toString());
-                        vOrder.add(new OrderDoughPrep(jsoObject.getString("customerId"), jsoObject.getString("guid"), jsoOrderDate.getInt("day"), jsoOrderDate.getInt("hour"), jsoDeliveryDate.getInt("day"), jsoDeliveryDate.getInt("hour"), bakedGoods));
+                        vOrderInterm.add(new OrderDoughPrep(jsoObject.getString("customerId"), jsoObject.getString("guid"), jsoOrderDate.getInt("day"), jsoOrderDate.getInt("hour"), jsoDeliveryDate.getInt("day"), jsoDeliveryDate.getInt("hour"), bakedGoods));
 //                        jsoProofedProducts.toString();
                     }
+                    vOrder = new Vector<>(vOrderInterm);
+                    vOrderInterm.clear();
                     checkWhetherKneadingSizeIsEqual();
                     if (odpCurrentKneadedOrder != null) {
                         calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
@@ -233,7 +238,7 @@ public class DoughManager extends BaseAgent {
 //                    }
                 }
                 if(vPreparationOrders != null && vPreparationOrders.size() != 0){
-                    odpCurrentPreparedOrder = vPreparationOrders.firstElement();
+                    odpCurrentPreparedOrder = vPreparationOrders.lastElement();
                     vPreparationOrders.remove(odpCurrentPreparedOrder);
                 } else {
                     odpCurrentPreparedOrder = null;
@@ -246,14 +251,21 @@ public class DoughManager extends BaseAgent {
             if (iCurrentKneadingSize == iKneadingSize){
                 if (odpCurrentKneadedOrder != null) {
                     vPreparationOrders.add(odpCurrentKneadedOrder);
-                    vOrder.remove(odpCurrentKneadedOrder);
-                    System.out.println(odpCurrentKneadedOrder.getGuid() + "wurde entfernt");
+//                    vOrder.remove(odpCurrentKneadedOrder);
+                    System.out.println(odpCurrentKneadedOrder.getGuid() + "wurde geknetet");
                 }
-                if (vOrder.iterator().hasNext()) {
-                    odpCurrentKneadedOrder = vOrder.firstElement();
-                } else {
-                    odpCurrentKneadedOrder = null;
+                for (OrderDoughPrep odpKneaded:
+                vOrder) {
+                    if (odpKneaded.getDeliveryDate() == getCurrentDay()) {
+                        odpCurrentKneadedOrder = odpKneaded;
+                    }
+                    if(odpKneaded.getDeliveryDate() > getCurrentDay()) {break;}
                 }
+//                if (vOrder.iterator().hasNext()) {
+//                    odpCurrentKneadedOrder = vOrder.firstElement();
+//                } else {
+//                    odpCurrentKneadedOrder = null;
+//                }
             }
         }
 

@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 public class KneadingPreparingMachine {
+//    private Vector vQueue;
     private String sGuid;
     private String sCurrentKneadedProduct;
     private Vector<Integer> vTime;
