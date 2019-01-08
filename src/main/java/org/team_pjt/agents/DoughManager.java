@@ -112,6 +112,7 @@ public class DoughManager extends BaseAgent {
     }
 
     private void readRecipes(JSONObject jsoBakery) {
+        Vector<JSONObject> vIntermjsoobject = new Vector<>();
         jsaProducts = jsoBakery.getJSONArray("products");
         Iterator<Object> iJsaProducts = jsaProducts.iterator();
         hmRecipeProducts = new HashMap<>();
@@ -124,11 +125,21 @@ public class DoughManager extends BaseAgent {
 //            @ToDo Check calculation of recipe duration
             while(iSteps.hasNext()){
                 JSONObject jsoRecipeInfo = (JSONObject) iSteps.next();
-                if (jsoRecipeInfo.getString("action").equals("proofing") || jsoRecipeInfo.getString("action").equals("resting") || jsoRecipeInfo.getString("action").equals("sheeting") || jsoRecipeInfo.getString("action").equals("twisting") || jsoRecipeInfo.getString("action").equals("filling") || jsoRecipeInfo.getString("action").equals("kneading") || jsoRecipeInfo.getString("action").equals("item preparation") || jsoRecipeInfo.getString("action").equals("resting")) {
-                    hmRecipe.put(jsoRecipeInfo.getString("action"), jsoRecipeInfo.getInt("duration"));
+                if(jsoRecipeInfo.getString("action").equals("proofing")){
+                    vIntermjsoobject.add(jsoRecipeInfo);
+                    break;
+                }else {
+                    vIntermjsoobject.add(jsoRecipeInfo);
                 }
             }
-            hmRecipeProducts.put(sProduct, hmRecipe);
+            Iterator<JSONObject> iIterator = vIntermjsoobject.iterator();
+            while(iIterator.hasNext()){
+                JSONObject jsoNextFinal = iIterator.next();
+//                if (jsoNextFinal.getString("action").equals("proofing") || jsoNextFinal.getString("action").equals("resting") || jsoNextFinal.getString("action").equals("sheeting") || jsoNextFinal.getString("action").equals("twisting") || jsoRecipeInfo.getString("action").equals("filling") || jsoRecipeInfo.getString("action").equals("kneading") || jsoRecipeInfo.getString("action").equals("item preparation") || jsoRecipeInfo.getString("action").equals("resting")) {
+                 hmRecipe.put(jsoNextFinal.getString("action"), jsoNextFinal.getInt("duration"));
+//                }
+                hmRecipeProducts.put(sProduct, hmRecipe);
+            }
         }
     }
 
@@ -187,27 +198,31 @@ public class DoughManager extends BaseAgent {
                     }
                     vOrder = new Vector<>(vOrderInterm);
                     vOrderInterm.clear();
-                    checkWhetherKneadingSizeIsEqual();
-                    if (odpCurrentKneadedOrder != null) {
-                        calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
-                    }
-                    checkWhetherKneadingSizeIsEqual();
-                    checkWhetherPreparingSizeIsEqual();
-                    if (odpCurrentPreparedOrder != null) {
-                        jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
-                    }
-                    checkWhetherPreparingSizeIsEqual();
-                    finished();
-                }
-                else {
-                    if (odpCurrentKneadedOrder != null) {
-                        calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
+                    if (getCurrentHour() <= 12) {
+                        checkWhetherKneadingSizeIsEqual();
+                        if (odpCurrentKneadedOrder != null) {
+                            calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
+                        }
                         checkWhetherKneadingSizeIsEqual();
                         checkWhetherPreparingSizeIsEqual();
                         if (odpCurrentPreparedOrder != null) {
                             jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
                         }
                         checkWhetherPreparingSizeIsEqual();
+                    }
+                    finished();
+                }
+                else {
+                    if (odpCurrentKneadedOrder != null) {
+                        if (getCurrentHour() <= 12) {
+                            calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
+                            checkWhetherKneadingSizeIsEqual();
+                            checkWhetherPreparingSizeIsEqual();
+                            if (odpCurrentPreparedOrder != null) {
+                                jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
+                            }
+                            checkWhetherPreparingSizeIsEqual();
+                        }
                     }
                     finished();
                     block();
