@@ -209,12 +209,14 @@ public class DoughManager extends BaseAgent {
                             jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
                         }
                         checkWhetherPreparingSizeIsEqual();
+                    } else {
+                        System.out.println("No production shift");
                     }
                     finished();
                 }
                 else {
                     if (odpCurrentKneadedOrder != null) {
-                        if (getCurrentHour() <= 12) {
+                        if (getCurrentHour() < 12) {
                             calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
                             checkWhetherKneadingSizeIsEqual();
                             checkWhetherPreparingSizeIsEqual();
@@ -222,6 +224,8 @@ public class DoughManager extends BaseAgent {
                                 jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
                             }
                             checkWhetherPreparingSizeIsEqual();
+                        } else {
+                            System.out.println("No production shift");
                         }
                     }
                     finished();
