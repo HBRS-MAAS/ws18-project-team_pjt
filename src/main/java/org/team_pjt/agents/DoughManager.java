@@ -152,9 +152,6 @@ public class DoughManager extends BaseAgent {
 //        boolean isDone = false;
         @Override
         public void action() {
-//                if(!getAllowAction()){
-//                    return;
-//                }
             if (getAllowAction()) {
                 MessageTemplate acceptedProposalMT = MessageTemplate.and((MessageTemplate.MatchPerformative(ACLMessage.PROPAGATE)), MessageTemplate.MatchSender(aidSchedulerAgent));
                 ACLMessage aclReceive = receive(acceptedProposalMT);
@@ -191,10 +188,7 @@ public class DoughManager extends BaseAgent {
                             Map.Entry<String, Integer> mNext = iEntrySet.next();
                             bakedGoods.add(new BakedGood(mNext.getKey(),mNext.getValue()));
                         }
-
-//                        System.out.println("Order is: " + jsoObject.toString());
                         vOrderInterm.add(new OrderDoughPrep(jsoObject.getString("customerId"), jsoObject.getString("guid"), jsoOrderDate.getInt("day"), jsoOrderDate.getInt("hour"), jsoDeliveryDate.getInt("day"), jsoDeliveryDate.getInt("hour"), bakedGoods));
-//                        jsoProofedProducts.toString();
                     }
                     vOrder = new Vector<>(vOrderInterm);
                     vOrderInterm.clear();
@@ -270,7 +264,6 @@ public class DoughManager extends BaseAgent {
             if (iCurrentKneadingSize == iKneadingSize){
                 if (odpCurrentKneadedOrder != null) {
                     vPreparationOrders.add(odpCurrentKneadedOrder);
-//                    vOrder.remove(odpCurrentKneadedOrder);
                     System.out.println(odpCurrentKneadedOrder.getGuid() + "wurde geknetet");
                 }
                 for (OrderDoughPrep odpKneaded:
@@ -280,11 +273,6 @@ public class DoughManager extends BaseAgent {
                     }
                     if(odpKneaded.getDeliveryDate() > getCurrentDay()) {break;}
                 }
-//                if (vOrder.iterator().hasNext()) {
-//                    odpCurrentKneadedOrder = vOrder.firstElement();
-//                } else {
-//                    odpCurrentKneadedOrder = null;
-//                }
             }
         }
 
