@@ -121,7 +121,7 @@ public class CustomerAgent extends BaseAgent {
 //            System.out.println("current hour: " + getCurrentHour());
 //            System.out.println("current day: " + getCurrentDay());
 
-            if (day > latestOrder[0] && hour > latestOrder[1]) {
+            if (day >= latestOrder[0] && hour >= latestOrder[1]) {
                 System.out.println("It passed time");
                 passTime = true;
             } else {
@@ -132,7 +132,7 @@ public class CustomerAgent extends BaseAgent {
                 ArrayList<JSONObject> orderList = getCurrentOrder(hour, day);
                 JSONObject order = new JSONObject();
 
-                System.out.println("orderlist size: " + orderList.size());
+//                System.out.println("orderlist size: " + orderList.size());
 
                 while (orderList.size() > 0) {
                     order = orderList.remove(0);
@@ -281,22 +281,21 @@ public class CustomerAgent extends BaseAgent {
                         receivedReply++;
                     }
                 }
-
-                if (receivedReply == sellerAgents.length) {
-                    System.out.println(receivedReply);
-                    System.out.println("incomingProposal " + incomingProposal);
-
-                    isDone = true;
-                    finished();
-
-                    if (!incomingProposal.isEmpty()) {
-                        CustomerAgent.this.addBehaviour(new SendConfirmation(incomingProposal, myOrder));
-                    } else {
-                        System.out.println("No bakery accept my order.. >_<");
-                    }
-                }
             } else {
                 block();
+            }
+            if (receivedReply == sellerAgents.length) {
+                System.out.println(receivedReply);
+                System.out.println("incomingProposal " + incomingProposal);
+
+                isDone = true;
+                finished();
+
+                if (!incomingProposal.isEmpty()) {
+                    CustomerAgent.this.addBehaviour(new SendConfirmation(incomingProposal, myOrder));
+                } else {
+                    System.out.println("No bakery accept my order.. >_<");
+                }
             }
         }
 
@@ -532,7 +531,7 @@ public class CustomerAgent extends BaseAgent {
                 int hour = order_time.getInt("hour");
                 int day = order_time.getInt("day");
 
-                if ((hour == currentHour) && (day == currentDay)) {
+                if ((hour == currentHour) && (day == currentDay) && getCurrentMinute() == 0) {
                     orderList.add(orders.getJSONObject(i));
                     n++;
                 }
