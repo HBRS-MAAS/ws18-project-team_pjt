@@ -66,7 +66,7 @@ public class CustomerAgent extends BaseAgent {
 
         customerID = getAID().getLocalName();
 
-//        System.out.println(customerID + " is ready.");
+        System.out.println(customerID + " is ready.");
 
         getSellers();
 
@@ -118,10 +118,10 @@ public class CustomerAgent extends BaseAgent {
             int hour = getCurrentHour();
             int day = getCurrentDay();
 
-//            System.out.println("current hour: " + getCurrentHour());
-//            System.out.println("current day: " + getCurrentDay());
+            //System.out.println("current hour: " + getCurrentHour());
+            //System.out.println("current day: " + getCurrentDay());
 
-            if (day >= latestOrder[0] && hour >= latestOrder[1]) {
+            if (day > latestOrder[0] && hour > latestOrder[1]) {
                 System.out.println("It passed time");
                 passTime = true;
             } else {
@@ -239,6 +239,7 @@ public class CustomerAgent extends BaseAgent {
     private class ReceiveProposal extends Behaviour {
         private JSONObject incomingProposal = new JSONObject();
         private JSONObject myOrder = new JSONObject();
+        private List<AID> proposalSender = new ArrayList();
 
         private MessageTemplate myTemplate;
         private boolean isDone = false;
@@ -269,6 +270,8 @@ public class CustomerAgent extends BaseAgent {
                             JSONObject proposal = new JSONObject(message.getContent());
                             products = proposal.getJSONObject("products");
 
+                            proposalSender.add(message.getSender());
+
                             incomingProposal.put(bakeryName, products);
 
                             receivedReply++;
@@ -277,25 +280,26 @@ public class CustomerAgent extends BaseAgent {
                         }
                     }
                 } else if (message.getPerformative() == ACLMessage.REFUSE) {
-                    if (message.getLanguage().equals("JSON")) {
-                        receivedReply++;
+                    receivedReply++;
+                }
+
+                System.out.println("Received reply = " + receivedReply);
+
+                if (receivedReply == sellerAgents.length) {
+                    //System.out.println(receivedReply);
+                    System.out.println("incomingProposal " + incomingProposal);
+
+                    isDone = true;
+                    finished();
+
+                    if (!incomingProposal.isEmpty()) {
+                        CustomerAgent.this.addBehaviour(new SendConfirmation(incomingProposal, myOrder, proposalSender));
+                    } else {
+                        System.out.println("No bakery accept my order.. >_<");
                     }
                 }
             } else {
                 block();
-            }
-            if (receivedReply == sellerAgents.length) {
-                System.out.println(receivedReply);
-                System.out.println("incomingProposal " + incomingProposal);
-
-                isDone = true;
-                finished();
-
-                if (!incomingProposal.isEmpty()) {
-                    CustomerAgent.this.addBehaviour(new SendConfirmation(incomingProposal, myOrder));
-                } else {
-                    System.out.println("No bakery accept my order.. >_<");
-                }
             }
         }
 
@@ -311,10 +315,12 @@ public class CustomerAgent extends BaseAgent {
         private JSONObject selected = new JSONObject();
         private JSONObject myOrder = new JSONObject();
         private JSONObject reOrder = new JSONObject();
+        private List<AID> sellers = new ArrayList();
 
-        SendConfirmation(JSONObject incomingProposal, JSONObject order) {
+        SendConfirmation(JSONObject incomingProposal, JSONObject order, List<AID> proposalSender) {
             proposal = incomingProposal;
             myOrder = order;
+            sellers = proposalSender;
         }
 
         @Override
@@ -322,40 +328,33 @@ public class CustomerAgent extends BaseAgent {
             try {
                 selected = findTheCheapest(proposal, myOrder);
 
-                //System.out.println("Send Confirmation: " + confirmation);
-
                 //Send the confirmation
-                for (int i = 0; i < sellerAgents.length; ++i) {
-                    String name = sellerAgents[i].getLocalName();
-                    if (selected.has(name)) {
-                        //System.out.println("selected " + selected);
-                        JSONObject products = selected.getJSONObject(name);
+                for (int i = 0; i < sellers.size(); ++i) {
+                    String id = sellers.get(i).getLocalName();
 
-                        //System.out.println(products.length());
+                    if (selected.has(id)) {
+                        JSONObject products = selected.getJSONObject(id);
 
-                        if (!products.isEmpty()) {
-                            reOrder = myOrder;
+                        reOrder = myOrder;
 
-                            reOrder.put("products", products);
+                        reOrder.put("products", products);
 
-                            JSONObject newProductList = new JSONObject();
+                        JSONObject newProductList = new JSONObject();
 
-                            ACLMessage confirm = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-                            confirm.addReceiver(sellerAgents[i]);
-                            confirm.setLanguage("JSON");
-                            confirm.setContent(reOrder.toString());
-                            send(confirm);
+                        ACLMessage confirm = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+                        confirm.addReceiver(sellers.get(i));
+                        confirm.setLanguage("JSON");
+                        confirm.setContent(reOrder.toString());
+                        send(confirm);
 
-                            System.out.println(customerID + " accept " + name + ": " + confirm.getContent());
-                        }
+                        System.out.println(customerID + " accept " + id + ": " + confirm.getContent());
                     } else {
                         ACLMessage confirm = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
-                        confirm.addReceiver(sellerAgents[i]);
-                        confirm.setLanguage("JSON");
+                        confirm.addReceiver(sellers.get(i));
                         confirm.setContent("Your bakery is too expensive.. :(");
                         send(confirm);
 
-                        System.out.println(customerID + " reject " + name + ": " + confirm.getContent());
+                        System.out.println(customerID + " reject " + id + ": " + confirm.getContent());
                     }
                 }
 
@@ -399,7 +398,7 @@ public class CustomerAgent extends BaseAgent {
                     location = dataArray.getJSONObject(i).get("location");
 
                     //Should the length reduced by one?
-//                    System.out.println(customerID + " has " + (orders.length() - 1) + " order");
+                    System.out.println(customerID + " has " + (orders.length() - 1) + " order");
 
                     return orders.length() - 1;
                 }
@@ -477,8 +476,6 @@ public class CustomerAgent extends BaseAgent {
         JSONObject confirmation = new JSONObject();
         JSONObject proposedPrice = new JSONObject();
 
-        String chosenBakery = "";
-
         JSONObject orderedProduct = new JSONObject();
         orderedProduct = myOrder.getJSONObject("products");
 
@@ -489,27 +486,34 @@ public class CustomerAgent extends BaseAgent {
 
                 JSONObject selectedProduct = new JSONObject();
                 Double min_price = Double.MAX_VALUE;
-                for (AID seller : sellerAgents) {
-                    String name = seller.getLocalName();
-                    proposedPrice = proposal.getJSONObject(name);
+                String chosenBakery = "";
 
-                    if (min_price > proposedPrice.getDouble(type) && proposedPrice.getDouble(type) != 0) {
-                        chosenBakery = name;
-                        min_price = proposedPrice.getDouble(type);
+                for (AID seller : sellerAgents) {
+                    String id = seller.getLocalName();
+
+                    if (proposal.has(id)) {
+                        proposedPrice = proposal.getJSONObject(id);
+
+                        if (min_price > proposedPrice.getDouble(type) && proposedPrice.getDouble(type) != 0) {
+                            chosenBakery = id;
+                            min_price = proposedPrice.getDouble(type);
+                        }
                     }
                 }
 
-                if (confirmation.has(chosenBakery)) {
-                    selectedProduct = confirmation.getJSONObject(chosenBakery);
-                    //type = type + ", " + confirmation.getString(chosenBakery);
+                if (chosenBakery != "") {
+                    if (confirmation.has(chosenBakery)) {
+                        selectedProduct = confirmation.getJSONObject(chosenBakery);
+                        //type = type + ", " + confirmation.getString(chosenBakery);
+                    }
+
+                    int amount = myOrder.getJSONObject("products").getInt(type);
+                    selectedProduct.put(type, amount);
+
+                    //System.out.println("Selected Product: " + selectedProduct.toString());
+
+                    confirmation.put(chosenBakery, selectedProduct);
                 }
-
-                int amount = myOrder.getJSONObject("products").getInt(type);
-                selectedProduct.put(type, amount);
-
-                //System.out.println("Selected Product: " + selectedProduct.toString());
-
-                confirmation.put(chosenBakery, selectedProduct);
             }
         } catch (JSONException e) {
             e.printStackTrace();
