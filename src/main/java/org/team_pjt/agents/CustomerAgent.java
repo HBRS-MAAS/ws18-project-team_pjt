@@ -132,7 +132,7 @@ public class CustomerAgent extends BaseAgent {
                 ArrayList<JSONObject> orderList = getCurrentOrder(hour, day);
                 JSONObject order = new JSONObject();
 
-                //System.out.println(orderList.size());
+//                System.out.println("orderlist size: " + orderList.size());
 
                 while (orderList.size() > 0) {
                     order = orderList.remove(0);
@@ -146,12 +146,12 @@ public class CustomerAgent extends BaseAgent {
             }
 
             //Inform the order processing the customer doesn't want to buy anything at the time
-            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-            for (int i = 0; i < sellerAgents.length; ++i) {
-                msg.addReceiver(sellerAgents[i]);
-            }
-            msg.setContent("We don't want to buy anything now!");
-            sendMessage(msg);
+//            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+//            for (int i = 0; i < sellerAgents.length; ++i) {
+//                msg.addReceiver(sellerAgents[i]);
+//            }
+//            msg.setContent("We don't want to buy anything now!");
+//            sendMessage(msg);
 
             //System.out.println("call finish");
             finished();
@@ -220,7 +220,7 @@ public class CustomerAgent extends BaseAgent {
                 msg.setReplyWith("order-"+System.currentTimeMillis()); // Unique value
                 sendMessage(msg);
 
-                System.out.println(customerID + " send order: " + msg.getContent());
+                System.out.println(customerID + " send order: " + msg.getContent().toString());
 
                 // Prepare the template to get proposals
                 mt = MessageTemplate.and(MessageTemplate.MatchConversationId(orderID),
@@ -307,6 +307,7 @@ public class CustomerAgent extends BaseAgent {
         public boolean done() {
             return isDone;
         }
+
     }
 
     private class SendConfirmation extends OneShotBehaviour {
@@ -416,8 +417,8 @@ public class CustomerAgent extends BaseAgent {
         int[] lastDate = new int[2];
 
         try {
-            System.out.println("get time from orders");
-            System.out.println(orders.length());
+//            System.out.println("get time from orders");
+//            System.out.println(orders.length());
             for (int i = 0; i < orders.length(); i++) {
                 order_time = orders.getJSONObject(i).getJSONObject("order_date");
 
@@ -534,7 +535,7 @@ public class CustomerAgent extends BaseAgent {
                 int hour = order_time.getInt("hour");
                 int day = order_time.getInt("day");
 
-                if ((hour == currentHour) && (day == currentDay)) {
+                if ((hour == currentHour) && (day == currentDay) && getCurrentMinute() == 0) {
                     orderList.add(orders.getJSONObject(i));
                     n++;
                 }
