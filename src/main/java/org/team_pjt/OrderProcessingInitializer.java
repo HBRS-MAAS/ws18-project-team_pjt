@@ -11,19 +11,16 @@ import java.util.Iterator;
 public class OrderProcessingInitializer extends Initializer {
     private static String bakeries_path;
     private static String meta_path;
-    private String configPath = "src/main/resources/config/";
     private static final String sOPPrefix = ":org.team_pjt.agents.OrderProcessing";
     private static final String sSchPrefix2 = ":org.team_pjt.agents.SchedulerAgent";
-    private static final String sDougManagerPrefix =":org.team_pjt.agents.DoughManager";
-    private static final String sProoferPrefix =":org.team_pjt.agents.Proofer";
-    private static final String sBakingInterfacePrefix =":org.team_pjt.agents.BakingInterface";
 
     @Override
     public String initialize(String scenarioDirectory) {
         StringBuilder agentSB = new StringBuilder();
-        configPath += scenarioDirectory + "/";
-        bakeries_path = configPath + "bakeries.json";
-        meta_path = configPath + "meta.json";
+        String opiconfigPath = "src/main/resources/config/";
+        opiconfigPath += scenarioDirectory + "/";
+        bakeries_path = opiconfigPath + "bakeries.json";
+        meta_path = opiconfigPath + "meta.json";
 
         String bakeries = readScenarioFile(bakeries_path);
         String meta = readScenarioFile(meta_path);
@@ -46,9 +43,6 @@ public class OrderProcessingInitializer extends Initializer {
 
             String orderProcAgent = id + sOPPrefix;
             String schedulerAgent = "scheduler-" + bakery_idNum + sSchPrefix2;
-            String doughManaAgent = "doughmanager-" + bakery_idNum + sDougManagerPrefix;
-            String bakeringinterfaceAgent = "bakeryinterface-"+ bakery_idNum + sBakingInterfacePrefix;
-            String proofAgent = "proofer-"+ bakery_idNum + sProoferPrefix;
             appendAgentAndArguments(
                     agentSB,
                     bakeryString + "," + metaString,
@@ -63,17 +57,11 @@ public class OrderProcessingInitializer extends Initializer {
             );
             agentSB.append(";");
 
-            appendAgentAndArguments(agentSB, bakery.toString().replaceAll(",", "###"), doughManaAgent);
-            agentSB.append(";");
-            appendAgentAndArguments(agentSB, bakery.toString().replaceAll(",", "###"), proofAgent);
-            agentSB.append(";");
-            appendAgentAndArguments(agentSB, bakery.toString().replaceAll(",", "###"), bakeringinterfaceAgent);
-            agentSB.append(";");
         }
         return agentSB.toString();
     }
 
-    private static void appendAgentAndArguments(StringBuilder sb, String argument, String agent) {
+    public static void appendAgentAndArguments(StringBuilder sb, String argument, String agent) {
         sb.append(agent);
         sb.append("(");
         sb.append(argument);

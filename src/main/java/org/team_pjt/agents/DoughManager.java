@@ -12,6 +12,7 @@ import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.team_pjt.Objects.BakedGood;
+import org.team_pjt.Objects.CurrentKneadedProduct;
 import org.team_pjt.Objects.KneadingPreparingMachine;
 import org.team_pjt.Objects.OrderDoughPrep;
 import org.team_pjt.messages.ProofingRequest;
@@ -23,6 +24,7 @@ import java.util.*;
 
 public class DoughManager extends BaseAgent {
     private AID [] prooferAgents;
+    private Vector <CurrentKneadedProduct> vProductsToKnead;
     private Vector<OrderDoughPrep> vOrder;
     private Vector<OrderDoughPrep> vOrderInterm;
     private String sIdBakery;
@@ -35,6 +37,10 @@ public class DoughManager extends BaseAgent {
     private OrderDoughPrep odpCurrentKneadedOrder;
     private OrderDoughPrep odpCurrentPreparedOrder;
     private HashMap<String, Integer> hmBakedProducts;
+    private Vector<CurrentKneadedProduct> vAlreadyKneadedOrders;
+    private Vector<CurrentKneadedProduct> vAlreadyPreparedOrders;
+    private Vector<CurrentKneadedProduct> vProductsToPrepare;
+    private HashMap<String, Integer> hmBakedOrder;
     private HashMap<String, Integer> hmPreparedProducts;
     private HashMap<String, Integer> hmSetTimeStep;
     private HashMap<String, Integer> hmPrepTableTimeStep;
@@ -46,10 +52,15 @@ public class DoughManager extends BaseAgent {
         if (!readArgs(oArguments)) {
             System.out.println("No parameters given for DoughManager" + getName());
         }
+        vProductsToPrepare = new Vector<>();
+        vAlreadyKneadedOrders = new Vector<>();
+        vProductsToKnead = new Vector<>();
+        vAlreadyPreparedOrders = new Vector<>();
         vOrder = new Vector<>();
         vOrderInterm = new Vector<>();
         vPreparationOrders = new Vector<>();
         hmBakedProducts = new HashMap<String, Integer>();
+        hmBakedOrder = new HashMap<String, Integer>();
         hmPreparedProducts = new HashMap<>();
         hmSetTimeStep = new HashMap<>();
         hmPrepTableTimeStep = new HashMap<>();
@@ -112,6 +123,7 @@ public class DoughManager extends BaseAgent {
     }
 
     private void readRecipes(JSONObject jsoBakery) {
+        Vector<JSONObject> vIntermjsoobject = new Vector<>();
         jsaProducts = jsoBakery.getJSONArray("products");
         Iterator<Object> iJsaProducts = jsaProducts.iterator();
         hmRecipeProducts = new HashMap<>();
@@ -121,29 +133,29 @@ public class DoughManager extends BaseAgent {
             JSONObject jsoRecipe = (JSONObject) jsoProductInformation.get("recipe");
             Iterator iSteps = jsoRecipe.getJSONArray("steps").iterator();
             HashMap<String, Integer> hmRecipe = new HashMap<>();
-//            @ToDo Check calculation of recipe duration
             while(iSteps.hasNext()){
                 JSONObject jsoRecipeInfo = (JSONObject) iSteps.next();
-                if (jsoRecipeInfo.getString("action").equals("proofing") || jsoRecipeInfo.getString("action").equals("resting") || jsoRecipeInfo.getString("action").equals("sheeting") || jsoRecipeInfo.getString("action").equals("twisting") || jsoRecipeInfo.getString("action").equals("filling") || jsoRecipeInfo.getString("action").equals("kneading") || jsoRecipeInfo.getString("action").equals("item preparation") || jsoRecipeInfo.getString("action").equals("resting")) {
-                    hmRecipe.put(jsoRecipeInfo.getString("action"), jsoRecipeInfo.getInt("duration"));
+                if(jsoRecipeInfo.getString("action").equals("proofing")){
+                    vIntermjsoobject.add(jsoRecipeInfo);
+                    break;
+                }else {
+                    vIntermjsoobject.add(jsoRecipeInfo);
                 }
             }
-            hmRecipeProducts.put(sProduct, hmRecipe);
+            Iterator<JSONObject> iIterator = vIntermjsoobject.iterator();
+            while(iIterator.hasNext()){
+                JSONObject jsoNextFinal = iIterator.next();
+//                if (jsoNextFinal.getString("action").equals("proofing") || jsoNextFinal.getString("action").equals("resting") || jsoNextFinal.getString("action").equals("sheeting") || jsoNextFinal.getString("action").equals("twisting") || jsoRecipeInfo.getString("action").equals("filling") || jsoRecipeInfo.getString("action").equals("kneading") || jsoRecipeInfo.getString("action").equals("item preparation") || jsoRecipeInfo.getString("action").equals("resting")) {
+                 hmRecipe.put(jsoNextFinal.getString("action"), jsoNextFinal.getInt("duration"));
+//                }
+                hmRecipeProducts.put(sProduct, hmRecipe);
+            }
         }
     }
 
     private class receiveOrder extends CyclicBehaviour {
-        private int iKneadingSize = 0;
-        private int iCurrentKneadingSize = 0;
-        private int iPreparingSize = 0;
-        private int iCurrentPreparingSize = 0;
-        private JSONObject jsoProofedProducts;
-//        boolean isDone = false;
         @Override
         public void action() {
-//                if(!getAllowAction()){
-//                    return;
-//                }
             if (getAllowAction()) {
                 MessageTemplate acceptedProposalMT = MessageTemplate.and((MessageTemplate.MatchPerformative(ACLMessage.PROPAGATE)), MessageTemplate.MatchSender(aidSchedulerAgent));
                 ACLMessage aclReceive = receive(acceptedProposalMT);
@@ -180,35 +192,39 @@ public class DoughManager extends BaseAgent {
                             Map.Entry<String, Integer> mNext = iEntrySet.next();
                             bakedGoods.add(new BakedGood(mNext.getKey(),mNext.getValue()));
                         }
-
-//                        System.out.println("Order is: " + jsoObject.toString());
                         vOrderInterm.add(new OrderDoughPrep(jsoObject.getString("customerId"), jsoObject.getString("guid"), jsoOrderDate.getInt("day"), jsoOrderDate.getInt("hour"), jsoDeliveryDate.getInt("day"), jsoDeliveryDate.getInt("hour"), bakedGoods));
-//                        jsoProofedProducts.toString();
                     }
                     vOrder = new Vector<>(vOrderInterm);
                     vOrderInterm.clear();
-                    checkWhetherKneadingSizeIsEqual();
-                    if (odpCurrentKneadedOrder != null) {
-                        calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
+                    if (getCurrentHour() <= 12) {
+                        checkWhetherKneadingSizeIsEqual();
+                        if (vProductsToKnead.size() > 0) {
+                            calculateKneadingTime(vProductsToKnead);
+                        }
+                        checkWhetherKneadingSizeIsEqual();
+                        if (vProductsToPrepare.size() > 0) {
+                            calculatePreaparationTime(vProductsToPrepare);
+                        }
+                    } else {
+//                        System.out.println("No production shift");
                     }
-                    checkWhetherKneadingSizeIsEqual();
-                    checkWhetherPreparingSizeIsEqual();
-                    if (odpCurrentPreparedOrder != null) {
-                        jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
-                    }
-                    checkWhetherPreparingSizeIsEqual();
                     finished();
                 }
                 else {
-                    if (odpCurrentKneadedOrder != null) {
-                        calculateKneadingTime(odpCurrentKneadedOrder.getBakedGoods(), false);
-                        checkWhetherKneadingSizeIsEqual();
-                        checkWhetherPreparingSizeIsEqual();
-                        if (odpCurrentPreparedOrder != null) {
-                            jsoProofedProducts = calculatePreaparationTime(odpCurrentPreparedOrder.getBakedGoods(), false);
+//                    if (odpCurrentKneadedOrder != null) {
+                        if (getCurrentHour() < 12) {
+                            checkWhetherKneadingSizeIsEqual();
+                            if (vProductsToKnead.size() > 0) {
+                                calculateKneadingTime(vProductsToKnead);
+                            }
+                            checkWhetherKneadingSizeIsEqual();
+                            if (vProductsToPrepare.size() > 0) {
+                                calculatePreaparationTime(vProductsToPrepare);
+                            }
+                        } else {
+//                            System.out.println("No production shift");
                         }
-                        checkWhetherPreparingSizeIsEqual();
-                    }
+//                    }
                     finished();
                     block();
                 }
@@ -216,141 +232,114 @@ public class DoughManager extends BaseAgent {
 
         }
 
-        private void checkWhetherPreparingSizeIsEqual() {
-            if(iCurrentPreparingSize == iPreparingSize){
-                if(odpCurrentPreparedOrder != null && jsoProofedProducts != null){
-//                    if(){
+        private void sendProofingRequest(JSONObject jsoProofedProducts, String sOrderId) {
                         Iterator<String> iProofedKeys = jsoProofedProducts.keys();
                         while(iProofedKeys.hasNext()){
                             String sGuid = iProofedKeys.next();
                             Integer iQuantiti = (Integer) jsoProofedProducts.get(sGuid);
                             Float fProofingTime = Float.valueOf(hmRecipeProducts.get(sGuid).get("proofing"));
                             Vector<String> vGuids = new Vector<String>();
-                            vGuids.add(odpCurrentPreparedOrder.getGuid());
+                            vGuids.add(sOrderId);
                             Vector<Integer> vProductQuantities = new Vector<>();
                             vProductQuantities.add(iQuantiti);
-//                            ProofingRequest prRequest = null;
                             ProofingRequest prRequest = new ProofingRequest(sGuid,vGuids,fProofingTime,vProductQuantities );
                             Gson gson = new Gson();
                             String sProofingMesssage = gson.toJson(prRequest);
                             sendProofingRequest(sProofingMesssage);
                         }
-//                    }
                 }
-                if(vPreparationOrders != null && vPreparationOrders.size() != 0){
-                    odpCurrentPreparedOrder = vPreparationOrders.lastElement();
-                    vPreparationOrders.remove(odpCurrentPreparedOrder);
-                } else {
-                    odpCurrentPreparedOrder = null;
-                }
-            }
-
-        }
 
         private void checkWhetherKneadingSizeIsEqual() {
-            if (iCurrentKneadingSize == iKneadingSize){
-                if (odpCurrentKneadedOrder != null) {
-                    vPreparationOrders.add(odpCurrentKneadedOrder);
-//                    vOrder.remove(odpCurrentKneadedOrder);
-                    System.out.println(odpCurrentKneadedOrder.getGuid() + "wurde geknetet");
-                }
-                for (OrderDoughPrep odpKneaded:
-                vOrder) {
-                    if (odpKneaded.getDeliveryDate() == getCurrentDay()) {
-                        odpCurrentKneadedOrder = odpKneaded;
+            boolean bOrderAlreadyExists = false;
+            for (OrderDoughPrep odpKneaded: vOrder) {
+                if (odpKneaded.getDeliveryDate() == getCurrentDay()) {
+                    Iterator<CurrentKneadedProduct> iProductsToKnead = vProductsToKnead.iterator();
+                    while (iProductsToKnead.hasNext()){
+                        CurrentKneadedProduct ckpNext = iProductsToKnead.next();
+                        if(odpKneaded.getGuid().equals(ckpNext.getsOrderId())){
+                            bOrderAlreadyExists = true;
+                            break;
+                        }
                     }
-                    if(odpKneaded.getDeliveryDate() > getCurrentDay()) {break;}
+                    if (!bOrderAlreadyExists) {
+                        Vector<BakedGood> vBakedGoods = odpKneaded.getBakedGoods();
+                        Iterator<BakedGood> iBakedGoods = vBakedGoods.iterator();
+                        while(iBakedGoods.hasNext()){
+                            BakedGood bgNext = iBakedGoods.next();
+                            vProductsToKnead.add(new CurrentKneadedProduct(odpKneaded.getGuid(), bgNext.getName(), bgNext.getAmount(), odpKneaded.getDeliveryDate()));
+                        }
+                    }
                 }
-//                if (vOrder.iterator().hasNext()) {
-//                    odpCurrentKneadedOrder = vOrder.firstElement();
-//                } else {
-//                    odpCurrentKneadedOrder = null;
-//                }
             }
         }
 
-        private JSONObject calculatePreaparationTime(Vector<BakedGood> bakedGoods, boolean bPreparing) {
-            if (iCurrentPreparingSize == iPreparingSize) {
-                hmPreparedProducts.clear();
-                iPreparingSize = bakedGoods.size();
-                jsoPreparedItems = new JSONObject();
-                iCurrentPreparingSize = 0;
-            }
-//            while (iCurrentPreparingSize < iPreparingSize) {
-//                finished();
-//                if (getAllowAction()) {
-                    Iterator<BakedGood> iBakedGoods = bakedGoods.iterator();
+        private void calculatePreaparationTime(Vector<CurrentKneadedProduct> bakedGoods) {
+                    Iterator<CurrentKneadedProduct> iBakedGoods = bakedGoods.iterator();
                     while (iBakedGoods.hasNext()) {
-                        BakedGood bgNext = iBakedGoods.next();
-                        HashMap<String, Integer> hmDuration = hmRecipeProducts.get(bgNext.getName());
-                        if (hmPreparedProducts.get(bgNext.getName()) == null) {
+                        CurrentKneadedProduct bgNext = iBakedGoods.next();
+                        HashMap<String, Integer> hmDuration = hmRecipeProducts.get(bgNext.getsProduct());
+                        if (!isbProductOfOrderAlreadyKneaded(false, bgNext, vAlreadyPreparedOrders)) {
                             Iterator<KneadingPreparingMachine> iDoughPrepTables = vDoughPrepTable.iterator();
                             while (iDoughPrepTables.hasNext()) {
                                 KneadingPreparingMachine dptNext = iDoughPrepTables.next();
                                 if (!(dptNext.isbBusy())) {
-                                    if (dptNext.getsCurrentKneadedProduct() != null) {
-                                        if (hmPreparedProducts.get(dptNext.getsCurrentKneadedProduct()) == null) {
-                                            hmPreparedProducts.put(dptNext.getsCurrentKneadedProduct(), 1);
+                                    if (dptNext.getsCurrentKneadedProduct() != "") {
+                                        if (!isbProductOfOrderAlreadyKneaded(false, bgNext, vAlreadyPreparedOrders)) {
+                                            vAlreadyPreparedOrders.add(new CurrentKneadedProduct(dptNext.getsCurrentKneadedOrder(), dptNext.getsCurrentKneadedProduct(), dptNext.getiAmount(), -1));
+                                            jsoPreparedItems = new JSONObject();
                                             jsoPreparedItems.put(dptNext.getsCurrentKneadedProduct(), dptNext.getiAmount());
-                                            iCurrentPreparingSize++;
-                                            if (iCurrentPreparingSize == iPreparingSize)
-                                                break;
+                                            sendProofingRequest(jsoPreparedItems, dptNext.getsCurrentKneadedOrder());
+                                            dptNext.setsCurrentKneadedOrder("");
+                                            dptNext.setsCurrentKneadedProduct("");
                                         }
                                     }
-                                    if (hmPreparedProducts.get(bgNext.getName()) == null && !bPreparing) {
-                                        setKneadingTime(bgNext,hmDuration, dptNext, "item preparation", bgNext.getAmount());
-                                        break;
+                                    if (!isbProductOfOrderAlreadyKneaded(false, bgNext, vAlreadyPreparedOrders)) {
+                                        checkWhetherAlreadyPreparing(bgNext.getiAmount(), "item preparation", bgNext, hmDuration, dptNext, vDoughPrepTable);
                                     }
                                 }
-                                if (dptNext.getsCurrentKneadedProduct() != null) {
-                                    dptNext.setiWorkTime();
-                                    dptNext.checkKneadingMachineState(getName());
-                                    hmPrepTableTimeStep.put(dptNext.getsCurrentKneadedProduct(),1);
+                                if (dptNext.getsCurrentKneadedProduct() != "") {
+                                    if (hmPrepTableTimeStep.get(dptNext.getsCurrentKneadedOrder()) == null) {
+                                        dptNext.setiWorkTime();
+                                        dptNext.checkKneadingMachineState(getName());
+                                        hmPrepTableTimeStep.put(dptNext.getsCurrentKneadedProduct(),1);
+                                    }
                                 }
                             }
-
-                            if (iCurrentPreparingSize == iPreparingSize)
-                                hmPrepTableTimeStep.clear();
-                                break;
+                        } else {
+                            if (bgNext.getiDeliveryDay() < getCurrentDay()) {
+                                bakedGoods.remove(bgNext);
+                                iBakedGoods = bakedGoods.iterator();
+                            }
                         }
                     }
-//                }
             hmPrepTableTimeStep.clear();
-//            }
-            return jsoPreparedItems;
+//            return jsoPreparedItems;
 
         }
 
-        private void calculateKneadingTime(Vector<BakedGood> bakedGoods, boolean bPreparing) {
-
-            if (iCurrentKneadingSize == iKneadingSize) {
-                hmBakedProducts.clear();
-                iKneadingSize = bakedGoods.size();
-                iCurrentKneadingSize = 0;
-            }
-                    Iterator<BakedGood> iBakedGoods = bakedGoods.iterator();
+        private void calculateKneadingTime(Vector<CurrentKneadedProduct> bakedGoods) {
+                    Iterator<CurrentKneadedProduct> iBakedGoods = bakedGoods.iterator();
                     while (iBakedGoods.hasNext()) {
-                        BakedGood bgNext = iBakedGoods.next();
-                        HashMap<String, Integer> hmDuration = hmRecipeProducts.get(bgNext.getName());
-                        Iterator<KneadingPreparingMachine> iKneadingMachines = vKneadingPreparingMachine.iterator();
-                        if (hmBakedProducts.get(bgNext.getName()) == null) {
+                        CurrentKneadedProduct bgNext = iBakedGoods.next();
+                        HashMap<String, Integer> hmDuration = hmRecipeProducts.get(bgNext.getsProduct());
+                        if (!isbProductOfOrderAlreadyKneaded(false, bgNext, vAlreadyKneadedOrders)) {
+                            Iterator<KneadingPreparingMachine> iKneadingMachines = vKneadingPreparingMachine.iterator();
                             while (iKneadingMachines.hasNext()) {
                                 KneadingPreparingMachine kmNext = iKneadingMachines.next();
                                 if (!(kmNext.isbBusy())) {
-                                    if (kmNext.getsCurrentKneadedProduct() != null) {
-                                        if (hmBakedProducts.get(kmNext.getsCurrentKneadedProduct()) == null) {
-                                            hmBakedProducts.put(kmNext.getsCurrentKneadedProduct(), kmNext.getiAmount());
-                                            iCurrentKneadingSize++;
-                                            if (iCurrentKneadingSize == iKneadingSize)
-                                                break;
+                                    if (kmNext.getsCurrentKneadedProduct() != "") {
+                                        if (!isbProductOfOrderAlreadyKneaded(false, bgNext, vAlreadyKneadedOrders)) {
+                                            vAlreadyKneadedOrders.add(new CurrentKneadedProduct(kmNext.getsCurrentKneadedOrder(), kmNext.getsCurrentKneadedProduct(), kmNext.getiAmount(), -1));
+                                            vProductsToPrepare.add(new CurrentKneadedProduct(kmNext.getsCurrentKneadedOrder(), kmNext.getsCurrentKneadedProduct(), kmNext.getiAmount(), -1));
+                                            kmNext.setsCurrentKneadedOrder("");
+                                            kmNext.setsCurrentKneadedProduct("");
                                         }
                                     }
-                                    if (hmBakedProducts.get(bgNext.getName()) == null && !bPreparing) {
-                                        setKneadingTime(bgNext, hmDuration, kmNext, "item", 1);
-                                        break;
+                                    if (!isbProductOfOrderAlreadyKneaded(false, bgNext, vAlreadyKneadedOrders)) {
+                                        checkWhetherAlreadyPreparing(1, "item", bgNext, hmDuration, kmNext, vKneadingPreparingMachine);
                                     }
                                 }
-                                if (kmNext.getsCurrentKneadedProduct() != null) {
+                                if (kmNext.getsCurrentKneadedProduct() != "") {
                                     if (hmSetTimeStep.get(kmNext.getsCurrentKneadedProduct()) == null) {
                                         kmNext.setiWorkTime();
                                         kmNext.checkKneadingMachineState(getName());
@@ -358,18 +347,42 @@ public class DoughManager extends BaseAgent {
                                     }
                                 }
                             }
-                        }
-                        if (iCurrentKneadingSize == iKneadingSize)
-                            {
-                                hmSetTimeStep.clear();
-                                break;
+                        } else {
+                            if(bgNext.getiDeliveryDay() < getCurrentDay()){
+                                bakedGoods.remove(bgNext);
+                                iBakedGoods = bakedGoods.iterator();
                             }
+                        }
                     }
 
             hmSetTimeStep.clear();
         }
 
-        private void setKneadingTime(BakedGood bgNext, HashMap<String, Integer> hmDuration, KneadingPreparingMachine kmNext, String sItem, int iAmount) {
+        private void checkWhetherAlreadyPreparing(Integer iAmount, String sPreparingItem, CurrentKneadedProduct bgNext, HashMap<String, Integer> hmDuration, KneadingPreparingMachine kmNext, Vector<KneadingPreparingMachine> vKneadingPreparingMachine) {
+            boolean bAldreadyPreparing = false;
+            Iterator<KneadingPreparingMachine> ivkmMachine = vKneadingPreparingMachine.iterator();
+            while(ivkmMachine.hasNext()){
+                KneadingPreparingMachine kpmNext = ivkmMachine.next();
+                if (kpmNext.getsCurrentKneadedProduct().equals(bgNext.getsProduct()) && kpmNext.getsCurrentKneadedOrder().equals(bgNext.getsOrderId())) {
+                    bAldreadyPreparing = true;
+                }
+            }
+            if (!bAldreadyPreparing) {
+                setKneadingTime(bgNext.getsProduct(), hmDuration, kmNext, sPreparingItem, iAmount, bgNext.getsOrderId());
+            }
+        }
+
+        private boolean isbProductOfOrderAlreadyKneaded(boolean bProductOfOrderAlreadyPrepared, CurrentKneadedProduct bgNext, Vector<CurrentKneadedProduct> vAlreadyKneadedOrders) {
+            Iterator<CurrentKneadedProduct> iVAlreadyPreparedOrders = vAlreadyKneadedOrders.iterator();
+            while(iVAlreadyPreparedOrders.hasNext()){
+                CurrentKneadedProduct ckpNext = iVAlreadyPreparedOrders.next();
+                if(ckpNext.getsProduct().equals(bgNext.getsProduct()) && ckpNext.getsOrderId().equals(bgNext.getsOrderId())){
+                    bProductOfOrderAlreadyPrepared = true;}
+            }
+            return bProductOfOrderAlreadyPrepared;
+        }
+
+        private void setKneadingTime(String sCurrentKneadedProduct, HashMap<String, Integer> hmDuration, KneadingPreparingMachine kmNext, String sItem, int iAmount, String sOrder) {
             Set<String> sStrings = hmDuration.keySet();
             Iterator<String> sIterator = sStrings.iterator();
             if (sItem.equals("item")) {
@@ -383,7 +396,8 @@ public class DoughManager extends BaseAgent {
             } else {
                 kmNext.setvTime(hmDuration.get(sItem));
             }
-            kmNext.setsCurrentKneadedProduct(bgNext.getName());
+            kmNext.setsCurrentKneadedOrder(sOrder);
+            kmNext.setsCurrentKneadedProduct(sCurrentKneadedProduct);
             kmNext.setiAmount(iAmount);
             kmNext.startKneading(getName());
         }

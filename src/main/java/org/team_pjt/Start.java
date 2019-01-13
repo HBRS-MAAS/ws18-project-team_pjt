@@ -12,7 +12,7 @@ public class Start {
 
     private static boolean customerStage = true;
     private static boolean orderProcessingStage = true;
-    private static boolean doughPrepStage = false;
+    private static boolean doughPrepStage = true;
     private static boolean bakingStage = false;
     private static boolean packagingStage = false;
     private static boolean deliveryStage = false;
@@ -58,7 +58,8 @@ public class Start {
             sb.append(init.initialize(scenarioDirectory));
         }
         if(doughPrepStage) {
-
+            Initializer init = new DoughPrepInitializer();
+            sb.append(init.initialize(scenarioDirectory));
         }
         if(bakingStage) {
 //			Initializer init = new BakingStageInitializer();
@@ -79,7 +80,7 @@ public class Start {
 		if(isHost) {
 			sb.append("timekeeper:org.team_pjt.agents.TimeKeeper(" + scenarioDirectory + ", " + endTime + ");");
 			if(noAgentStarting) {
-			    sb.append("dummy:org.maas.agents.DummyAgent;");
+			    sb.append("dummy:org.team_pjt.agents.DummyAgent;");
             }
 		}
         cmd.add(sb.toString());
