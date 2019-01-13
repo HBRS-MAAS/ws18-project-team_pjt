@@ -80,7 +80,7 @@ public class KneadingPreparingMachine {
 
     public boolean checkKneadingMachineState(String sDoughManager){
         if(iWorkTime < iBusyTime){
-            System.out.println("DoughManager: " + sDoughManager + " KneadingPreparingMachine: " + sGuid + " Momentane Arbeitszeit " + iWorkTime + " momentan gebackenes Produkt: " + sCurrentKneadedProduct + " Order: " + sCurrentKneadedOrder);
+//            System.out.println("DoughManager: " + sDoughManager + " KneadingPreparingMachine: " + sGuid + " Momentane Arbeitszeit " + iWorkTime + " momentan gebackenes Produkt: " + sCurrentKneadedProduct + " Order: " + sCurrentKneadedOrder);
             return false;
         } else {
             iWorkTime = 0;

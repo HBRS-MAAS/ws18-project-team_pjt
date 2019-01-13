@@ -71,7 +71,7 @@ public class DoughPreparationTable {
         bBusy = true;
         iPreparingTime = iAmountOfItem * iRestingTime;
 
-        System.out.println(sGuid + " is preparing");
+//        System.out.println(sGuid + " is preparing");
 //        bBusy = false;
 //        System.out.println(sGuid + " finished Preparing for product " + sCurrentPreparedProduct);
 //        Thread.currentThread().interrupt();
@@ -91,7 +91,7 @@ public class DoughPreparationTable {
             return true;
         }
         else
-            System.out.println("WorkingTime is " + iWorkTime);
+//            System.out.println("WorkingTime is " + iWorkTime);
             return false;
     }
 //    if(iWorkTime < iBusyTime){

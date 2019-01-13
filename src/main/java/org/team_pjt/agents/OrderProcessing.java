@@ -35,7 +35,7 @@ public class OrderProcessing extends BaseAgent {
         if (!readArgs(oArguments)) {
             System.out.println(getName() + ": No parameter given for OrderProcessing " + getName());
         }
-        logger = new Logger(getName(), "release");
+        logger = new Logger(getName(), "no");
         this.register("OrderProcessing", this.sBakeryId);
         findScheduler();
         order_received = false;
