@@ -206,7 +206,7 @@ public class DoughManager extends BaseAgent {
                             calculatePreaparationTime(vProductsToPrepare);
                         }
                     } else {
-                        System.out.println("No production shift");
+//                        System.out.println("No production shift");
                     }
                     finished();
                 }
@@ -222,7 +222,7 @@ public class DoughManager extends BaseAgent {
                                 calculatePreaparationTime(vProductsToPrepare);
                             }
                         } else {
-                            System.out.println("No production shift");
+//                            System.out.println("No production shift");
                         }
 //                    }
                     finished();
