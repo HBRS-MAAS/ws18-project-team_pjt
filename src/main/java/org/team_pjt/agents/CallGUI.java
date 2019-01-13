@@ -46,6 +46,7 @@ public class CallGUI extends Application {
             primaryStage.setScene(scene1);
 
             primaryStage.show();
+            primaryStage.close();
         }
 
         // public static void main(String[] args) {         launch(args);       }

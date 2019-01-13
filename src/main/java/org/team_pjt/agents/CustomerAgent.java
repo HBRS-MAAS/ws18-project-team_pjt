@@ -135,16 +135,16 @@ public class CustomerAgent extends BaseAgent {
                 ArrayList<JSONObject> orderList = getCurrentOrder(hour, day);
                 JSONObject order = new JSONObject();
 
-//                System.out.println("orderlist size: " + orderList.size());
+                System.out.println("orderlist size: " + orderList.size());
 
                 while (orderList.size() > 0) {
                     order = orderList.remove(0);
                     System.out.println(order);
-                    System.out.println("XXXXXXXXXXXXXXXXXXXX");
                     // Visualisation2 vistest = new Visualisation2();
                     // vistest.display("Hallo");
-                    // Via class variable    globalOrder = order.getJSONObject("products").toString();
-                    //CallGUI.setOrder();
+                    // Via class  variable  //  globalOrder = order.getJSONObject("products").toString();
+                    //CallGUI.showWindow();
+
                     CustomerAgent.this.addBehaviour(new CallForProposal(order));
                     sum_sent++;
                     process_done = false;
