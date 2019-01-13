@@ -104,20 +104,21 @@ public class OrderProcessing extends BaseAgent {
                     MessageTemplate cfpMT = MessageTemplate.MatchPerformative(ACLMessage.CFP);
                     cfpMessage = myAgent.receive(cfpMT);
                     if (cfpMessage != null) {
+                        myAgent.addBehaviour(new OfferRequestServerNew());
                         order_received = true;
 //                        System.out.println(myAgent.getName() + ": cfp received");
-                        logger.log(new Logger.LogMessage("cfp received", "release"));
                         order = new Order(cfpMessage.getContent());
+                        logger.log(new Logger.LogMessage("cfp received for order: " + order.getGuid(), "release"));
                         myAgent.addBehaviour(new distributeFullOrder(order));
                         List<String> order_av_products = new LinkedList<>(order.getProducts().keySet());
                         bFeasibleOrder = checkForAvailableProducts(order_av_products);
 //                        System.out.println(myAgent.getName() + ": checked available products");
-                        logger.log(new Logger.LogMessage("checked available products", "release"));
+                        logger.log(new Logger.LogMessage("checked available products for order: " + order.getGuid(), "release"));
 
                         if (!bFeasibleOrder) {
                             sendNotFeasibleMessage(cfpMessage, "No needed Product available!");
 //                            System.out.println(myAgent.getName() + ": no product available");
-                            logger.log(new Logger.LogMessage("no product available", "release"));
+                            logger.log(new Logger.LogMessage("no product available for order: " + order.getGuid(), "release"));
                             step = 3;
                             return;
                         }
@@ -138,7 +139,7 @@ public class OrderProcessing extends BaseAgent {
                         schedulerRequest.addReceiver(aidScheduler);
                         sendMessage(schedulerRequest);
 //                        System.out.println(myAgent.getName() + ": asked scheduler for feasibility");
-                        logger.log(new Logger.LogMessage("asked scheduler for feasibility", "release"));
+                        logger.log(new Logger.LogMessage("asked scheduler for feasibility for order: " + order.getGuid(), "release"));
                         step++;
                     }
                     else {
@@ -151,7 +152,7 @@ public class OrderProcessing extends BaseAgent {
                     ACLMessage schedulerMessage = myAgent.receive(schedulerReply);
                     if (schedulerMessage != null) {
 //                        System.out.println(myAgent.getName() + ": schedule reply received!");
-                        logger.log(new Logger.LogMessage("schedule reply received!", "release"));
+                        logger.log(new Logger.LogMessage("schedule reply received! for order: " + order.getGuid(), "release"));
                         if (schedulerMessage.getPerformative() == ACLMessage.CONFIRM) {
                             ACLMessage proposeMsg = cfpMessage.createReply();
                             proposeMsg.setPerformative(ACLMessage.PROPOSE);
@@ -168,7 +169,7 @@ public class OrderProcessing extends BaseAgent {
                             proposeMsg.setConversationId(order.getGuid());
                             sendMessage(proposeMsg);
 //                            System.out.println(myAgent.getName() + ": proposed available products");
-                            logger.log(new Logger.LogMessage("proposed available products", "release"));
+                            logger.log(new Logger.LogMessage("proposed available products for order: " + order.getGuid(), "release"));
                             step++;
                         } else if (schedulerMessage.getPerformative() == ACLMessage.DISCONFIRM) {
                             bFeasibleOrder = false;
@@ -191,7 +192,6 @@ public class OrderProcessing extends BaseAgent {
         public boolean done() {
             boolean isDone = step >= 3;
             if(isDone) {
-                myAgent.addBehaviour(new OfferRequestServerNew());
                 order_received = false;
             }
             return isDone;
@@ -203,7 +203,7 @@ public class OrderProcessing extends BaseAgent {
             clientReply.setContent(content);
             sendMessage(clientReply);
 //            System.out.println(myAgent.getName() + ": not feasible message sent");
-            logger.log(new Logger.LogMessage("not feasible message sent", "release"));
+            logger.log(new Logger.LogMessage("not feasible message sent for order: " + order.getGuid(), "release"));
         }
 
         private void distributeScheduledOrder(String orderID) {
@@ -223,14 +223,14 @@ public class OrderProcessing extends BaseAgent {
                     return;
                 }
 //                System.out.println(myAgent.getName() + ": accept proposal received");
-                logger.log(new Logger.LogMessage("accept proposal received", "release"));
+                logger.log(new Logger.LogMessage("accept proposal received for order: " + order.getGuid(), "release"));
                 findAllAgents();
                 ACLMessage propagate_accepted_order = new ACLMessage(ACLMessage.PROPAGATE);
                 propagate_accepted_order.setContent(accepted_proposal.getContent());
                 propagate_accepted_order.addReceiver(aidScheduler);
                 sendMessage(propagate_accepted_order);
 //                System.out.println(myAgent.getName() + ": Order Processing Propagated all scheduled Orders");
-                logger.log(new Logger.LogMessage("Order Processing Propagated all scheduled Orders", "release"));
+                logger.log(new Logger.LogMessage("Order Processing Propagated all scheduled Orders for order: " + order.getGuid(), "release"));
                 step++;
             }
             else {

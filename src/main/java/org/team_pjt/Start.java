@@ -80,7 +80,7 @@ public class Start {
 		if(isHost) {
 			sb.append("timekeeper:org.team_pjt.agents.TimeKeeper(" + scenarioDirectory + ", " + endTime + ");");
 			if(noAgentStarting) {
-			    sb.append("dummy:org.maas.agents.DummyAgent;");
+			    sb.append("dummy:org.team_pjt.agents.DummyAgent;");
             }
 		}
         cmd.add(sb.toString());
