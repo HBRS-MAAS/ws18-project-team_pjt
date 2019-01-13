@@ -4,9 +4,9 @@ import java.util.Iterator;
 import java.util.Vector;
 
 public class KneadingPreparingMachine {
-//    private Vector vQueue;
     private String sGuid;
     private String sCurrentKneadedProduct;
+    private String sCurrentKneadedOrder;
     private Vector<Integer> vTime;
     private int iBusyTime = 0;
     private int iAmount = -1;
@@ -35,6 +35,14 @@ public class KneadingPreparingMachine {
 
     }
 
+    public String getsCurrentKneadedOrder() {
+        return sCurrentKneadedOrder;
+    }
+
+    public void setsCurrentKneadedOrder(String sCurrentKneadedOrder) {
+        this.sCurrentKneadedOrder = sCurrentKneadedOrder;
+    }
+
     public String getsCurrentKneadedProduct() {
         return sCurrentKneadedProduct;
     }
@@ -51,7 +59,8 @@ public class KneadingPreparingMachine {
 
     public KneadingPreparingMachine(String sGuid) {
         this.sGuid = sGuid;
-        sCurrentKneadedProduct = null;
+        sCurrentKneadedProduct = "";
+        sCurrentKneadedOrder = "";
         bBusy = false;
         vTime = new Vector();
     }
@@ -71,13 +80,15 @@ public class KneadingPreparingMachine {
 
     public boolean checkKneadingMachineState(String sDoughManager){
         if(iWorkTime < iBusyTime){
-            System.out.println("DoughManager: " + sDoughManager + " KneadingPreparingMachine: " + sGuid + " Momentane Arbeitszeit " + iWorkTime + " momentan gebackenes Produkt" + sCurrentKneadedProduct);
+            System.out.println("DoughManager: " + sDoughManager + " KneadingPreparingMachine: " + sGuid + " Momentane Arbeitszeit " + iWorkTime + " momentan gebackenes Produkt: " + sCurrentKneadedProduct + " Order: " + sCurrentKneadedOrder);
             return false;
         } else {
             iWorkTime = 0;
             iBusyTime = 0;
             vTime.clear();
             bBusy = false;
+//            sCurrentKneadedProduct = "";
+//            sCurrentKneadedOrder = "";
             System.out.println(sGuid + " finished kneading and resting");
             return true;
         }
