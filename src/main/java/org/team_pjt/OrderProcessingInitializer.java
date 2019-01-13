@@ -17,7 +17,7 @@ public class OrderProcessingInitializer extends Initializer {
     @Override
     public String initialize(String scenarioDirectory) {
         StringBuilder agentSB = new StringBuilder();
-        String opiconfigPath = Initializer.configPath;
+        String opiconfigPath = "src/main/resources/config/";
         opiconfigPath += scenarioDirectory + "/";
         bakeries_path = opiconfigPath + "bakeries.json";
         meta_path = opiconfigPath + "meta.json";

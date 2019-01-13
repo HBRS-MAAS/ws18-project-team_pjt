@@ -12,7 +12,7 @@ public class DoughPrepInitializer extends Initializer {
     @Override
     public String initialize(String scenarioDirectory) {
         StringBuilder agentSB = new StringBuilder();
-        String dpiConfigPath = Initializer.configPath;
+        String dpiConfigPath = "src/main/resources/config/";
         String sPath = dpiConfigPath + scenarioDirectory + "/" + "bakeries.json";
 //        String sBakeriesPath = sPath + "bakeries.json";
         String sBakeries = OrderProcessingInitializer.readScenarioFile(sPath);
