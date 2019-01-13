@@ -134,8 +134,16 @@ public class Start {
                 noAgentStarting = false;
             }
             if (args[i].equals("-h")) {
-                // TODO: implement help output
-                System.out.println();
+                System.out.println("Usage: ");
+                System.out.println("-----------------");
+                System.out.println("-container \t Specify container");
+                System.out.println("-ishHost \t Start the process as host");
+                System.out.println("-host \t Running in client mode - Set IP of host");
+                System.out.println("-port \t Running in client mode - Set port of host");
+                System.out.println("-----------------");
+                System.out.println("Example for using a client with the host running on the local machine");
+                System.out.println("java Start  -host 127.0.0.1 -port 8133");
+
             }
         }
         if (!isHost && (port == null || host == null)) {
