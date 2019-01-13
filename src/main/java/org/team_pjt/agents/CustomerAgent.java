@@ -39,6 +39,7 @@ import org.json.JSONObject;
 
 public class CustomerAgent extends BaseAgent {
     private JSONArray dataArray = new JSONArray();
+    public String globalOrder = "";
     private JSONArray orders = new JSONArray();
     //private JSONObject location = new JSONObject();
     private Object location = null;
@@ -109,6 +110,8 @@ public class CustomerAgent extends BaseAgent {
         private boolean isDone = false;
         private boolean passTime = false;
 
+        public String getGlobalOrder(){return globalOrder;}
+
         @Override
         public void action() {
             if(!getAllowAction()) {
@@ -137,6 +140,11 @@ public class CustomerAgent extends BaseAgent {
                 while (orderList.size() > 0) {
                     order = orderList.remove(0);
                     System.out.println(order);
+                    System.out.println("XXXXXXXXXXXXXXXXXXXX");
+                    // Visualisation2 vistest = new Visualisation2();
+                    // vistest.display("Hallo");
+                    // Via class variable    globalOrder = order.getJSONObject("products").toString();
+                    //CallGUI.setOrder();
                     CustomerAgent.this.addBehaviour(new CallForProposal(order));
                     sum_sent++;
                     process_done = false;
@@ -219,7 +227,6 @@ public class CustomerAgent extends BaseAgent {
                 msg.addReplyTo(getAID());
                 msg.setReplyWith("order-"+System.currentTimeMillis()); // Unique value
                 sendMessage(msg);
-
                 System.out.println(customerID + " send order: " + msg.getContent().toString());
 
                 // Prepare the template to get proposals

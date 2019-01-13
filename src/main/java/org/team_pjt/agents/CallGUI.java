@@ -13,21 +13,21 @@ public class CallGUI extends Application {
 
     }
 
-       // public static void setOrder(){
+        public static void showWindow(){
 
-  //          System.out.println("Called CallGUI - new returning order");
+            System.out.println("Called CallGUI - now returning order");
             //System.out.println(order2);
             //String order2 = order.toString();
             //System.out.println(order2);
-      //      launch(new String[] {});
-    //    }
+            launch(new String[] {});
+        }
 
         @Override
         public void start(Stage primaryStage) {
 
             primaryStage.setTitle("JavaFX GUI");
 
-            //CustomerAgent.GetCurrentOrder.getGlobalOrder();
+            // Dows not work !! CustomerAgent.GetCurrentOrder.getGlobalOrder();
             Button mainButton= new Button("Click to show current orders");
             Button closeButton= new Button("Click to close window");
             mainButton.setOnAction(e -> Visualisation2.display(order2));
@@ -48,9 +48,7 @@ public class CallGUI extends Application {
             primaryStage.show();
         }
 
-        public static void main(String[] args) {
-            launch(args);
-        }
+        // public static void main(String[] args) {         launch(args);       }
 
     }
 
