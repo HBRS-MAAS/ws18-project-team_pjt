@@ -23,11 +23,11 @@ import java.util.*;
 public class SchedulerAgent extends BaseAgent {
     private String sBakeryId;
     private int timeStepSize;
-//    private Location lLocation;
+    //    private Location lLocation;
     private HashMap<String, HashMap<Integer, List<Pair<String, Integer>>>> prepTables;
     private HashMap<String, HashMap<Integer, List<Pair<String, Integer>>>> kneadingMachines;
     private HashMap<String, Product> hmProducts; // = Available Products
-//    private HashMap<Integer, Order> scheduledOrders;
+    //    private HashMap<Integer, Order> scheduledOrders;
     private HashMap<String, Order> orderedOrders;
     private AID order_processing;
     private int endDays;
@@ -40,7 +40,7 @@ public class SchedulerAgent extends BaseAgent {
         if (!readArgs(oArguments)) {
             System.out.println(getName() + ": No parameter given for OrderProcessing " + getName());
         }
-        logger = new Logger(getName(), "no");
+        logger = new Logger(getName(), "debug");
         this.register("scheduler", getName().split("@")[0]);
         findOrderProcessing();
         addBehaviour(new isNewOrderCheckerNew());
@@ -262,9 +262,19 @@ public class SchedulerAgent extends BaseAgent {
                 finished();
 //                System.out.println(myAgent.getName() + " called finished");
                 isDone = true;
-                if (getCurrentDay() >= endDays) {
+                logger.log(new Logger.LogMessage("OrderQueue: " + orderedOrders.size(), "no"));
+                if (getCurrentDay() >= endDays && orderedOrders.size() == 0) { //TODO: When no orders to do end agent!
                     deRegister();
                     addBehaviour(new shutdown());
+                }
+            }
+        }
+
+        private void clearQueue() {
+            for (String orderID : orderedOrders.keySet()) {
+                Order o = orderedOrders.get(orderID);
+                if(o.getDeliveryDay() <= getCurrentDay() && o.getDeliveryHour() < getCurrentHour()) {
+                    orderedOrders.remove(orderID);
                 }
             }
         }
@@ -304,14 +314,6 @@ public class SchedulerAgent extends BaseAgent {
     private class receiveOrderNew extends Behaviour {
         private boolean isDone = false;
         private int step = 0;
-        private HashMap<String, List<Pair<String, Integer>>> tempPrepTables;
-        private HashMap<String, List<Pair<String, Integer>>> tempKneadingMachines;
-
-        public receiveOrderNew() {
-            super();
-            tempPrepTables = new HashMap<>();
-            tempKneadingMachines = new HashMap<>();
-        }
 
         @Override
         public void action() {
@@ -323,16 +325,12 @@ public class SchedulerAgent extends BaseAgent {
                     ACLMessage schedule_request = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
                     if (schedule_request != null) {
                         logger.log(new Logger.LogMessage("schedule request received!", "release"));
-//                        System.out.println(myAgent.getName() + ": schedule request received!");
                         String sContent = schedule_request.getContent();
-//                        JSONObject jsoProducts = new JSONObject(sContent);
-//                        int delivery_day = jsoProducts.getJSONObject("deliveryDate").getInt("day");
                         ACLMessage schedule_reply = schedule_request.createReply();
-//                        HashMap<String, List<Pair<String, Integer>>> tempPrepTables = new HashMap<>();
-//                        HashMap<String, List<Pair<String, Integer>>> tempKneadingMachines = new HashMap<>();
+                        HashMap<String, List<Pair<String, Integer>>> tempPrepTables = new HashMap<>();
+                        HashMap<String, List<Pair<String, Integer>>> tempKneadingMachines = new HashMap<>();
                         boolean doughPrepPossible = checkDoughPrepStage(new Order(sContent), tempPrepTables, tempKneadingMachines);
                         logger.log(new Logger.LogMessage("doughPrepPossible: " + doughPrepPossible, "release"));
-//                        System.out.println(myAgent.getName() + ": doughPrepPossible: " + doughPrepPossible);
                         if (!doughPrepPossible) {
                             schedule_reply.setPerformative(ACLMessage.DISCONFIRM);
                             schedule_reply.setContent("Scheduling impossible!");
@@ -365,12 +363,23 @@ public class SchedulerAgent extends BaseAgent {
                         }
 
                         Order order = new Order(accepted_proposal.getContent());
+
+                        int deliveryDay = order.getDeliveryDay();
+
+                        HashMap<String, List<Pair<String, Integer>>> tempPrepTables = new HashMap<>();
+                        HashMap<String, List<Pair<String, Integer>>> tempKneadingMachines = new HashMap<>();
+                        checkDoughPrepStage(order, tempPrepTables, tempKneadingMachines);
+
+                        for(String key : prepTables.keySet()) {
+                            if(tempPrepTables.get(key) != null) {
+                                prepTables.get(key).put(deliveryDay, tempPrepTables.get(key));
+                            }
+                            if(tempKneadingMachines.get(key) != null) {
+                                kneadingMachines.get(key).put(deliveryDay, tempKneadingMachines.get(key));
+                            }
+                        }
                         orderedOrders.put(order.getGuid(), order);
                         orderedOrders = sortOrders(orderedOrders);
-//                        scheduledOrders.put(order.getDeliveryDay(), order);
-//                        scheduledOrders = sortOrders(scheduledOrders);
-//                        System.out.println(myAgent.getName() + ": Order added");
-//                        System.out.println(myAgent.getName() + ": accept proposal received");
                         logger.log(new Logger.LogMessage("Order added", "release"));
                         logger.log(new Logger.LogMessage("accept proposal received", "release"));
                         AID[] allAgents = findAllAgents();
@@ -388,7 +397,6 @@ public class SchedulerAgent extends BaseAgent {
                             propagate_accepted_order.addReceiver(agent);
                         }
                         sendMessage(propagate_accepted_order);
-//                        System.out.println(myAgent.getName() + ": Scheduler Agent Propagated all scheduled Orders");
                         logger.log(new Logger.LogMessage("Scheduler Agent Propagated all scheduled Orders", "release"));
                         step++;
                     }
@@ -568,7 +576,7 @@ public class SchedulerAgent extends BaseAgent {
 
             JSONObject timeStep = meta_data.getJSONObject("timeStep");
             timeStepSize = (24 * timeStep.getInt("day") + timeStep.getInt("hour")) * 60
-                            + timeStep.getInt("minute");
+                    + timeStep.getInt("minute");
             return true;
         }
         else {
