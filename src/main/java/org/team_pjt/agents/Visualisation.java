@@ -53,6 +53,7 @@ public class Visualisation extends Application {
         box.getChildren().add(treeView);
         stage.setScene(scene);
         stage.show();
+        stage.close();
     }
 
     private final class AlertTreeCell extends TreeCell<Alert> {
@@ -115,7 +116,11 @@ public class Visualisation extends Application {
         }
     }
 
-    public static void main(String[] args) {Application.launch(args); }
-    //public static void showWindow( ) { launch(new String[] {}); }
+    //public static void main(String[] args) {
+    //    Application.launch(args);
+    //}
+    //public static void showWindow( ) {
+    // launch(new String[] {});
+    // }
 
 }
