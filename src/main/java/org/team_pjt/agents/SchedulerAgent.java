@@ -263,7 +263,7 @@ public class SchedulerAgent extends BaseAgent {
 //                System.out.println(myAgent.getName() + " called finished");
                 isDone = true;
                 logger.log(new Logger.LogMessage("OrderQueue: " + orderedOrders.size(), "no"));
-                if (getCurrentDay() >= endDays && orderedOrders.size() == 0) { //TODO: When no orders to do end agent!
+                if (getCurrentDay() >= endDays && orderedOrders.size() == 0) {
                     deRegister();
                     addBehaviour(new shutdown());
                 }
@@ -415,12 +415,40 @@ public class SchedulerAgent extends BaseAgent {
         private AID[] findAllAgents() {
             DFAgentDescription template = new DFAgentDescription();
             ServiceDescription sd = new ServiceDescription();
-            template.addServices(sd);
-            AID[] allAgents;
+            AID[] allAgents = new AID[3];;
             try {
-                DFAgentDescription[] result = DFService.search(myAgent, template);
-                allAgents = new AID[result.length];
                 int counter = 0;
+                sd.setType("Proofer_"+sBakeryId.split("-")[1]);
+                template.addServices(sd);
+                DFAgentDescription[] result = DFService.search(myAgent, template);
+                for(DFAgentDescription ad : result) {
+                    allAgents[counter] = ad.getName();
+                    counter++;
+                }
+                template = new DFAgentDescription();
+                sd = new ServiceDescription();
+                sd.setType(sBakeryId.split("-")[1] + "-CoolingRackAgent");
+                template.addServices(sd);
+                result = DFService.search(myAgent, template);
+                for(DFAgentDescription ad : result) {
+                    allAgents[counter] = ad.getName();
+                    counter++;
+                }
+                template = new DFAgentDescription();
+                sd = new ServiceDescription();
+                sd.setName(sBakeryId.split("-")[1] + "-loading-bay");
+                template.addServices(sd);
+                result = DFService.search(myAgent, template);
+                for(DFAgentDescription ad : result) {
+                    allAgents[counter] = ad.getName();
+                    counter++;
+                }
+                template = new DFAgentDescription();
+                sd = new ServiceDescription();
+                sd.setName("doughmanager-" + sBakeryId.split("-")[1]);
+                sd.setType("Dough-manager");
+                template.addServices(sd);
+                result = DFService.search(myAgent, template);
                 for(DFAgentDescription ad : result) {
                     allAgents[counter] = ad.getName();
                     counter++;
