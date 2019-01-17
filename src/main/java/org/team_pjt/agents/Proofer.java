@@ -116,11 +116,11 @@ public class Proofer extends BaseAgent {
 
 
             if (msg != null) {
-                System.out.println(getAID().getLocalName() + " Received preparation request from " + msg.getSender());
+//                System.out.println(getAID().getLocalName() + " Received preparation request from " + msg.getSender());
 
                 String content = msg.getContent();
 
-                System.out.println("Proofing request contains -> " + content);
+//                System.out.println("Proofing request contains -> " + content);
                 ProofingRequest proofingRequest = JSONConverter.parseProofingRequest(content);
 //                ProofingRequest proofingRequest = JSONConverter.parseProofingRequest(content);
                 ACLMessage reply = msg.createReply();
@@ -151,13 +151,13 @@ public class Proofer extends BaseAgent {
 
         public Proofing(float proofingTime){
             this.proofingTime = proofingTime;
-            System.out.println(getAID().getLocalName() + " proofing for " + proofingTime);
+//            System.out.println(getAID().getLocalName() + " proofing for " + proofingTime);
         }
         public void action(){
                 if (getAllowAction() == true){
                     while(proofingCounter < proofingTime){
                         proofingCounter++;
-                        System.out.println("----> " + getAID().getLocalName() + " proofing Counter " + proofingCounter);
+//                        System.out.println("----> " + getAID().getLocalName() + " proofing Counter " + proofingCounter);
                     }
                     addBehaviour(new SendDoughNotification(bakingInterfaceAgents));
                     this.done();

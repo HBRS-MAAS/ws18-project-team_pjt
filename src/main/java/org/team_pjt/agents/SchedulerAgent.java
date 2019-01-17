@@ -40,7 +40,7 @@ public class SchedulerAgent extends BaseAgent {
         if (!readArgs(oArguments)) {
             System.out.println(getName() + ": No parameter given for OrderProcessing " + getName());
         }
-        logger = new Logger(getName(), "debug");
+        logger = new Logger(getName(), "no");
         this.register("scheduler", getName().split("@")[0]);
         findOrderProcessing();
         addBehaviour(new isNewOrderCheckerNew());

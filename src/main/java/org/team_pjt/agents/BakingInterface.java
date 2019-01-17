@@ -76,7 +76,7 @@ public class BakingInterface extends BaseAgent {
         ACLMessage msg = baseAgent.receive(mt);
 
         if (msg != null) {
-            System.out.println("-------> " + getAID().getLocalName()+" Received dough Notification from " + msg.getSender());
+//            System.out.println("-------> " + getAID().getLocalName()+" Received dough Notification from " + msg.getSender());
 
             String content = msg.getContent();
 
@@ -88,7 +88,7 @@ public class BakingInterface extends BaseAgent {
 
             baseAgent.sendMessage(reply);
 
-            System.out.println(content);
+//            System.out.println(content);
 
             myAgent.doDelete();
 

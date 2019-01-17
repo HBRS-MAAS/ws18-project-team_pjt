@@ -75,7 +75,7 @@ public class KneadingPreparingMachine {
         }
 
         iBusyTime = iBusyTime * iAmount;
-        System.out.println("Gesamte PreparationTime " + iBusyTime);
+//        System.out.println("Gesamte PreparationTime " + iBusyTime);
     }
 
     public boolean checkKneadingMachineState(String sDoughManager){
@@ -89,7 +89,7 @@ public class KneadingPreparingMachine {
             bBusy = false;
 //            sCurrentKneadedProduct = "";
 //            sCurrentKneadedOrder = "";
-            System.out.println(sGuid + " finished kneading and resting");
+//            System.out.println(sGuid + " finished kneading and resting");
             return true;
         }
     }
