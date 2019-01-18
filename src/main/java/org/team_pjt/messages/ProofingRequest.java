@@ -39,3 +39,4 @@ public class ProofingRequest extends GenericGuidMessage {
         this.productQuantities = productQuantities;
     }
 }
+
