@@ -108,6 +108,9 @@ public class Proofer extends BaseAgent {
     /* This is the behaviour used for receiving proofing requests */
     private class ReceiveProofingRequests extends CyclicBehaviour {
         public void action() {
+            if(!getAllowAction()) {
+                return;
+            }
             finished();
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                 MessageTemplate.MatchConversationId("proofing-request"));
@@ -148,25 +151,26 @@ public class Proofer extends BaseAgent {
         private float proofingTime;
         private float proofingCounter = (float) 0;
         private int option = 0;
+        boolean isDone = false;
 
         public Proofing(float proofingTime){
             this.proofingTime = proofingTime;
 //            System.out.println(getAID().getLocalName() + " proofing for " + proofingTime);
         }
         public void action(){
-                if (getAllowAction() == true){
-                    while(proofingCounter < proofingTime){
-                        proofingCounter++;
+//                if (getAllowAction() == true){
+                while(proofingCounter < proofingTime){
+                    proofingCounter++;
 //                        System.out.println("----> " + getAID().getLocalName() + " proofing Counter " + proofingCounter);
-                    }
-                    addBehaviour(new SendDoughNotification(bakingInterfaceAgents));
-                    this.done();
                 }
+                addBehaviour(new SendDoughNotification(bakingInterfaceAgents));
+                isDone = true;
+//                }
 
         }
         public boolean done(){
-            baseAgent.finished();
-            return true;
+//            baseAgent.finished();
+            return isDone;
         }
     }
 
@@ -235,8 +239,8 @@ public class Proofer extends BaseAgent {
 
         public boolean done() {
             if (option == 2) {
-                baseAgent.finished();
-                myAgent.doDelete();
+//                baseAgent.finished();
+//                myAgent.doDelete();
                 return true;
             }
             return false;

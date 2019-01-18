@@ -90,7 +90,7 @@ public class BakingInterface extends BaseAgent {
 
 //            System.out.println(content);
 
-            myAgent.doDelete();
+//            myAgent.doDelete();
 
         }
         else {

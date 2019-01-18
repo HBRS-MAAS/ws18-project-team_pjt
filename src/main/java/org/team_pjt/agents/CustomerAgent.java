@@ -84,7 +84,7 @@ public class CustomerAgent extends BaseAgent {
     }
 
     protected void takeDown() {
-        deRegister();
+//        deRegister();
         System.out.println(customerID + " sent " + sum_sent + " order");
         System.out.println(customerID + ": Terminating.");
     }
@@ -180,19 +180,22 @@ public class CustomerAgent extends BaseAgent {
 
         private class shutdown extends OneShotBehaviour{
             public void action() {
-                ACLMessage shutdownMessage = new ACLMessage(ACLMessage.REQUEST);
-                Codec codec = new SLCodec();
-                myAgent.getContentManager().registerLanguage(codec);
-                myAgent.getContentManager().registerOntology(JADEManagementOntology.getInstance());
-                shutdownMessage.addReceiver(myAgent.getAMS());
-                shutdownMessage.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
-                shutdownMessage.setOntology(JADEManagementOntology.getInstance().getName());
-                try {
-                    myAgent.getContentManager().fillContent(shutdownMessage,new Action(myAgent.getAID(), new ShutdownPlatform()));
-                    myAgent.send(shutdownMessage);
-                } catch (Exception e) {
-                    //LOGGER.error(e);
-                }
+                deRegister();
+                finished();
+                doDelete();
+//                ACLMessage shutdownMessage = new ACLMessage(ACLMessage.REQUEST);
+//                Codec codec = new SLCodec();
+//                myAgent.getContentManager().registerLanguage(codec);
+//                myAgent.getContentManager().registerOntology(JADEManagementOntology.getInstance());
+//                shutdownMessage.addReceiver(myAgent.getAMS());
+//                shutdownMessage.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+//                shutdownMessage.setOntology(JADEManagementOntology.getInstance().getName());
+//                try {
+//                    myAgent.getContentManager().fillContent(shutdownMessage,new Action(myAgent.getAID(), new ShutdownPlatform()));
+//                    myAgent.send(shutdownMessage);
+//                } catch (Exception e) {
+//                    //LOGGER.error(e);
+//                }
             }
         }
     }
@@ -238,7 +241,7 @@ public class CustomerAgent extends BaseAgent {
                 e.printStackTrace();
             }
 
-            finished();
+//            finished();
         }
     }
 
@@ -297,7 +300,7 @@ public class CustomerAgent extends BaseAgent {
 //                    System.out.println("incomingProposal " + incomingProposal);
 
                     isDone = true;
-                    finished();
+//                    finished();
 
                     if (!incomingProposal.isEmpty()) {
                         CustomerAgent.this.addBehaviour(new SendConfirmation(incomingProposal, myOrder, proposalSender));
@@ -365,7 +368,7 @@ public class CustomerAgent extends BaseAgent {
                     }
                 }
 
-                finished();
+//                finished();
                 process_done = true;
             } catch (JSONException e) {
                 // TODO Auto-generated catch block

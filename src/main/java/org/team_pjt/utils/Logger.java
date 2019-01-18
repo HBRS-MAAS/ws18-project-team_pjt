@@ -25,6 +25,11 @@ public class Logger {
                     System.out.println("[" + logging_level.toUpperCase() + "]" + agent_name + " - " + msg.message);
                 }
                 break;
+            default:
+                if(logging_level.equals(msgLogLevel)) {
+                    System.out.println("[" + logging_level.toUpperCase() + "]" + agent_name + " - " + msg.message);
+                }
+                break;
         }
     }
 
