@@ -11,20 +11,17 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.team_pjt.behaviours.shutdown;
-import org.team_pjt.Objects.Location;
 import org.team_pjt.Objects.Order;
 import org.team_pjt.Objects.Product;
 import org.team_pjt.utils.Logger;
 
 import java.util.*;
-// ToDo OrderProcessing in OrderProcessingAgent umbenennen
+
 public class OrderProcessing extends BaseAgent {
     private String sBakeryId;
-    private Location lLocation;
     private HashMap<String, Product> hmProducts; // = Available Products
     private AID aidScheduler;
-    private AID[] allAgents;
+//    private AID[] allAgents;
     private int endDays;
     private boolean order_received;
     private Logger logger;
@@ -47,14 +44,14 @@ public class OrderProcessing extends BaseAgent {
     private class distributeFullOrder extends OneShotBehaviour {
         Order order;
 
-        public distributeFullOrder(Order order) {
+        private distributeFullOrder(Order order) {
             super();
             this.order = order;
         }
 
         @Override
         public void action() {
-            findAllAgents();
+            AID[] allAgents = findAllAgents();
             ACLMessage propagate_accepted_order = new ACLMessage(ACLMessage.INFORM);
             propagate_accepted_order.setContent(order.toJSONString());
             for(AID agent : allAgents) {
@@ -132,13 +129,7 @@ public class OrderProcessing extends BaseAgent {
 
                         ACLMessage schedulerRequest = new ACLMessage(ACLMessage.REQUEST);
                         Hashtable<String, Integer> order_products = order.getProducts();
-                        Iterator<String> product_iterator = order_products.keySet().iterator();
-                        while (product_iterator.hasNext()) {
-                            String product_name = product_iterator.next();
-                            if (!order_av_products.contains(product_name)) {
-                                product_iterator.remove();
-                            }
-                        }
+                        order_products.keySet().removeIf(product_name -> !order_av_products.contains(product_name));
 
                         order.setProducts(order_products);
                         schedulerRequest.setConversationId(order.getGuid());
@@ -215,6 +206,8 @@ public class OrderProcessing extends BaseAgent {
 
         private void distributeScheduledOrder(String orderID) {
 //            logger.log(new Logger.LogMessage("waiting for accepted proposal: " + orderID, "release"));
+//            MessageTemplate acceptedProposalMT = MessageTemplate.and(MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
+//                    MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL)), MessageTemplate.MatchConversationId(orderID));
             MessageTemplate acceptedProposalMT = MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
                     MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL));
             ACLMessage accepted_proposal = receive(acceptedProposalMT);
@@ -228,14 +221,12 @@ public class OrderProcessing extends BaseAgent {
                     step++;
                     return;
                 }
-//                System.out.println(myAgent.getName() + ": accept proposal received");
                 logger.log(new Logger.LogMessage("accept proposal received for order: " + order.getGuid(), "release"));
-                findAllAgents();
                 ACLMessage propagate_accepted_order = new ACLMessage(ACLMessage.PROPAGATE);
                 propagate_accepted_order.setContent(accepted_proposal.getContent());
                 propagate_accepted_order.addReceiver(aidScheduler);
+                propagate_accepted_order.setConversationId(orderID);
                 sendMessage(propagate_accepted_order);
-//                System.out.println(myAgent.getName() + ": Order Processing Propagated all scheduled Orders");
                 logger.log(new Logger.LogMessage("Order Processing Propagated all scheduled Orders for order: " + order.getGuid(), "release"));
                 step++;
             }
@@ -262,14 +253,71 @@ public class OrderProcessing extends BaseAgent {
 //        System.out.println("Scheduler found! - " + aidScheduler);
     }
 
-    private void findAllAgents() {
+//    private void findAllAgents() {
+//        DFAgentDescription template = new DFAgentDescription();
+//        ServiceDescription sd = new ServiceDescription();
+//        template.addServices(sd);
+//        try {
+//            DFAgentDescription[] result = DFService.search(this, template);
+//            allAgents = new AID[result.length];
+//            int counter = 0;
+//            for(DFAgentDescription ad : result) {
+//                allAgents[counter] = ad.getName();
+//                counter++;
+//            }
+//        }
+//        catch (FIPAException fe) {
+//            fe.printStackTrace();
+//            allAgents = new AID[0];
+//        }
+//    }
+
+    private AID[] findAllAgents() {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
-        template.addServices(sd);
+        AID[] allAgents = new AID[4];
         try {
-            DFAgentDescription[] result = DFService.search(this, template);
-            allAgents = new AID[result.length];
             int counter = 0;
+            sd.setType("Proofer_"+sBakeryId.split("-")[1]);
+            template.addServices(sd);
+            DFAgentDescription[] result = DFService.search(this, template);
+            for(DFAgentDescription ad : result) {
+                allAgents[counter] = ad.getName();
+                counter++;
+            }
+            template = new DFAgentDescription();
+            sd = new ServiceDescription();
+            sd.setName("scheduler-" + sBakeryId.split("-")[1]);
+            template.addServices(sd);
+            result = DFService.search(this, template);
+            for(DFAgentDescription ad : result) {
+                allAgents[counter] = ad.getName();
+                counter++;
+            }
+            template = new DFAgentDescription();
+            sd = new ServiceDescription();
+            sd.setType(sBakeryId.split("-")[1] + "-CoolingRackAgent");
+            template.addServices(sd);
+            result = DFService.search(this, template);
+            for(DFAgentDescription ad : result) {
+                allAgents[counter] = ad.getName();
+                counter++;
+            }
+            template = new DFAgentDescription();
+            sd = new ServiceDescription();
+            sd.setName(sBakeryId.split("-")[1] + "-loading-bay");
+            template.addServices(sd);
+            result = DFService.search(this, template);
+            for(DFAgentDescription ad : result) {
+                allAgents[counter] = ad.getName();
+                counter++;
+            }
+            template = new DFAgentDescription();
+            sd = new ServiceDescription();
+            sd.setName("doughmanager-" + sBakeryId.split("-")[1]);
+            sd.setType("Dough-manager");
+            template.addServices(sd);
+            result = DFService.search(this, template);
             for(DFAgentDescription ad : result) {
                 allAgents[counter] = ad.getName();
                 counter++;
@@ -279,6 +327,7 @@ public class OrderProcessing extends BaseAgent {
             fe.printStackTrace();
             allAgents = new AID[0];
         }
+        return allAgents;
     }
 
     private boolean checkForAvailableProducts(List<String> neededProducts) {
