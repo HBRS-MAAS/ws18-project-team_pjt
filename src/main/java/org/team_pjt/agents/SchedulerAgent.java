@@ -10,10 +10,8 @@ import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import javafx.util.Pair;
-import netscape.javascript.JSObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.team_pjt.behaviours.shutdown;
 import org.team_pjt.Objects.Order;
 import org.team_pjt.Objects.Product;
 import org.team_pjt.utils.Logger;
@@ -23,11 +21,9 @@ import java.util.*;
 public class SchedulerAgent extends BaseAgent {
     private String sBakeryId;
     private int timeStepSize;
-    //    private Location lLocation;
     private HashMap<String, HashMap<Integer, List<Pair<String, Integer>>>> prepTables;
     private HashMap<String, HashMap<Integer, List<Pair<String, Integer>>>> kneadingMachines;
     private HashMap<String, Product> hmProducts; // = Available Products
-    //    private HashMap<Integer, Order> scheduledOrders;
     private HashMap<String, Order> orderedOrders;
     private AID order_processing;
     private int endDays;
@@ -40,15 +36,15 @@ public class SchedulerAgent extends BaseAgent {
         if (!readArgs(oArguments)) {
             System.out.println(getName() + ": No parameter given for OrderProcessing " + getName());
         }
-        logger = new Logger(getName(), "noOutput");
+        logger = new Logger(getName(), "release");
         this.register("scheduler", getName().split("@")[0]);
         findOrderProcessing();
-        addBehaviour(new isNewOrderCheckerNew());
+        addBehaviour(new isNewOrderChecker());
         addBehaviour(new TimeManager());
         addBehaviour(new QueueRequestServer());
         addBehaviour(new ScheduledOrderRequestServer());
 
-//        System.out.println("SchedulerAgent is ready");
+        System.out.println(getName() + " is ready");
     }
 
     private boolean checkDoughPrepStage(Order order, HashMap<String, List<Pair<String, Integer>>> tempPrepTables, HashMap<String, List<Pair<String, Integer>>> tempKneadingMachines) {
@@ -90,10 +86,9 @@ public class SchedulerAgent extends BaseAgent {
                 JSONObject step = (JSONObject) step_iterator.next();
                 switch (step.getString("action")) {
                     case "kneading":
-                        int kneadingTime = step.getInt("duration");
+                        int kneadingTime = step.getInt("duration") * timeStepSize;
                         String chosenKM = checkKneadingMachineTimes(kneadingTime, pName, tempKneadingMachines, deadline);
                         if(chosenKM == null) {
-//                            System.out.println(getName() + ": no kneadingMachineFound!");
                             return false;
                         }
                         List<Pair<String, Integer>> dayPlan = tempKneadingMachines.get(chosenKM);
@@ -116,13 +111,10 @@ public class SchedulerAgent extends BaseAgent {
 
                         break;
                     case "item preparation":
-                        int itemPrepTime = step.getInt("duration") * order.getProducts().get(pName);
+                        int itemPrepTime = step.getInt("duration") * order.getProducts().get(pName) * timeStepSize;
 
                         String chosenPT = checkItemPrepTables(itemPrepTime, endingTime, tempPrepTables, deadline);
                         if(chosenPT == null) {
-//                            System.out.println(getName() + ": endingTime: " + (endingTime + itemPrepTime) + " itemPrepTable: " + itemPrepTime);
-//                            System.out.println(getName() + ": not possible to choose prepTable");
-//                            System.out.println(getName() + ": " + pName);
                             return false;
                         }
                         tempPrepTables.get(chosenPT).add(new Pair(pName, endingTime + itemPrepTime));
@@ -130,14 +122,13 @@ public class SchedulerAgent extends BaseAgent {
 
                         break;
                     case "proofing":
-                        endingTime += step.getInt("duration");
-//                        System.out.println(getName() + ": endingTime: " + endingTime);
+                        endingTime += step.getInt("duration") * timeStepSize;
                         if(endingTime <= deadline) {
                             proofing = true;
                         }
                         break;
                     default:
-                        endingTime += step.getInt("duration");
+                        endingTime += step.getInt("duration") * timeStepSize;
                         break;
                 }
                 if(proofing) {
@@ -218,11 +209,9 @@ public class SchedulerAgent extends BaseAgent {
     }
 
     private String checkIfTypeAlreadyKneaded(String productName, HashMap<String, List<Pair<String, Integer>>> tempKneadingMachines) {
-        Iterator<String> kmIt = tempKneadingMachines.keySet().iterator();
-        while(kmIt.hasNext()) {
-            String km = kmIt.next();
-            for(Pair<String, Integer> p : tempKneadingMachines.get(km)) {
-                if(p.getKey().equals(productName)) {
+        for (String km : tempKneadingMachines.keySet()) {
+            for (Pair<String, Integer> p : tempKneadingMachines.get(km)) {
+                if (p.getKey().equals(productName)) {
                     return km;
                 }
             }
@@ -260,7 +249,7 @@ public class SchedulerAgent extends BaseAgent {
                 finished();
 //                System.out.println(myAgent.getName() + " called finished");
                 isDone = true;
-                logger.log(new Logger.LogMessage("OrderQueue: " + orderedOrders.size(), "no"));
+                logger.log(new Logger.LogMessage("OrderQueue: " + orderedOrders.size(), "release"));
                 if (getCurrentDay() >= endDays && orderedOrders.size() == 0) {
 //                    deRegister();
 //                    addBehaviour(new shutdown());
@@ -297,7 +286,7 @@ public class SchedulerAgent extends BaseAgent {
         }
     }
 
-    private class isNewOrderCheckerNew extends Behaviour {
+    private class isNewOrderChecker extends Behaviour {
         boolean isDone = false;
         @Override
         public void action() {
@@ -305,8 +294,9 @@ public class SchedulerAgent extends BaseAgent {
                     MessageTemplate.MatchSender(order_processing));
             ACLMessage newOrder = myAgent.receive(mtNewOrder);
             if(newOrder != null) {
-                myAgent.addBehaviour(new receiveOrderNew());
-                myAgent.addBehaviour(new isNewOrderCheckerNew());
+                order_received = true;
+                myAgent.addBehaviour(new receiveOrder());
+                myAgent.addBehaviour(new isNewOrderChecker());
                 isDone = true;
             }
             else {
@@ -320,7 +310,7 @@ public class SchedulerAgent extends BaseAgent {
         }
     }
 
-    private class receiveOrderNew extends Behaviour {
+    private class receiveOrder extends Behaviour {
         private boolean isDone = false;
         private int step = 0;
 
@@ -418,13 +408,16 @@ public class SchedulerAgent extends BaseAgent {
         @Override
         public boolean done() {
             isDone = step >= 2;
+            if(isDone) {
+                order_received = false;
+            }
             return isDone;
         }
 
         private AID[] findAllAgents() {
             DFAgentDescription template = new DFAgentDescription();
             ServiceDescription sd = new ServiceDescription();
-            AID[] allAgents = new AID[3];;
+            AID[] allAgents = new AID[3];
             try {
                 int counter = 0;
                 sd.setType("Proofer_"+sBakeryId.split("-")[1]);
@@ -524,9 +517,7 @@ public class SchedulerAgent extends BaseAgent {
                 }
                 else {
                     JSONArray orders = new JSONArray();
-                    Iterator<String> keys = orderedOrders.keySet().iterator();
-                    while(keys.hasNext()) {
-                        String key = keys.next();
+                    for (String key : orderedOrders.keySet()) {
                         Order order = orderedOrders.get(key);
                         orders.put(new JSONObject(order.toJSONString()));
                     }
@@ -540,26 +531,23 @@ public class SchedulerAgent extends BaseAgent {
         }
     }
 
-    public static HashMap<String, Order> sortOrders(HashMap<String, Order> hm) {
-        List<Map.Entry<String, Order>> orders = new LinkedList<Map.Entry<String, Order>>(hm.entrySet());
+    private static HashMap<String, Order> sortOrders(HashMap<String, Order> hm) {
+        List<Map.Entry<String, Order>> orders = new LinkedList<>(hm.entrySet());
 
-        Collections.sort(orders, new Comparator<Map.Entry<String, Order> >() {
-            @Override
-            public int compare(Map.Entry<String, Order> o1, Map.Entry<String, Order> o2) {
-                if(o1.getValue().getDeliveryDay() < o2.getValue().getDeliveryDay()) {
-                    return -1;
-                }
-                if(o1.getValue().getDeliveryDay() > o2.getValue().getDeliveryDay()) {
-                    return 1;
-                }
-                if(o1.getValue().getDeliveryDay() == o2.getValue().getDeliveryDay() && o1.getValue().getOrderDay() < o2.getValue().getOrderDay()) {
-                    return -1;
-                }
-                if(o1.getValue().getDeliveryDay() == o2.getValue().getDeliveryDay() && o1.getValue().getOrderDay() > o2.getValue().getOrderDay()) {
-                    return 1;
-                }
-                return 0;
+        orders.sort((o1, o2) -> {
+            if (o1.getValue().getDeliveryDay() < o2.getValue().getDeliveryDay()) {
+                return -1;
             }
+            if (o1.getValue().getDeliveryDay() > o2.getValue().getDeliveryDay()) {
+                return 1;
+            }
+            if (o1.getValue().getDeliveryDay() == o2.getValue().getDeliveryDay() && o1.getValue().getOrderDay() < o2.getValue().getOrderDay()) {
+                return -1;
+            }
+            if (o1.getValue().getDeliveryDay() == o2.getValue().getDeliveryDay() && o1.getValue().getOrderDay() > o2.getValue().getOrderDay()) {
+                return 1;
+            }
+            return 0;
         });
 
         // put data from sorted list to hashmap
@@ -583,26 +571,23 @@ public class SchedulerAgent extends BaseAgent {
             sBakeryId = bakery.getString("guid");
 
             JSONArray products = bakery.getJSONArray("products");
-            Iterator<Object> product_iterator = products.iterator();
-            while(product_iterator.hasNext()) {
-                JSONObject jsoProduct = (JSONObject) product_iterator.next();
+            for (Object product1 : products) {
+                JSONObject jsoProduct = (JSONObject) product1;
                 Product product = new Product(jsoProduct.toString());
                 hmProducts.put(product.getGuid(), product);
             }
 
             JSONArray JSONdoughPrepTables = bakery.getJSONObject("equipment").getJSONArray("doughPrepTables");
 
-            Iterator<Object> doughPrepTable_iterator = JSONdoughPrepTables.iterator();
-            while(doughPrepTable_iterator.hasNext()) {
-                JSONObject table = (JSONObject) doughPrepTable_iterator.next();
+            for (Object JSONdoughPrepTable : JSONdoughPrepTables) {
+                JSONObject table = (JSONObject) JSONdoughPrepTable;
                 prepTables.put(table.getString("guid"), new HashMap<>());
             }
 
             JSONArray JSONKneadingMachines = bakery.getJSONObject("equipment").getJSONArray("kneadingMachines");
 
-            Iterator<Object> kneadingMachine_iterator = JSONKneadingMachines.iterator();
-            while(kneadingMachine_iterator.hasNext()) {
-                JSONObject kneadingMachine = (JSONObject) kneadingMachine_iterator.next();
+            for (Object JSONKneadingMachine : JSONKneadingMachines) {
+                JSONObject kneadingMachine = (JSONObject) JSONKneadingMachine;
                 kneadingMachines.put(kneadingMachine.getString("guid"), new HashMap<>());
             }
 //            JSONObject jsoLocation = bakery.getJSONObject("location");
