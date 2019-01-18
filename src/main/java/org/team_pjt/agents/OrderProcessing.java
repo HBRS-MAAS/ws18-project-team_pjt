@@ -36,7 +36,7 @@ public class OrderProcessing extends BaseAgent {
         this.register("OrderProcessing", this.sBakeryId);
         findScheduler();
         order_received = false;
-        addBehaviour(new OfferRequestServerNew());
+        addBehaviour(new OfferRequestServer());
         addBehaviour(new TimeManager());
 //        System.out.println("OrderProcessing " + getName() + " ready");
     }
@@ -95,7 +95,7 @@ public class OrderProcessing extends BaseAgent {
         }
     }
 
-    private class OfferRequestServerNew extends Behaviour {
+    private class OfferRequestServer extends Behaviour {
         private boolean bFeasibleOrder;
         private int step = 0;
         private Order order;
@@ -108,7 +108,7 @@ public class OrderProcessing extends BaseAgent {
                     MessageTemplate cfpMT = MessageTemplate.MatchPerformative(ACLMessage.CFP);
                     cfpMessage = myAgent.receive(cfpMT);
                     if (cfpMessage != null) {
-                        myAgent.addBehaviour(new OfferRequestServerNew());
+                        myAgent.addBehaviour(new OfferRequestServer());
                         order_received = true;
 //                        System.out.println(myAgent.getName() + ": cfp received");
                         order = new Order(cfpMessage.getContent());
@@ -252,25 +252,6 @@ public class OrderProcessing extends BaseAgent {
         aidScheduler = dfSchedulerAgentResult[0].getName();
 //        System.out.println("Scheduler found! - " + aidScheduler);
     }
-
-//    private void findAllAgents() {
-//        DFAgentDescription template = new DFAgentDescription();
-//        ServiceDescription sd = new ServiceDescription();
-//        template.addServices(sd);
-//        try {
-//            DFAgentDescription[] result = DFService.search(this, template);
-//            allAgents = new AID[result.length];
-//            int counter = 0;
-//            for(DFAgentDescription ad : result) {
-//                allAgents[counter] = ad.getName();
-//                counter++;
-//            }
-//        }
-//        catch (FIPAException fe) {
-//            fe.printStackTrace();
-//            allAgents = new AID[0];
-//        }
-//    }
 
     private AID[] findAllAgents() {
         DFAgentDescription template = new DFAgentDescription();
