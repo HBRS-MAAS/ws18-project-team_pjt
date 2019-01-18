@@ -76,10 +76,17 @@ public class OrderProcessing extends BaseAgent {
 //                System.out.println(myAgent.getName() + " called finished");
                 isDone = true;
                 if (getCurrentDay() >= endDays) {
-                    deRegister();
-                    addBehaviour(new shutdown());
+//                    deRegister();
+//                    addBehaviour(new shutdown());
+                    shutdown();
                 }
             }
+        }
+
+        private void shutdown() {
+            finished();
+            deRegister();
+            myAgent.doDelete();
         }
 
         @Override

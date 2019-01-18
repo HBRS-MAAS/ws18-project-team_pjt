@@ -40,7 +40,7 @@ public class SchedulerAgent extends BaseAgent {
         if (!readArgs(oArguments)) {
             System.out.println(getName() + ": No parameter given for OrderProcessing " + getName());
         }
-        logger = new Logger(getName(), "no");
+        logger = new Logger(getName(), "noOutput");
         this.register("scheduler", getName().split("@")[0]);
         findOrderProcessing();
         addBehaviour(new isNewOrderCheckerNew());
@@ -53,8 +53,6 @@ public class SchedulerAgent extends BaseAgent {
 
     private boolean checkDoughPrepStage(Order order, HashMap<String, List<Pair<String, Integer>>> tempPrepTables, HashMap<String, List<Pair<String, Integer>>> tempKneadingMachines) {
         Set<String> orderProducts = order.getProducts().keySet();
-//        HashMap<String, List<Pair<String, Integer>>> tempPrepTables = new HashMap<>();
-//        HashMap<String, List<Pair<String, Integer>>> tempKneadingMachines = new HashMap<>();
 
         Set<String> kneadingMachineIDs = kneadingMachines.keySet();
         Set<String> prepTableIDs = prepTables.keySet();
@@ -258,24 +256,35 @@ public class SchedulerAgent extends BaseAgent {
                 return;
             }
             if(!order_received) {
-
+                clearQueue();
                 finished();
 //                System.out.println(myAgent.getName() + " called finished");
                 isDone = true;
                 logger.log(new Logger.LogMessage("OrderQueue: " + orderedOrders.size(), "no"));
                 if (getCurrentDay() >= endDays && orderedOrders.size() == 0) {
-                    deRegister();
-                    addBehaviour(new shutdown());
+//                    deRegister();
+//                    addBehaviour(new shutdown());
+                    shutdown();
                 }
             }
         }
 
+        private void shutdown() {
+            finished();
+            deRegister();
+            myAgent.doDelete();
+        }
+
         private void clearQueue() {
+            List<String> ordersToDelete = new LinkedList<>();
             for (String orderID : orderedOrders.keySet()) {
                 Order o = orderedOrders.get(orderID);
                 if(o.getDeliveryDay() <= getCurrentDay() && o.getDeliveryHour() < getCurrentHour()) {
-                    orderedOrders.remove(orderID);
+                    ordersToDelete.add(orderID);
                 }
+            }
+            for(String orderID : ordersToDelete) {
+                orderedOrders.remove(orderID);
             }
         }
 
@@ -317,9 +326,9 @@ public class SchedulerAgent extends BaseAgent {
 
         @Override
         public void action() {
-            if(getCurrentDay() >= endDays) {
-                addBehaviour(new shutdown());
-            }
+//            if(getCurrentDay() >= endDays) {
+//                addBehaviour(new shutdown());
+//            }
             switch (step) {
                 case 0:
                     ACLMessage schedule_request = myAgent.receive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
