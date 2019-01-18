@@ -512,6 +512,7 @@ public class SchedulerAgent extends BaseAgent {
             ACLMessage allOrderRequest = myAgent.receive(allOrderRequestMT);
             if(allOrderRequest != null) {
                 ACLMessage reply = allOrderRequest.createReply();
+                reply.setPerformative(ACLMessage.INFORM);
                 if(orderedOrders.isEmpty()) {
                     reply.setContent("No scheduled Order");
                 }
