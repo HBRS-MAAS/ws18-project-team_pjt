@@ -44,10 +44,10 @@
   * Receiver: OrderProcessingAgent
   * Content: String -> "Scheduling impossible!"
   
-* Propagate acceptedOrdes:
+* Propagate acceptedOrders:
   * Type: PROPAGATE
   * Sender: SchedulerAgent
-  * Receiver: All Agents
+  * Receiver: All receiving Agents of same bakery
   * Content: JSONArray -> sorted List of accepted Orders
   
 * Queue request reply:
@@ -56,3 +56,9 @@
   * Receiver: Any agent
   * ConversationId: queue request
   * Content: String -> Order position if order in queue else -1
+  
+* ScheduledOrders reply:
+  * Type: INFORM
+  * Sender: SchedulerAgent
+  * Receiver: Agent which requested
+  * Content: JSONArray as String -> All scheduled orders
