@@ -4,7 +4,7 @@ Master Branch [![Build Status](https://travis-ci.org/HBRS-MAAS/ws18-project-team
 
 Develop Branch [![Build Status](https://travis-ci.org/HBRS-MAAS/ws18-project-team_pjt.svg?branch=develop)](https://travis-ci.org/HBRS-MAAS/ws18-project-team_pjt)
 
-Add a brief description of your project. Make sure to keep this README updated, particularly on how to run your project from the **command line**.
+Our team developed the OrderProcessing- and DoughPreparation-Stage for the bakery.
 
 ## Team Members
 * Pascal Maczey - [@Dr4gonbl4de](https://github.com/Dr4gonbl4de)
@@ -19,7 +19,9 @@ Add a brief description of your project. Make sure to keep this README updated, 
 * JAVAfx 8.0+
 
 ## How to run
-Just install gradle and run:
+The Start.java is configured in order to run this project easily.
+
+In order to run our two stages and the customer Stage (which is copied from the upstream) just use:
 
     gradle run
 
@@ -27,6 +29,10 @@ It will automatically get the dependencies and start JADE with the configured ag
 In case you want to clean you workspace run
 
     gradle clean
+    
+If you want to see all possible options how the project can be run use:
+
+     gradle run --args='-h'
 
 ## Eclipse
 To use this project with eclipse run
