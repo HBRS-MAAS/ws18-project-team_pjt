@@ -419,9 +419,9 @@ public class DoughManager extends BaseAgent {
             ACLMessage aclReceive = receive(mtProoferResponse);
             if(aclReceive != null){
                 if (aclReceive.getPerformative() == 7){
-                    System.out.println("Proof Request was accepted");
+//                    System.out.println("Proof Request was accepted");
                 } else {
-                    System.out.println("Proof Request was declined");
+//                    System.out.println("Proof Request was declined");
                 }
             }
 
