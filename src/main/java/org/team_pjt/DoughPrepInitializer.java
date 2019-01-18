@@ -28,14 +28,14 @@ public class DoughPrepInitializer extends Initializer {
             String bakery_idNum = id.split("-")[1];
             
             String doughManaAgent = "doughmanager-" + bakery_idNum + sDougManagerPrefix;
-            String bakeringinterfaceAgent = "bakeryinterface-"+ bakery_idNum + sBakingInterfacePrefix;
+//            String bakeringinterfaceAgent = "bakeryinterface-"+ bakery_idNum + sBakingInterfacePrefix;
             String proofAgent = "proofer-"+ bakery_idNum + sProoferPrefix;
             OrderProcessingInitializer.appendAgentAndArguments(agentSB, bakery.toString().replaceAll(",", "###"), doughManaAgent);
             agentSB.append(";");
-            OrderProcessingInitializer.appendAgentAndArguments(agentSB, bakery.toString().replaceAll(",", "###"), proofAgent);
+            OrderProcessingInitializer.appendAgentAndArguments(agentSB, id, proofAgent);
             agentSB.append(";");
-            OrderProcessingInitializer.appendAgentAndArguments(agentSB, bakery.toString().replaceAll(",", "###"), bakeringinterfaceAgent);
-            agentSB.append(";");
+//            OrderProcessingInitializer.appendAgentAndArguments(agentSB, bakery.toString().replaceAll(",", "###"), bakeringinterfaceAgent);
+//            agentSB.append(";");
         }
         return agentSB.toString();
     }

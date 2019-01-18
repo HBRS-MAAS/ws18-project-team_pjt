@@ -403,15 +403,28 @@ public class DoughManager extends BaseAgent {
         }
 
         private void sendProofingRequest(String sContent) {
-            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+            ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+//            MessageTemplate acceptedProposalMT = MessageTemplate.and((MessageTemplate.MatchPerformative(ACLMessage.PROPAGATE)), MessageTemplate.MatchSender(aidSchedulerAgent));
+//            ACLMessage aclReceive = receive(acceptedProposalMT);
             msg.setContent(sContent);
-            msg.setConversationId("proofing-request");
+//            msg.setConversationId("proofing-request");
             // Send proofingRequest msg to all prooferAgents
             for (int i=0; i<prooferAgents.length; i++){
                 msg.addReceiver(prooferAgents[i]);
             }
             msg.setReplyWith("msg"+System.currentTimeMillis());
+//            System.out.println("Proofing Message was sent");
             baseAgent.sendMessage(msg);
+            MessageTemplate mtProoferResponse = MessageTemplate.MatchSender(prooferAgents[0]);
+            ACLMessage aclReceive = receive(mtProoferResponse);
+            if(aclReceive != null){
+                if (aclReceive.getPerformative() == 7){
+//                    System.out.println("Proof Request was accepted");
+                } else {
+//                    System.out.println("Proof Request was declined");
+                }
+            }
+
         }
 
     }
@@ -420,8 +433,8 @@ public class DoughManager extends BaseAgent {
         boolean bFound = false;
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
-        sd.setType("Proofer");
-        sd.setName("proofer-"+sIdBakery.split("-")[1]);
+        sd.setType("Proofer_"+sIdBakery);
+        sd.setName("JADE-bakery");
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(this, template);
