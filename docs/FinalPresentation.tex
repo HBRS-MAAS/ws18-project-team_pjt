@@ -1,0 +1,189 @@
+\documentclass[hyperref={pdfpagelabels=false}]{beamer}
+%\usepackage{href}
+\usepackage{listings}
+\usepackage[utf8]{inputenc}
+\setbeamertemplate{section in toc}[sections numbered]
+\setbeamertemplate{subsection in toc}[subsections numbered]
+\newcommand{\tit}{MAAS Project}
+\newcommand{\ti}{Technische Anforderungen}
+\newcommand{\tzi}{Techniken zur Implementierung}
+\newcommand{\wui}{WebUserInterface}
+\newcommand{\fa}{Funktionale Anforderungen}
+\newcommand{\arch}{Architekturüberblick}
+\newcommand{\cl}{Client}
+\newcommand{\ml}{Middleware}
+\newcommand{\al}{Application Server}
+\newcommand{\re}{Service Registry}
+\newcommand{\db}{Datenbank}
+%\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+%\geometry{bottom=0.9in}
+\usepackage{fancyhdr}
+\setbeamertemplate{footline}[text line]{
+\parbox{\linewidth}{\vspace*{-20pt} \hyperlink{tableofcontent}{\includegraphics[scale=0.03]{./images/rhein-sieg.jpg}} \hspace{1cm} \tit \hfill\insertshortauthor\hfill\insertpagenumber}}
+\setbeamertemplate{navigation symbols}{}
+\author{Team PJT}
+\title{\tit}
+\usepackage{lmodern}
+\setcounter{tocdepth}{1}
+
+
+\begin{document}
+    %\lstset{language=Python}
+    %\lstset{language=Python}
+
+    \begin{frame}
+        \titlepage
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Agenda}
+        \hypertarget{tableofcontent}{}
+        \tableofcontents
+    \end{frame}
+
+    \section{Dough Manager}
+    %\label{anforderung}
+    \begin{frame}
+        \frametitle{Dough Manager}
+        \begin{itemize}
+            \item The Dough Manager is responsible for kneading and preparing the product
+            \item It manages its assigned prep tables and kneading machines which means
+            \begin{itemize}
+                \item moving one order from one state to next state
+                \item check whether current stage of dough preparing is finisehd
+                \item receiving orders from order processing agent
+                \item sending orders to proofer
+            \end{itemize}
+        \end{itemize}
+    \end{frame}
+
+
+    %\label{anforderung}
+    \section{Kneading Machine and Preparation Table}
+    \begin{frame}
+        \frametitle{Kneading Machine and Preparation Table}
+        \begin{itemize}
+            \item They are represented as an object based on the same class
+            \item The way we designed them there is not much functionality inside preparing machine and kneading machine
+            \item Their only task it to update a counter and check whether a certain time threshold is reached
+%            \begin{itemize}
+%                \item moving one order from one state to next state
+%                \item check whether current stage of dough preparing is finisehd
+%                \item receiving orders from order processing agent
+%                \item sending orders to proofer
+%            \end{itemize}
+        \end{itemize}
+    \end{frame}
+
+    \section{Proofer}
+    \begin{frame}
+        \frametitle{Proofer}
+        \begin{itemize}
+            \item Represents the interface between baking stage and dough preparation stage
+            \item Receives kneaded and prepared products from Dough Manager
+%            \item Their only task it to update a counter and check whether a certain time threshold is reached
+            %            \begin{itemize}
+            %                \item moving one order from one state to next state
+            %                \item check whether current stage of dough preparing is finisehd
+            %                \item receiving orders from order processing agent
+            %                \item sending orders to proofer
+            %            \end{itemize}
+        \end{itemize}
+    \end{frame}
+
+
+%    \section{Technische Anforderung}
+%    \begin{frame}
+%        \frametitle{Technische Anforderungen}
+%        Für folgenden technischen Ausschnitt der Anforderungen wurde sich entschieden
+%        \begin{itemize}
+%            \item State-of-The Art Ansatz zur Entwicklung der notwendigen Client-					Anwendung
+%            \item Lösungsstrategie für die Cloud
+%            \item Optimierung der Skalierbarkeit und der Ausfallsicherheit
+%        \end{itemize}
+%    \end{frame}
+%
+%    \section{Architekturüberblick}
+%    %\label{architekturueberblick}
+%    \begin{frame}
+%        \frametitle{\arch}
+%        \begin{center}
+%            \href{file:///Users/janloeffelsender/Library/Mobile Documents/com~apple~CloudDocs/Studium/18_Sommersemester/SOA/Semesterprojekt/scripts/displayallcontainer.app}	{\includegraphics[scale=0.18]{../4-Sichten-Modell/Verteilungssicht.jpg}}
+%        \end{center}
+%    \end{frame}
+%    \section{Orchestrierung Docker Container}
+%    \begin{frame}
+%        \begin{center}
+%            \includegraphics[scale=0.17]{graphics/yamlfile.jpg}
+%        \end{center}
+%    \end{frame}
+%    \section{Client}
+%    %\label{client}
+%    \begin{frame}
+%        \frametitle{\cl}
+%        \begin{center}
+%            \href{http://localhost:4200/}{\includegraphics[scale=0.25]{graphics/client.jpg}}
+%        \end{center}
+%    \end{frame}
+%    \section{Application Server}
+%    %\label{middleware}
+%    \begin{frame}
+%        \frametitle{\al}
+%        \begin{center}
+%            \href{http://localhost:8080/service-instances/A-BOOTIFUL-CLIENT/findallbill}	{\includegraphics[scale=0.4]{graphics/ApplikationServer.jpg}}
+%        \end{center}
+%    \end{frame}
+%    \section{Service Registry}
+%    %\label{serviceregistry}
+%    \begin{frame}
+%        \frametitle{\re}
+%        \begin{center}
+%            \href{http://localhost:8761/}{\includegraphics[scale=0.4]{graphics/serviceregistry.jpg}}
+%        \end{center}
+%    \end{frame}
+%    %\subsection{Middleware}
+%    \section{Datenbank}
+%    %\label{datenbank}
+%    \begin{frame}
+%        \frametitle{\db}
+%        \begin{center}
+%            \href{file:///Users/janloeffelsender/Library/Mobile Documents/com~apple~CloudDocs/Studium/18_Sommersemester/SOA/Semesterprojekt/scripts/displaymongodb.app}{\includegraphics[scale=0.4]{graphics/mongoDB.jpg}}
+%        \end{center}
+%    \end{frame}
+%    \section{Ausfallsicherheit}
+%    \begin{frame}
+%        \frametitle{Ausfallsicherheit}
+%        Um die Ausfallsicherheit zu demonstrieren, wird der Lese-Service Container heruntergefahren
+%        \begin{itemize}
+%            \item [1.] \href{http://localhost:4200/}{\color{blue}Öffnen} des WebClient - 			Änderungen eintragen
+%            \item [2.] \href{file:///Users/janloeffelsender/Library/Mobile Documents/com~apple~CloudDocs/Studium/18_Sommersemester/SOA/Semesterprojekt/scripts/stopReadContainer.app}{\color{blue}Herunterfahren} vom Docker-Container, der den LeseService \href{http://localhost:8761/}{\color{blue}verwaltet}
+%            \item [3.] Festschreiben der Änderungen
+%        \end{itemize}
+%    \end{frame}
+
+    %\section{\ti}
+    %	\begin{frame}
+    %		\frametitle{\ti}
+    %		\begin{itemize}
+    %			\item Verwendete technische Anforderung:
+    %		\end{itemize}
+    %	\end{frame}
+    %
+    %\section{\tit}
+    %\begin{frame}
+    %		\frametitle{\tit}
+    %		\begin{center}
+    %			Ein Neuronales Netzwerk ist ein parallel verteilter Prozessor, bestehend aus einfachen Verarbeitungseinheiten, die die Fähigkeit haben Wissen zu 						speichern.
+    %		\end{center}
+    %	\end{frame}
+    %
+    %\section{\wui}
+    %\begin{frame}
+    %		\frametitle{\wui}
+    %		\begin{center}
+    %			Ein Neuronales Netzwerk ist ein parallel verteilter Prozessor, bestehend aus einfachen Verarbeitungseinheiten, die die Fähigkeit haben Wissen zu 						speichern.
+    %		\end{center}
+    %	\end{frame}
+
+\end{document}

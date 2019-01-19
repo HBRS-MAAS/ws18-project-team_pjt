@@ -1,0 +1,28 @@
+\section*{Agent and Object description}
+In our project we (team pjt) use following agent and objects:
+\begin{enumerate}
+    \item Agents per pakery:
+        \begin{enumerate}
+            \item [-] Scheduler $\rightarrow$ Is needed to schedule orders. It checks whether the order can be processed - so is there enough time to prepare the order
+            under given circumstances?
+            \item [-] OrderProcessing $\rightarrow$ The Order Procesing agent receives an order from the client, distributes the order to all agents, talks to the scheduler
+            to verify whether order is feasible and gives the customer a hint whether its order can be processed or not.
+            \item [-] DoughManager $\rightarrow$ He manages the kneading machines and preparation tables for one bakery. He ensures that its kneading machines and preparation
+            tables are synchron with the time keeper, checks whether current kneaded and prepared products are finished and sends kneaded and prepared orders to proofer.
+            \item [-] Proofer $\rightarrow$ The proofer proofs the orders and sends them to the bakery.
+        \end{enumerate}
+    \item Objects :
+        \begin{enumerate}
+            \item [-] BakedGood $\rightarrow$ Name of product and the amount of it for one order within DoughPreparationStage.
+            \item [-] CurrentProcessedProduct $\rightarrow$ An object which describes the current kneaded product. In other
+            context it is used to describe the current prepared product. Moreover it is used to remeber already kneaded
+            and prepared products.
+            \item [-] KneadingPreparingMachine $\rightarrow$ Describes kneading and preparing machines. It stores the current
+            kneaded / prepared order , the progress of preparing / kneading and it checks whether the preparation has finished
+            \item [-] Order $\rightarrow$ An object for Scheduler and OrderProcessing Agent. It stores information as customer
+            agent id, order day, order hour, delivery day and delivery hour.
+            \item [-] OrderDoughPrep $\rightarrow$ An object for storing received orders from Scheduler.
+            \item [-] Product $\rightarrow$ An object which stores information on the product (preparation time,
+            salesPrice, boxingTemp, guid)
+        \end{enumerate}
+\end{enumerate}

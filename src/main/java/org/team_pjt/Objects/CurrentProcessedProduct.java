@@ -1,7 +1,7 @@
 package org.team_pjt.Objects;
 
-public class CurrentKneadedProduct {
-    //    public CurrentKneadedProduct(String sOrderId, String sProduct) {
+public class CurrentProcessedProduct {
+    //    public CurrentProcessedProduct(String sOrderId, String sProduct) {
 //        this.sOrderId = sOrderId;
 //        this.sProduct = sProduct;
 //        this.iAmount = -1;
@@ -29,7 +29,7 @@ public class CurrentKneadedProduct {
         return iAmount;
     }
 
-    public CurrentKneadedProduct(String sOrderId, String sProduct, Integer iAmount, Integer iDeliveryDay) {
+    public CurrentProcessedProduct(String sOrderId, String sProduct, Integer iAmount, Integer iDeliveryDay) {
         this.sOrderId = sOrderId;
         this.sProduct = sProduct;
         this.iAmount = iAmount;

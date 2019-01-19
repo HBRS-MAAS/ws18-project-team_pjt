@@ -28,5 +28,20 @@ In this file all design decisions are explained
     * This Behaviour receives a new order, schedules it and adds it to queue if it's feasible.
 
 ## DoughPreparation-Stage
+* Kneading Machine and Preparing Machine are represented as an object based on the same class as
+    * The way we designed them there is not much functionality inside preparing machine and kneading machine
+    * Their only task it to update a counter and check whether a certain time threshold is reached
+    * Most of the intelligent behaviour was moved to the dough manager
+    * For both objects the same class was used as both machines are very common (update a counter)
+* DoughManager
+    * Contains kneading and preparing machines for one bakery
+    * Manages orders (means moving one order from one state to next state,
+    check whether current stage of dough preparing is finisehd,
+    receiving orders from order processing agent and sending orders to proofer)
+    * The dough manager interacts with the environment (order processing agent and proofer)
+    * Cyclic receiveOrder behaviour. The agent checks for new orders every time step if there is a
+    new order he receives it and processes it.
+* Proofer
+    * Interface to next stage (bakery stage)
 
 ## Visualization
