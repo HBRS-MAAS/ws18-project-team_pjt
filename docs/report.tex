@@ -3,7 +3,7 @@
 \usepackage[latin1]{inputenc}
 \usepackage{scrextend}
 \usepackage[section]{placeins}
-\usepackage[english]{babel}
+\usepackage[ngerman]{babel}
 \usepackage{listings}
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -12,11 +12,14 @@
 \usepackage{xcolor}
 \usepackage{lstautogobble}
 \usepackage[paper=portrait,pagesize]{typearea}
-\author{Pascal Maczey \& Jan L�ffelsender - Team PJT}
+\author{Pascal Maczey \& Jan L\"offelsender - Team PJT}
 \definecolor{groovyblue}{HTML}{0000A0}
 \definecolor{groovygreen}{HTML}{008000}
 \definecolor{darkgray}{rgb}{.4,.4,.4}
 
+\lstset{
+    breaklines = true
+}
 \lstdefinelanguage{Groovy}[]{Java}{
 keywordstyle=\color{groovyblue}\bfseries,
 stringstyle=\color{groovygreen}\ttfamily,
@@ -32,11 +35,14 @@ autogobble=true
 	\newpage
 	\tableofcontents
 	\newpage
-	\section{How it works}
+%	\section{How it works}
 	
 	
 	\section{Design decisions}
+    In this chapter we describe the design decisions for Order Processing stage and Dough Preparation stage.
 	\subsection{OrderProcessing-Stage}
+    The OrderProcesing-Stage consists of Order Processing agent and scheduler agent. The OrderProcessing-Stage is the second stage of the bakery and located before
+    the dough preparation stage.
 	\subsubsection{Splitting OrderProcessing and scheduling}
 	The decision of splitting the OrderProcessing-Stage into to different agent is based on the idea of splitting functionality.
 	\\
@@ -61,6 +67,8 @@ autogobble=true
 	The receiveOrder Behaviour checks the schedule for all available products and only if for all available products the scheduling is possible it returns that scheduling is feasible. Last this behaviour add the order to schedule and queue if the proposal is accepted.
 	
 	\subsection{DoughPreparation-Stage}
+    The DoughPreparation-Stage consists of the dough manager and the proofer. It is the third stage in the bakery. The stage receives order from Order Processing stage
+    and passes order to Baking stage.
 		\subsubsection{Reason for representing preparing and kneading machines as objects}
 		Kneading Machine and Preparing Machine are represented as an object based on the same class as
 		The way we designed them there is not much functionality inside preparing machine and kneading machine
@@ -79,7 +87,7 @@ autogobble=true
 		The proofer was a design decision by the instructor to make sure that there is a well defined interface between the two stages dough preparation and baking stage.
 		
 	\section{Architectures}
-	We used IntelliJ to generate the architecture. We present two versions because the full architecture\ref{fig:arch_full} isn't easily readable we generated a small\ref{fig:arch_small} one without internal classes, fields etc.
+	We used IntelliJ to generate the architecture. We present two versions because the \hyperref[fig:arch_full]{\color{blue}full architecture} isn't easily readable we generated a \hyperref[fig:arch_small]{\color{blue}small architecture} one without internal classes, fields etc.
 	\\
 	The main usage of our architecture views is to show the composition of agents and objects and how they interact. Since the images are really big. They are included as images in the zip file.
 	\newpage
@@ -365,6 +373,8 @@ Example Content:
 	\end{lstlisting}
 	If you want to see all possible options how the project can be run use:
 	\begin{lstlisting}[language=Groovy,caption = Gradle run args,frame=single, label={gradlerunargs} ]
-	gradle run --args='-h'
+	gradle run --args='-isHost -customer -orderProessing -doughPrep'
 	\end{lstlisting}
+    To change scenario parameters please change the variable scenarioDirectory to the according directory name and the variable endTime to the matching time (when all
+    orders are finished).
 \end{document}
