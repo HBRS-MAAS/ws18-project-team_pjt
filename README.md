@@ -32,7 +32,9 @@ In case you want to clean you workspace run
     
 If you want to see all possible options how the project can be run use:
 
-     gradle run --args='-h'
+     gradle run --args='-isHost -customer -orderProessing -doughPrep'
+
+To change scenario parameters please change the variable scenarioDirectory to the according directory name and the variable endTime to the matching time (when all orders are finished).
 
 ## Eclipse
 To use this project with eclipse run
