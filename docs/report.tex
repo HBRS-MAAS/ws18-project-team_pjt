@@ -3,6 +3,7 @@
 \usepackage{scrextend}
 \usepackage[section]{placeins}
 \usepackage[english]{babel}
+\usepackage{listings}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
@@ -170,7 +171,140 @@
 			\item ConversationId: -
 			\item Content: JSONObject as String -\textgreater Order containing only Products that should be produced by this bakery
 		\end{itemize}
+		\item Propagate accepted Orders:
+		\begin{itemize}
+			\item Type: PROPAGATE
+			\item From: OrderProcessing
+			\item To: SchedulerAgent
+			\item ConversationId: -
+			\item Content: JSONObject as String -\textgreater Order containing only Products that should be produced by this bakery
+		\end{itemize}
+		\item Check Scheduler:
+		\begin{itemize}
+			\item Type: REQUEST
+			\item From: OrderProcessing
+			\item To: SchedulerAgent
+			\item ConversationId: -
+			\item Content: JSONObject as String -\textgreater order with only available products
+		\end{itemize}
+		\item Get Queue Position:
+		\begin{itemize}
+			\item Type: REQUEST
+			\item From: AnyAgent
+			\item To: SchedulerAgent
+			\item ConversationId: \glqq queue request\grqq
+			\item Content: String -\textgreater {orderId}
+		\end{itemize}
+		\item Confirm Schedule:
+		\begin{itemize}
+			\item Type: CONFIRM
+			\item From: SchedulerAgent
+			\item To: OrderProcessing
+			\item ConversationId: -
+			\item Content: String -\textgreater \glqq Scheduling possible\grqq
+		\end{itemize}
+		\item Disconfirm Schedule:
+		\begin{itemize}
+			\item Type: DISCONFIRM
+			\item From: SchedulerAgent
+			\item To: OrderProcessing
+			\item ConversationId: -
+			\item Content: String -\textgreater \glqq Scheduling impossible!\grqq
+		\end{itemize}
+		\item Propagate acceptedOrders:
+		\begin{itemize}
+			\item Type: PROPAGATE
+			\item From: SchedulerAgent
+			\item To: All receiving Agents of same bakery
+			\item ConversationId: -
+			\item Content: JSONArray as String -\textgreater sorted List of accepted Orders
+		\end{itemize}
+		\item Queue request reply:
+		\begin{itemize}
+			\item Type: INFORM
+			\item From: Scheduler Agent
+			\item To: Any agent
+			\item ConversationId: \glqq queue request\grqq
+			\item Content: String -\textgreater Order position if order in queue else -1
+		\end{itemize}
+		\item ScheduledOrders reply
+		\begin{itemize}
+			\item Type: INFORM
+			\item From: SchedulerAgent
+			\item To: Any Agent
+			\item ConversationId: -
+			\item Content: JSONArray as String -\textgreater All scheduled orders
+		\end{itemize}
+		\item Sends proofing request to proofer:
+		\begin{itemize}
+			\item Type: ACCEPT\_PROPOSAL
+			\item From: DoughManager of bakery
+			\item To: Proofer
+			\item ConversationId: -
+			\item Content: JSONObject as String -\textgreater Order products
+		\end{itemize}
+		\item Receive order vector from SchedulerAgent:
+		\begin{itemize}
+			\item Type: PROPAGATE
+			\item From: SchedulerAgent
+			\item To: DoughManager
+			\item ConversationId: -
+			\item Content: JSONArray as String -\textgreater Order
+		\end{itemize}
 	\end{itemize}
+	Content of Message \glqq Sends proofing request to proofer\grqq and \glqq Receive order vector from SchedulerAgent\grqq.
+	\begin{lstlisting}[frame=single]
+Receive order vector from SchedulerAgent content:
+[
+  {
+    "customerId": String,
+    "guid": String,
+    "deliveryDate": JSONObject,
+    "orderDate": JSONObject,
+    "products": JSONObject
+  },
+  .
+  .
+]
+
+Exampe Content:
+[
+  {
+    "customerId":"customer-014",
+    "guid":"order-583","deliveryDate":{"hour":17,"day":2},
+    "orderDate":{"hour":2,"day":1},
+    "products":{"Donut":7,"Bagel":7,"Bread":3}
+  },
+  {
+    "customerId":"customer-001",
+    "guid":"order-001",
+    "deliveryDate":{"hour":18,"day":2},
+    "orderDate":{"hour":4,"day":1},
+    "products":{"Donut":7,"Bagel":6,"Berliner":2,"Muffin":2,
+                                                 "Bread":10}
+  },
+  .
+  .
+]
+
+Sends proofing request to proofer:
+{
+  "proofingTime": Integer,
+  "productQuantities": Vector<Integer>,
+  "guids": String,
+  "productType": String
+}
+
+
+
+Example Content:
+{
+  "proofingTime":12.0,
+  "productQuantities":[1],
+  "guids":["order-583"],
+  "productType":"Bread"
+}
+	\end{lstlisting}
 	\section{Agents}
 	\section{Objects}
 	\section{How to run it}
