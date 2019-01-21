@@ -1,4 +1,5 @@
 \documentclass[10pt,a4paper]{article}
+\usepackage{hyperref}
 \usepackage[latin1]{inputenc}
 \usepackage{scrextend}
 \usepackage[section]{placeins}
@@ -9,7 +10,6 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{xcolor}
-\usepackage{listings}
 \usepackage{lstautogobble}
 \usepackage[paper=portrait,pagesize]{typearea}
 \author{Pascal Maczey \& Jan L�ffelsender - Team PJT}
@@ -77,12 +77,7 @@ autogobble=true
 		to make sure that all messages which are sent to dough manager are processed.
 		\subsubsection{Reason for Proofer}
 		The proofer was a design decision by the instructor to make sure that there is a well defined interface between the two stages dough preparation and baking stage.
-%		Cyclic receiveOrder behaviour. The agent checks for new orders every time step if there is a
-%		new order he receives it and processes it.
-
-	*
-	* Proofer
-	* Interface to next stage (bakery stage)
+		
 	\section{Architectures}
 	We used IntelliJ to generate the architecture. We present two versions because the full architecture\ref{fig:arch_full} isn't easily readable we generated a small\ref{fig:arch_small} one without internal classes, fields etc.
 	\\
