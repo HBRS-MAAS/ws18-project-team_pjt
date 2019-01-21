@@ -8,8 +8,24 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{lstautogobble}
 \usepackage[paper=portrait,pagesize]{typearea}
-\author{Pascal Maczey \& Jan L�ffelsender - Team PJT}
+\author{Pascal Maczey \& Jan L�ffelsender - Team PJT}
+\definecolor{groovyblue}{HTML}{0000A0}
+\definecolor{groovygreen}{HTML}{008000}
+\definecolor{darkgray}{rgb}{.4,.4,.4}
+
+\lstdefinelanguage{Groovy}[]{Java}{
+keywordstyle=\color{groovyblue}\bfseries,
+stringstyle=\color{groovygreen}\ttfamily,
+keywords=[3]{each, findAll, groupBy, collect, inject, eachWithIndex},
+morekeywords={def, as, in, use},
+moredelim=[is][\textcolor{darkgray}]{\%\%}{\%\%},
+moredelim=[il][\textcolor{darkgray}]{§§},
+autogobble=true
+}
 \title{Bakery project - OrderPorcessing- and DoughPreparation-Stage}
 \begin{document}
 	\maketitle
@@ -45,21 +61,28 @@
 	The receiveOrder Behaviour checks the schedule for all available products and only if for all available products the scheduling is possible it returns that scheduling is feasible. Last this behaviour add the order to schedule and queue if the proposal is accepted.
 	
 	\subsection{DoughPreparation-Stage}
-%	* Kneading Machine and Preparing Machine are represented as an object based on the same class as
-%	* The way we designed them there is not much functionality inside preparing machine and kneading machine
-%	* Their only task it to update a counter and check whether a certain time threshold is reached
-%	* Most of the intelligent behaviour was moved to the dough manager
-%	* For both objects the same class was used as both machines are very common (update a counter)
-%	* DoughManager
-%	* Contains kneading and preparing machines for one bakery
-%	* Manages orders (means moving one order from one state to next state,
-%	check whether current stage of dough preparing is finisehd,
-%	receiving orders from order processing agent and sending orders to proofer)
-%	* The dough manager interacts with the environment (order processing agent and proofer)
-%	* Cyclic receiveOrder behaviour. The agent checks for new orders every time step if there is a
-%	new order he receives it and processes it.
-%	* Proofer
-%	* Interface to next stage (bakery stage)
+		\subsubsection{Reason for representing preparing and kneading machines as objects}
+		Kneading Machine and Preparing Machine are represented as an object based on the same class as
+		The way we designed them there is not much functionality inside preparing machine and kneading machine
+		Their only task it to update a counter and check whether a certain time threshold is reached
+		\subsubsection{Reason for using the same class for preparing and kneading machines}
+		For both objects the same class was used as both machines are very common - update a counter, store a state and update a boolean when finished.
+		\subsubsection{Reason for making Dough Manager an agent}
+		Most of the intelligent behaviour was moved to the dough manager. He contains kneading and preparing machines for one bakery. He manages orders which
+		means moving one order from one state to next state, check whether current stage of dough preparing is finisehd, receiving orders from order processing agent
+		and sending orders to proofer. The dough manager interacts with the environment (order processing agent and proofer) which means that he sends messages to the
+		proofer and receives orders from order processing agent.
+		\subsubsection{Reason for Behaviour in Dough Manager}
+		The Dough Manager has the cyclic behaviour receive order. He pulls periodically for new messages. If there is a new message he processes it. This behaviour was chosen
+		to make sure that all messages which are sent to dough manager are processed.
+		\subsubsection{Reason for Proofer}
+		The proofer was a design decision by the instructor to make sure that there is a well defined interface between the two stages dough preparation and baking stage.
+%		Cyclic receiveOrder behaviour. The agent checks for new orders every time step if there is a
+%		new order he receives it and processes it.
+
+	*
+	* Proofer
+	* Interface to next stage (bakery stage)
 	\section{Architectures}
 	We used IntelliJ to generate the architecture. We present two versions because the full architecture\ref{fig:arch_full} isn't easily readable we generated a small\ref{fig:arch_small} one without internal classes, fields etc.
 	\\
@@ -306,6 +329,47 @@ Example Content:
 }
 	\end{lstlisting}
 	\section{Agents}
+	Agents per pakery:
+	\begin{enumerate}
+		\item [-] Scheduler $\rightarrow$ Is needed to schedule orders. It checks whether the order can be processed - so is there enough time to prepare the order
+		under given circumstances?
+		\item [-] OrderProcessing $\rightarrow$ The Order Procesing agent receives an order from the client, distributes the order to all agents, talks to the scheduler
+		to verify whether order is feasible and gives the customer a hint whether its order can be processed or not.
+		\item [-] DoughManager $\rightarrow$ He manages the kneading machines and preparation tables for one bakery. He ensures that its kneading machines and preparation
+		tables are synchron with the time keeper, checks whether current kneaded and prepared products are finished and sends kneaded and prepared orders to proofer.
+		\item [-] Proofer $\rightarrow$ The proofer proofs the orders and sends them to the bakery.
+	\end{enumerate}
 	\section{Objects}
+	Objects :
+	\begin{enumerate}
+		\item [-] BakedGood $\rightarrow$ Name of product and the amount of it for one order within DoughPreparationStage.
+		\item [-] CurrentProcessedProduct $\rightarrow$ An object which describes the current kneaded product. In other
+		context it is used to describe the current prepared product. Moreover it is used to remeber already kneaded
+		and prepared products.
+		\item [-] KneadingPreparingMachine $\rightarrow$ Describes kneading and preparing machines. It stores the current
+		kneaded / prepared order , the progress of preparing / kneading and it checks whether the preparation has finished
+		\item [-] Order $\rightarrow$ An object for Scheduler and OrderProcessing Agent. It stores information as customer
+		agent id, order day, order hour, delivery day and delivery hour.
+		\item [-] OrderDoughPrep $\rightarrow$ An object for storing received orders from Scheduler.
+		\item [-] Product $\rightarrow$ An object which stores information on the product (preparation time,
+		salesPrice, boxingTemp, guid)
+	\end{enumerate}
 	\section{How to run it}
+	The Start.java is configured in order to run this project easily.
+	In order to run our two stages and the customer Stage (which is copied from the upstream) just use:
+
+	\begin{lstlisting}[language=Groovy,caption = Gradle run,frame=single, label={gradlerun} ]
+	gradle run
+	\end{lstlisting}
+
+	\noindent It will automatically get the dependencies and start JADE with the configured agents.
+	In case you want to clean you workspace run
+
+	\begin{lstlisting}[language=Groovy,caption = Gradle clean,frame=single, label={gradleclean} ]
+	gradle clean
+	\end{lstlisting}
+	If you want to see all possible options how the project can be run use:
+	\begin{lstlisting}[language=Groovy,caption = Gradle run args,frame=single, label={gradlerunargs} ]
+	gradle run --args='-h'
+	\end{lstlisting}
 \end{document}
