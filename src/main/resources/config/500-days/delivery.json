@@ -1,0 +1,107 @@
+[
+  {
+    "location": null,
+    "guid": "delivery-company-001",
+    "trucks": [
+      {
+        "load_capacity": 8,
+        "guid": "truck-001",
+        "location": null
+      },
+      {
+        "load_capacity": 7,
+        "guid": "truck-002",
+        "location": null
+      },
+      {
+        "load_capacity": 12,
+        "guid": "truck-003",
+        "location": null
+      }
+    ]
+  },
+  {
+    "location": null,
+    "guid": "delivery-company-002",
+    "trucks": [
+      {
+        "load_capacity": 4,
+        "guid": "truck-004",
+        "location": null
+      },
+      {
+        "load_capacity": 8,
+        "guid": "truck-005",
+        "location": null
+      },
+      {
+        "load_capacity": 4,
+        "guid": "truck-006",
+        "location": null
+      },
+      {
+        "load_capacity": 4,
+        "guid": "truck-007",
+        "location": null
+      }
+    ]
+  },
+  {
+    "location": null,
+    "guid": "delivery-company-003",
+    "trucks": [
+      {
+        "load_capacity": 33,
+        "guid": "truck-008",
+        "location": null
+      },
+      {
+        "load_capacity": 3,
+        "guid": "truck-009",
+        "location": null
+      },
+      {
+        "load_capacity": 14,
+        "guid": "truck-010",
+        "location": null
+      }
+    ]
+  },
+  {
+    "location": null,
+    "guid": "delivery-company-004",
+    "trucks": [
+      {
+        "load_capacity": 12,
+        "guid": "truck-011",
+        "location": null
+      },
+      {
+        "load_capacity": 9,
+        "guid": "truck-012",
+        "location": null
+      },
+      {
+        "load_capacity": 22,
+        "guid": "truck-013",
+        "location": null
+      }
+    ]
+  },
+  {
+    "location": null,
+    "guid": "delivery-company-005",
+    "trucks": [
+      {
+        "load_capacity": 23,
+        "guid": "truck-014",
+        "location": null
+      },
+      {
+        "load_capacity": 20,
+        "guid": "truck-015",
+        "location": null
+      }
+    ]
+  }
+]

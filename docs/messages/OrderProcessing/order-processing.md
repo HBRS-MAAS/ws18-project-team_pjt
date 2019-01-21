@@ -6,13 +6,6 @@
   * Receiver: All OrderProcessingAgents
   * ConversationId: {orderId}
   * Content: JSONObject as String -> Order
-    
-* Receive noNewOrder from client:
-  * Type: Inform
-  * Sender: Client
-  * Receiver: All OrderProcessingAgents
-  * ConversationOd: "syncing"
-  * Content: String -> "no new Order"
   
 * Receive accepted proposal:
   * Type: ACCEPT_PROPOSAL
@@ -48,16 +41,10 @@
   * ConversationId: {orderId}
   * Content: JSONObject as String -> List of available products with prices (amount of product times sales_price for product)
   
-* SchedulerSyncing:
-  * Type: INFORM
-  * Sender: OrderProcessingAgent
-  * Receiver: SchedulerAgent
-  * Content: String -> "NO NEW ORDER"
-  
 * DistributeReceivedOrder:
   * Type: INFORM
   * Sender: OrderProcessingAgent
-  * Receiver: all Agents
+  * Receiver: all Agents of same bakery
   * Content: JSONObject -> Order
   
 * Refusal to Client:

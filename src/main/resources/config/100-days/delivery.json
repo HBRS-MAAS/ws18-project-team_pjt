@@ -1,0 +1,102 @@
+[
+  {
+    "trucks": [
+      {
+        "load_capacity": 5,
+        "location": null,
+        "guid": "truck-001"
+      },
+      {
+        "load_capacity": 14,
+        "location": null,
+        "guid": "truck-002"
+      }
+    ],
+    "location": null,
+    "guid": "delivery-company-001"
+  },
+  {
+    "trucks": [
+      {
+        "load_capacity": 11,
+        "location": null,
+        "guid": "truck-003"
+      },
+      {
+        "load_capacity": 26,
+        "location": null,
+        "guid": "truck-004"
+      }
+    ],
+    "location": null,
+    "guid": "delivery-company-002"
+  },
+  {
+    "trucks": [
+      {
+        "load_capacity": 9,
+        "location": null,
+        "guid": "truck-005"
+      },
+      {
+        "load_capacity": 12,
+        "location": null,
+        "guid": "truck-006"
+      },
+      {
+        "load_capacity": 3,
+        "location": null,
+        "guid": "truck-007"
+      },
+      {
+        "load_capacity": 15,
+        "location": null,
+        "guid": "truck-008"
+      }
+    ],
+    "location": null,
+    "guid": "delivery-company-003"
+  },
+  {
+    "trucks": [
+      {
+        "load_capacity": 15,
+        "location": null,
+        "guid": "truck-009"
+      },
+      {
+        "load_capacity": 8,
+        "location": null,
+        "guid": "truck-010"
+      }
+    ],
+    "location": null,
+    "guid": "delivery-company-004"
+  },
+  {
+    "trucks": [
+      {
+        "load_capacity": 15,
+        "location": null,
+        "guid": "truck-011"
+      },
+      {
+        "load_capacity": 14,
+        "location": null,
+        "guid": "truck-012"
+      },
+      {
+        "load_capacity": 7,
+        "location": null,
+        "guid": "truck-013"
+      },
+      {
+        "load_capacity": 5,
+        "location": null,
+        "guid": "truck-014"
+      }
+    ],
+    "location": null,
+    "guid": "delivery-company-005"
+  }
+]

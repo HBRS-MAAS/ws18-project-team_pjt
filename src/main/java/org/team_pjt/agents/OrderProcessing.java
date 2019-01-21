@@ -11,49 +11,47 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.team_pjt.behaviours.shutdown;
-import org.team_pjt.objects.Location;
-import org.team_pjt.objects.Order;
-import org.team_pjt.objects.Product;
+import org.team_pjt.Objects.Order;
+import org.team_pjt.Objects.Product;
+import org.team_pjt.utils.Logger;
 
 import java.util.*;
-// ToDo OrderProcessing in OrderProcessingAgent umbenennen
+
 public class OrderProcessing extends BaseAgent {
     private String sBakeryId;
-    private Location lLocation;
     private HashMap<String, Product> hmProducts; // = Available Products
     private AID aidScheduler;
-    private AID[] allAgents;
+//    private AID[] allAgents;
     private int endDays;
+    private boolean order_received;
+    private Logger logger;
 
     protected void setup(){
         super.setup();
         Object[] oArguments = getArguments();
         if (!readArgs(oArguments)) {
-            System.out.println("No parameter given for OrderProcessing " + getName());
+            System.out.println(getName() + ": No parameter given for OrderProcessing " + getName());
         }
+        logger = new Logger(getName(), "no");
         this.register("OrderProcessing", this.sBakeryId);
         findScheduler();
-//        try {
-//            Thread.sleep(30000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        order_received = false;
         addBehaviour(new OfferRequestServer());
-        System.out.println("OrderProcessing " + getName() + " ready");
+        addBehaviour(new TimeManager());
+//        System.out.println("OrderProcessing " + getName() + " ready");
     }
 
     private class distributeFullOrder extends OneShotBehaviour {
         Order order;
 
-        public distributeFullOrder(Order order) {
+        private distributeFullOrder(Order order) {
             super();
             this.order = order;
         }
 
         @Override
         public void action() {
-            findAllAgents();
+            AID[] allAgents = findAllAgents();
             ACLMessage propagate_accepted_order = new ACLMessage(ACLMessage.INFORM);
             propagate_accepted_order.setContent(order.toJSONString());
             for(AID agent : allAgents) {
@@ -63,20 +61,37 @@ public class OrderProcessing extends BaseAgent {
         }
     }
 
-    private class schedulerSyncing extends OneShotBehaviour {
-
+    private class TimeManager extends Behaviour {
+        private boolean isDone = false;
         @Override
         public void action() {
             if(!getAllowAction()) {
-                myAgent.addBehaviour(new schedulerSyncing());
                 return;
             }
-            ACLMessage syncMessage = new ACLMessage(ACLMessage.INFORM);
-            syncMessage.setContent("NO NEW ORDER");
-            syncMessage.setConversationId("syncing scheduler");
-            syncMessage.addReceiver(aidScheduler);
-            sendMessage(syncMessage);
+            if(!order_received) {
+                finished();
+//                System.out.println(myAgent.getName() + " called finished");
+                isDone = true;
+                if (getCurrentDay() >= endDays) {
+//                    deRegister();
+//                    addBehaviour(new shutdown());
+                    shutdown();
+                }
+            }
+        }
+
+        private void shutdown() {
             finished();
+            deRegister();
+            myAgent.doDelete();
+        }
+
+        @Override
+        public boolean done() {
+            if(isDone) {
+                addBehaviour(new TimeManager());
+            }
+            return isDone;
         }
     }
 
@@ -85,106 +100,44 @@ public class OrderProcessing extends BaseAgent {
         private int step = 0;
         private Order order;
         private ACLMessage cfpMessage;
-        DFAgentDescription[] allCustomers;
-        private int messageCounter = 0;
-
-        public OfferRequestServer() {
-            super();
-            allCustomers = findAllCustomers();
-            messageCounter = 0;
-        }
-
-        private void sendNotFeasibleMessage(ACLMessage msg, String content) {
-            ACLMessage clientReply = msg.createReply();
-            clientReply.setPerformative(ACLMessage.REFUSE);
-            clientReply.setContent(content);
-            sendMessage(clientReply);
-            System.out.println("not feasible message sent");
-            System.out.println(myAgent.getName() + " called finished()");
-//            try {
-//                Thread.sleep(200);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-            finished();
-        }
-
-        private void distributeScheduledOrder() {
-            System.out.println("waiting for accepted proposal");
-            MessageTemplate acceptedProposalMT = MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
-                    MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL));
-            ACLMessage accepted_proposal = receive(acceptedProposalMT);
-            if(accepted_proposal != null) {
-                if(accepted_proposal.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
-                    step++;
-                    return;
-                }
-                System.out.println("accept proposal received");
-                findAllAgents();
-                ACLMessage propagate_accepted_order = new ACLMessage(ACLMessage.PROPAGATE);
-                propagate_accepted_order.setContent(accepted_proposal.getContent());
-                propagate_accepted_order.addReceiver(aidScheduler);
-                sendMessage(propagate_accepted_order);
-                System.out.println("Order Processing Propagated all scheduled Orders");
-                step++;
-            }
-            else {
-                block();
-            }
-        }
 
         @Override
         public void action() {
-            if(!getAllowAction()) {
-                return;
-            }
-            if (getCurrentDay() >= endDays) {
-                deRegister();
-                addBehaviour(new shutdown());
-            }
             switch (step) {
                 case 0:
-                    MessageTemplate cfpMT = MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.CFP),
-                            MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+                    MessageTemplate cfpMT = MessageTemplate.MatchPerformative(ACLMessage.CFP);
                     cfpMessage = myAgent.receive(cfpMT);
                     if (cfpMessage != null) {
-                        if(cfpMessage.getPerformative() == ACLMessage.INFORM) {
-                            messageCounter++;
-//                            System.out.println("no new order message received");
-                            break;
-                        }
-                        System.out.println("cfp received");
+                        myAgent.addBehaviour(new OfferRequestServer());
+                        order_received = true;
+//                        System.out.println(myAgent.getName() + ": cfp received");
                         order = new Order(cfpMessage.getContent());
+                        logger.log(new Logger.LogMessage("cfp received for order: " + order.getGuid(), "release"));
                         myAgent.addBehaviour(new distributeFullOrder(order));
                         List<String> order_av_products = new LinkedList<>(order.getProducts().keySet());
                         bFeasibleOrder = checkForAvailableProducts(order_av_products);
-                        System.out.println("checked available products");
+//                        System.out.println(myAgent.getName() + ": checked available products");
+                        logger.log(new Logger.LogMessage("checked available products for order: " + order.getGuid(), "release"));
 
                         if (!bFeasibleOrder) {
                             sendNotFeasibleMessage(cfpMessage, "No needed Product available!");
-                            System.out.println("no product available");
-                            step = 0;
-                            order = null;
-                            cfpMessage = null;
+//                            System.out.println(myAgent.getName() + ": no product available");
+                            logger.log(new Logger.LogMessage("no product available for order: " + order.getGuid(), "release"));
+                            step = 3;
                             return;
                         }
 
                         ACLMessage schedulerRequest = new ACLMessage(ACLMessage.REQUEST);
                         Hashtable<String, Integer> order_products = order.getProducts();
-                        Iterator<String> product_iterator = order_products.keySet().iterator();
-                        while (product_iterator.hasNext()) {
-                            String product_name = product_iterator.next();
-                            if (!order_av_products.contains(product_name)) {
-                                product_iterator.remove();
-                            }
-                        }
+                        order_products.keySet().removeIf(product_name -> !order_av_products.contains(product_name));
 
                         order.setProducts(order_products);
                         schedulerRequest.setConversationId(order.getGuid());
                         schedulerRequest.setContent(order.toJSONString());
                         schedulerRequest.addReceiver(aidScheduler);
                         sendMessage(schedulerRequest);
-                        System.out.println("asked scheduler for feasibility");
+//                        System.out.println(myAgent.getName() + ": asked scheduler for feasibility");
+                        logger.log(new Logger.LogMessage("asked scheduler for feasibility for order: " + order.getGuid(), "release"));
                         step++;
                     }
                     else {
@@ -196,7 +149,8 @@ public class OrderProcessing extends BaseAgent {
                             MessageTemplate.MatchSender(aidScheduler));
                     ACLMessage schedulerMessage = myAgent.receive(schedulerReply);
                     if (schedulerMessage != null) {
-                        System.out.println("schedule reply received!");
+//                        System.out.println(myAgent.getName() + ": schedule reply received!");
+                        logger.log(new Logger.LogMessage("schedule reply received! for order: " + order.getGuid(), "release"));
                         if (schedulerMessage.getPerformative() == ACLMessage.CONFIRM) {
                             ACLMessage proposeMsg = cfpMessage.createReply();
                             proposeMsg.setPerformative(ACLMessage.PROPOSE);
@@ -212,46 +166,73 @@ public class OrderProcessing extends BaseAgent {
                             proposeMsg.setContent(proposeObject.toString());
                             proposeMsg.setConversationId(order.getGuid());
                             sendMessage(proposeMsg);
-                            System.out.println("proposed available products");
+//                            System.out.println(myAgent.getName() + ": proposed available products");
+                            logger.log(new Logger.LogMessage("proposed available products for order: " + order.getGuid(), "release"));
                             step++;
                         } else if (schedulerMessage.getPerformative() == ACLMessage.DISCONFIRM) {
                             bFeasibleOrder = false;
                         }
                         if (!bFeasibleOrder) {
                             sendNotFeasibleMessage(cfpMessage, "Not able to schedule Order!");
+                            step = 3;
                         }
                     } else {
                         block();
                     }
                     break;
                 case 2:
-                    distributeScheduledOrder();
+                    distributeScheduledOrder(order.getGuid());
                     break;
             }
         }
 
         @Override
         public boolean done() {
-            boolean isDone = messageCounter == allCustomers.length;
+            boolean isDone = step >= 3;
             if(isDone) {
-                ACLMessage syncMessage = new ACLMessage(ACLMessage.INFORM);
-                syncMessage.setContent("NO NEW ORDER");
-                syncMessage.setConversationId("syncing scheduler");
-                syncMessage.addReceiver(aidScheduler);
-                sendMessage(syncMessage);
-                //myAgent.addBehaviour(new schedulerSyncing());
-            }
-            isDone = isDone || step >= 3;
-            if(isDone) {
-                myAgent.addBehaviour(new OfferRequestServer());
-//                try {
-//                    Thread.sleep(200);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-                finished();
+                order_received = false;
             }
             return isDone;
+        }
+
+        private void sendNotFeasibleMessage(ACLMessage msg, String content) {
+            ACLMessage clientReply = msg.createReply();
+            clientReply.setPerformative(ACLMessage.REFUSE);
+            clientReply.setContent(content);
+            sendMessage(clientReply);
+//            System.out.println(myAgent.getName() + ": not feasible message sent");
+            logger.log(new Logger.LogMessage("not feasible message sent for order: " + order.getGuid(), "release"));
+        }
+
+        private void distributeScheduledOrder(String orderID) {
+//            logger.log(new Logger.LogMessage("waiting for accepted proposal: " + orderID, "release"));
+//            MessageTemplate acceptedProposalMT = MessageTemplate.and(MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
+//                    MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL)), MessageTemplate.MatchConversationId(orderID));
+            MessageTemplate acceptedProposalMT = MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
+                    MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL));
+            ACLMessage accepted_proposal = receive(acceptedProposalMT);
+            if(accepted_proposal != null) {
+                if(accepted_proposal.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
+                    ACLMessage reject_order = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
+                    reject_order.setConversationId("proposal-rejected");
+                    reject_order.setContent("proposal got rejected!");
+                    reject_order.addReceiver(aidScheduler);
+                    sendMessage(reject_order);
+                    step++;
+                    return;
+                }
+                logger.log(new Logger.LogMessage("accept proposal received for order: " + order.getGuid(), "release"));
+                ACLMessage propagate_accepted_order = new ACLMessage(ACLMessage.PROPAGATE);
+                propagate_accepted_order.setContent(accepted_proposal.getContent());
+                propagate_accepted_order.addReceiver(aidScheduler);
+                propagate_accepted_order.setConversationId(orderID);
+                sendMessage(propagate_accepted_order);
+                logger.log(new Logger.LogMessage("Order Processing Propagated all scheduled Orders for order: " + order.getGuid(), "release"));
+                step++;
+            }
+            else {
+                block();
+            }
         }
     }
 
@@ -269,34 +250,55 @@ public class OrderProcessing extends BaseAgent {
             }
         }
         aidScheduler = dfSchedulerAgentResult[0].getName();
-        System.out.println("Scheduler found! - " + aidScheduler);
+//        System.out.println("Scheduler found! - " + aidScheduler);
     }
 
-    private DFAgentDescription[] findAllCustomers() {
-        DFAgentDescription[] dfCustomers = new DFAgentDescription[0];
+    private AID[] findAllAgents() {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
-        sd.setType("customer");
-        template.addServices(sd);
+        AID[] allAgents = new AID[4];
         try {
-            dfCustomers = DFService.search(this, template);
             int counter = 0;
-        }
-        catch (FIPAException fe) {
-            fe.printStackTrace();
-            allAgents = new AID[0];
-        }
-        return dfCustomers;
-    }
-
-    private void findAllAgents() {
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-        template.addServices(sd);
-        try {
+            sd.setType("Proofer_"+sBakeryId.split("-")[1]);
+            template.addServices(sd);
             DFAgentDescription[] result = DFService.search(this, template);
-            allAgents = new AID[result.length];
-            int counter = 0;
+            for(DFAgentDescription ad : result) {
+                allAgents[counter] = ad.getName();
+                counter++;
+            }
+            template = new DFAgentDescription();
+            sd = new ServiceDescription();
+            sd.setName("scheduler-" + sBakeryId.split("-")[1]);
+            template.addServices(sd);
+            result = DFService.search(this, template);
+            for(DFAgentDescription ad : result) {
+                allAgents[counter] = ad.getName();
+                counter++;
+            }
+            template = new DFAgentDescription();
+            sd = new ServiceDescription();
+            sd.setType(sBakeryId.split("-")[1] + "-CoolingRackAgent");
+            template.addServices(sd);
+            result = DFService.search(this, template);
+            for(DFAgentDescription ad : result) {
+                allAgents[counter] = ad.getName();
+                counter++;
+            }
+            template = new DFAgentDescription();
+            sd = new ServiceDescription();
+            sd.setName(sBakeryId.split("-")[1] + "-loading-bay");
+            template.addServices(sd);
+            result = DFService.search(this, template);
+            for(DFAgentDescription ad : result) {
+                allAgents[counter] = ad.getName();
+                counter++;
+            }
+            template = new DFAgentDescription();
+            sd = new ServiceDescription();
+            sd.setName("doughmanager-" + sBakeryId.split("-")[1]);
+            sd.setType("Dough-manager");
+            template.addServices(sd);
+            result = DFService.search(this, template);
             for(DFAgentDescription ad : result) {
                 allAgents[counter] = ad.getName();
                 counter++;
@@ -306,6 +308,7 @@ public class OrderProcessing extends BaseAgent {
             fe.printStackTrace();
             allAgents = new AID[0];
         }
+        return allAgents;
     }
 
     private boolean checkForAvailableProducts(List<String> neededProducts) {

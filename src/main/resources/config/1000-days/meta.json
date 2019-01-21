@@ -1,0 +1,17 @@
+{
+  "customers": {
+    "1": 5,
+    "2": 5,
+    "3": 5
+  },
+  "products": 30,
+  "delivery": 5,
+  "durationInDays": 1000,
+  "orders": 16460,
+  "bakeries": 5,
+  "timeStep": {
+    "day": 0,
+    "minute": 10,
+    "hour": 0
+  }
+}

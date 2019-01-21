@@ -1,28 +1,16 @@
 # SchedulerAgent
 ## Messages received:
-* Disconfirm Schedule:
-  * Type: DISCONFIRM
-  * Sender: SchedulerAgent
-  * Receiver: OrderProcessingAgent
-  * Content: String -> Scheduling impossible
-  
 * Propagate accepted Orders:
   * Type: PROPAGATE
   * Sender: OrderProcessingAgent
-  * Receiver: allAgents
-  * Content: JSONObject -> "sorterOrder": JSONArray containing sorted List of all received and scheduled Orders -> "bakeryId": according bakeryid
+  * Receiver: SchedulerAgent
+  * Content: JSONObject as String -> Order containing only Products that should be produced by this bakery
   
 * Check Scheduler:
   * Type: REQUEST
   * Sender: OrderProcessingAgent
   * Receiver: SchedulerAgent
   * Content: JSONObject -> order with only available products
-  
-* Inform no new order:
-  * Type: INFORM
-  * Sender: OrderProcessing
-  * Receiver: SchedulerAgent
-  * Content: String -> "NO NEW ORDER"
   
 * Get Queue Position:
   * Type: REQUEST
@@ -44,10 +32,10 @@
   * Receiver: OrderProcessingAgent
   * Content: String -> "Scheduling impossible!"
   
-* Propagate acceptedOrdes:
+* Propagate acceptedOrders:
   * Type: PROPAGATE
   * Sender: SchedulerAgent
-  * Receiver: All Agents
+  * Receiver: All receiving Agents of same bakery
   * Content: JSONArray -> sorted List of accepted Orders
   
 * Queue request reply:
@@ -56,3 +44,9 @@
   * Receiver: Any agent
   * ConversationId: queue request
   * Content: String -> Order position if order in queue else -1
+  
+* ScheduledOrders reply:
+  * Type: INFORM
+  * Sender: SchedulerAgent
+  * Receiver: Agent which requested
+  * Content: JSONArray as String -> All scheduled orders
