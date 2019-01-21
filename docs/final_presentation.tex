@@ -1,0 +1,122 @@
+\documentclass[11pt]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usetheme{Copenhagen}
+\begin{document}
+	\author{Pascal Maczey \& Jan Löffelsender - Team PJT}
+	\title{The Bakery project}
+	\subtitle{OrderProcessing and DoughPreparation}
+	\logo{\includegraphics[scale=0.03]{./images/rhein-sieg.jpg}}
+	\institute{Hochschule Bonn-Rhein-Sieg}
+	\date{\today}
+	%\subject{}
+	%\setbeamercovered{transparent}
+	%\setbeamertemplate{navigation symbols}{}
+	\begin{frame}[plain]
+	\maketitle
+\end{frame}
+
+\begin{frame}
+\frametitle{Tasks}
+\begin{itemize}
+	\item OrderProcessing Stage:
+	\begin{itemize}
+		\item receive Orders from Customers
+		\item check Order if it's feasible
+		\item send proposal to Customer
+		\item propagate scheduled Orders
+	\end{itemize}
+	\item DoughPreparation Stage:
+	\begin{itemize}
+		\item receive scheduled orders from OrderProcessing
+		\item schedule daily orders on available KneadingMachines and PreparationTable
+		\item send message to baking stage as soon as product is ready
+	\end{itemize}
+	\item Visualization:
+	\begin{itemize}
+		\item For each order the live status of each product should be visualized
+		\item not done -> Max quit the course
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{OrderProcessing Stage}
+\begin{itemize}
+	\item splitting OrderProcessing and Scheduling -> different tasks
+	\item OrderProcessing responsible for communication with external agents
+	\item SchedulerAgent checks if it's possible to schedule a specific order on a day
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{OrderProcessing}
+\begin{itemize}
+	\item Responsible for communication with SchedulerAgent and CustomerAgent
+	\item First idea -> do all communication with external agents
+	\item To reduce communication with SchedulerAgent -> SchedulerAgent communicates with agents of following stages
+	\item propagates to all agents of bakery that new order arrived
+	\item Checks which products of order are available for each bakery
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{SchedulerAgent}
+\begin{itemize}
+	\item Receives orders from OrderProcessing
+	\item Checks if production (doughPreparation-Stage) is possible
+	\item propagates schedules order to all agents of bakery if production possible
+	\item stores whole schedule for all days
+\end{itemize}
+\end{frame}
+
+    \section{Dough Manager}
+%\label{anforderung}
+\begin{frame}
+\frametitle{Dough Manager}
+\begin{itemize}
+	\item The Dough Manager is responsible for kneading and preparing the product
+	\item It manages its assigned prep tables and kneading machines which means
+	\begin{itemize}
+		\item moving one order from one state to next state
+		\item check whether current stage of dough preparing is finisehd
+		\item receiving orders from order processing agent
+		\item sending orders to proofer
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+
+%\label{anforderung}
+\section{Kneading Machine and Preparation Table}
+\begin{frame}
+\frametitle{Kneading Machine and Preparation Table}
+\begin{itemize}
+	\item They are represented as an object based on the same class
+	\item The way we designed them there is not much functionality inside preparing machine and kneading machine
+	\item Their only task it to update a counter and check whether a certain time threshold is reached
+%            \begin{itemize}
+%                \item moving one order from one state to next state
+%                \item check whether current stage of dough preparing is finisehd
+%                \item receiving orders from order processing agent
+%                \item sending orders to proofer
+%            \end{itemize}
+\end{itemize}
+\end{frame}
+
+\section{Proofer}
+\begin{frame}
+\frametitle{Proofer}
+	\begin{itemize}
+	\item Represents the interface between baking stage and dough preparation stage
+	\item Receives kneaded and prepared products from Dough Manager
+%            \item Their only task it to update a counter and check whether a certain time threshold is reached
+%            \begin{itemize}
+%                \item moving one order from one state to next state
+%                \item check whether current stage of dough preparing is finisehd
+%                \item receiving orders from order processing agent
+%                \item sending orders to proofer
+%            \end{itemize}
+\end{itemize}
+\end{frame}
+\end{document}

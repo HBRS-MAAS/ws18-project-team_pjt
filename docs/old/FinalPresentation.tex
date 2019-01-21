@@ -42,6 +42,27 @@
         \tableofcontents
     \end{frame}
 
+    \begin{frame}
+        \frametitle{OrderProcessing}
+        \begin{itemize}
+            \item Responsible for communication with SchedulerAgent and CustomerAgent
+            \item First idea -> do all communication with external agents
+            \item To reduce communication with SchedulerAgent -> SchedulerAgent communicates with agents of following stages
+            \item propagates to all agents of bakery that new order arrived
+            \item Checks which products of order are available for each bakery
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{SchedulerAgent}
+        \begin{itemize}
+            \item Receives orders from OrderProcessing
+            \item Checks if production (doughPreparation-Stage) is possible
+            \item propagates schedules order to all agents of bakery if production possible
+            \item stores whole schedule for all days
+        \end{itemize}
+    \end{frame}
+
     \section{Dough Manager}
     %\label{anforderung}
     \begin{frame}
