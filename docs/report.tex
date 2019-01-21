@@ -2,6 +2,7 @@
 \usepackage[latin1]{inputenc}
 \usepackage{scrextend}
 \usepackage[section]{placeins}
+\usepackage[english]{babel}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
@@ -87,6 +88,89 @@
 	\KOMAoptions{paper=A4,paper=portrait,pagesize}
 	\recalctypearea
 	\section{Messages}
+	In the following table you can see each message receive or send by any of our agents.
+	\begin{itemize}
+		\item Receive Order from client:
+		\begin{itemize}
+			\item Type: CFP
+			\item From: CustomerAgent
+			\item To: OrderProcessing
+			\item ConversationId: {orderId}
+			\item Content: JSONObject as String -\textgreater Order
+		\end{itemize}
+		\item Receive accepted proposal:
+		\begin{itemize}
+			\item Type: ACCEPT\_PROPOSAL
+			\item From: CustomerAgent
+			\item To: OrderProcessing
+			\item ConversationId: {orderId}
+			\item Content: JSONObject as String -\textgreater Full Order but only containing products available at specified bakery
+		\end{itemize}
+		\item Receive reject proposal:
+		\begin{itemize}
+			\item Type: REJECT\_PROPOSAL
+			\item From: CustomerAgent
+			\item To: OrderProcessing
+			\item ConversationId: {orderId}
+			\item Content: String -\textgreater \glqq rejected\grqq
+		\end{itemize}
+		\item Confirm Schedule:
+		\begin{itemize}
+			\item Type: CONFIRM
+			\item From: SchedulerAgent
+			\item To: OrderProcessing
+			\item ConversationId: -
+			\item Content: String -\textgreater \glqq Scheduling possible\grqq
+		\end{itemize}
+		\item Disconfirm Schedule:
+		\begin{itemize}
+			\item Type: DISCONFIRM
+			\item From: SchedulerAgent
+			\item To: OrderProcessing
+			\item ConversationId: -
+			\item Content: String -\textgreater \glqq Scheduling impossible\grqq
+		\end{itemize}
+		\item Proposal to Client:
+		\begin{itemize}
+			\item Type: PROPOSAL
+			\item From: OrderProcessing
+			\item To: CustomerAgent
+			\item ConversationId: {orderId}
+			\item Content: JSONObject as String -\textgreater List of available products with prices (amount of product times sales\_price for product)
+		\end{itemize}
+		\item DistributeReceivedOrder:
+		\begin{itemize}
+			\item Type: INFORM
+			\item From: OrderProcessing
+			\item To: all agents of same bakery
+			\item ConversationId: -
+			\item Content: JSONObject as String -\textgreater Order
+		\end{itemize}
+		\item Refusal to Customer
+		\begin{itemize}
+			\item Type: REFUSE
+			\item From: OrderProcessing
+			\item To: CustomerAgent
+			\item ConversationId: -
+			\item Content: String -\textgreater reason for refusal (no needed product available or not enough time to produce order)
+		\end{itemize}
+		\item Check Scheduler
+		\begin{itemize}
+			\item Type: REQUEST
+			\item From: OrderProcessing
+			\item To: SchedulerAgent
+			\item ConversationId: -
+			\item Content: JSONObject as String -\textgreater order with only available products
+		\end{itemize}
+		\item Send acceptes Order to Scheduler
+		\begin{itemize}
+			\item Type: PROPAGATE
+			\item From: OrderProcessing
+			\item To: SchedulerAgent
+			\item ConversationId: -
+			\item Content: JSONObject as String -\textgreater Order containing only Products that should be produced by this bakery
+		\end{itemize}
+	\end{itemize}
 	\section{Agents}
 	\section{Objects}
 	\section{How to run it}
