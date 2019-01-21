@@ -1,9 +1,12 @@
 \documentclass[10pt,a4paper]{article}
 \usepackage[latin1]{inputenc}
+\usepackage{scrextend}
+\usepackage[section]{placeins}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage[paper=portrait,pagesize]{typearea}
 \author{Pascal Maczey \& Jan Löffelsender - Team PJT}
 \title{Bakery project - OrderPorcessing- and DoughPreparation-Stage}
 \begin{document}
@@ -16,34 +19,73 @@
 	
 	\section{Design decisions}
 	\subsection{OrderProcessing-Stage}
-	\begin{itemize}
-		\item Splitting OrderProcessing and scheduling
-		
-	\end{itemize}
-	* The functionality of OrderProcessing and SchedulerAgent is totally different. 
-	* The main idea of OrderProcessing was to deal with all messages which need to be exchanged between agents of different stages.
-	* The task of the scheduler should be to check if a specific bakery can produce products of an order in time.
-	* This specification isn't implemented partly. For example the SchedulerAgent propagates the scheduled orders and OrderProcessing checks if products are available.
-	The main reason was to reduce communication between those two Agents.
+	\subsubsection{Splitting OrderProcessing and scheduling}
+	The decision of splitting the OrderProcessing-Stage into to different agent is based on the idea of splitting functionality.
+	\\
+	The main idea of the OrderProcessing agent is to do all the communication with agents of different stages. That includes receiving a new order from a customer agent, making a proposal and so on.
+	\\
+	The scheduler agent should check if it's feasible to make an offer to the customer agent. That means the agent should check if all products are available and if it's possible to produce the products in time.
+	\\
+	These specifications has been changed a bit during development. To reduce communication between SchedulerAgent and OrderProcessing agent the OrderProcessing agent checks if any product is available. The reason for this decision is that a two way communication between Scheduler and OrderProcessing can be avoided. Next the SchedulerAgent sends the scheduled and accepted orders to the agents of the bakery. This way one message to the OrderProcessing agent is saved. But since the SchedulderAgent manages the Order Queue this decision is useful.
 	
-	* OrderProcessing:
-	* Why a TimeManager Behaviour:
-	* The TimeManager Behaviour is responsible for checking if it's allowed to perform an action and to check if the agent should be terminated.
-	* In TimeManager "finished()" is called in order to get to the next time step.
-	* The condition if(!order_received) prevents the OrderProcessingAgent to step forward as long as an order is processed. Thus not more than one time step is "lost".
-	* distributeFullOrder Behaviour:
-	* This Behaviour propagates the full received order to all agents, which belong to the same bakery and receive those messages.
-	* OfferRequestServer Behaviour:
-	* This Behaviour is responsible for the whole communication from and to the customer and from and to the SchedulerAgent.
+	\subsubsection{Reasons for behaviours in OrderProcessing}
+	The TimeManager Behaviour controls if it is okay to start the new time step or if the agent should end. The reason to do this in an own behaviour was to loose the linkage of the time behaviour and the processing of messages and orders. Since it is (without additional synchronization) not possible to actively check if an order is coming at an specific timestep with the chosen implementation one timestep is lost every time an order is placed.
+	\\
+	The distributeFullOrder Behaviour propagates the whole order every time an order (call for proposal) arrives. This was specified in a task. The main reason is to notify the agents, that there might come a new scheduled order.
+	\\
+	The OfferRequestServer Behaviour handles all messages related with the Customer and the scheduler. The decision to combine this in only one Behaviour was, that a whole Order is processed at once.
 	
-	* SchedulerAgent:
-	* TimeManager Behaviour:
-	* Same reasons as in OrderProcessing
-	* isNewOrderChecker Behaviour:
-	* Checks for new orders every timeStep
-	* receiveOrder Behaviour:
-	* This Behaviour receives a new order, schedules it and adds it to queue if it's feasible.
+	\subsubsection{Reasons for behaviours in SchedulerAgent}
+	The reasons for the TimeManager Behaviour are the same as for the OrderProcessing agent.
+	\\
+	The isNewOrderChecker Behaviour checks for the distribution of a new full order which is distributed by OrderProcessing. If one is received the stepping forward in timesteps is blocked and the receiveOrder Behaviour is started.
+	\\
+	The receiveOrder Behaviour checks the schedule for all available products and only if for all available products the scheduling is possible it returns that scheduling is feasible. Last this behaviour add the order to schedule and queue if the proposal is accepted.
+	
+	\subsection{DoughPreparation-Stage}
+%	* Kneading Machine and Preparing Machine are represented as an object based on the same class as
+%	* The way we designed them there is not much functionality inside preparing machine and kneading machine
+%	* Their only task it to update a counter and check whether a certain time threshold is reached
+%	* Most of the intelligent behaviour was moved to the dough manager
+%	* For both objects the same class was used as both machines are very common (update a counter)
+%	* DoughManager
+%	* Contains kneading and preparing machines for one bakery
+%	* Manages orders (means moving one order from one state to next state,
+%	check whether current stage of dough preparing is finisehd,
+%	receiving orders from order processing agent and sending orders to proofer)
+%	* The dough manager interacts with the environment (order processing agent and proofer)
+%	* Cyclic receiveOrder behaviour. The agent checks for new orders every time step if there is a
+%	new order he receives it and processes it.
+%	* Proofer
+%	* Interface to next stage (bakery stage)
 	\section{Architectures}
+	We used IntelliJ to generate the architecture. We present two versions because the full architecture\ref{fig:arch_full} isn't easily readable we generated a small\ref{fig:arch_small} one without internal classes, fields etc.
+	\\
+	The main usage of our architecture views is to show the composition of agents and objects and how they interact. Since the images are really big. They are included as images in the zip file.
+	\newpage
+	\KOMAoptions{paper=A3,paper=landscape,pagesize}
+	\recalctypearea
+	\begin{figure}[hbt!]
+		\hspace*{-6cm}
+		\centering
+		\includegraphics[width=0.9\paperwidth]{Architecture_small.png}
+		\caption{This image shows the reduced architecture.}
+		\label{fig:arch_small}
+	\end{figure}
+	\newpage
+	\begin{figure}[hbt!]
+		\hspace*{-6cm}
+		\centering
+		\includegraphics[width=0.9\paperwidth]{Architecture_full.png}
+		\caption{This image shows the full architecture.}
+		\label{fig:arch_full}
+		
+	\end{figure}
+
+	\newpage
+	\FloatBarrier
+	\KOMAoptions{paper=A4,paper=portrait,pagesize}
+	\recalctypearea
 	\section{Messages}
 	\section{Agents}
 	\section{Objects}
