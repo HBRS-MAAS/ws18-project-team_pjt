@@ -35,6 +35,12 @@ If you want to see all possible options how the project can be run use:
      gradle run --args='-isHost -customer -orderProessing -doughPrep'
 
 To change scenario parameters please change the variable scenarioDirectory to the according directory name and the variable endTime to the matching time (when all orders are finished).
+Logs were disabled as travis build fails if log size surpasses 4 MB. For enabling logs please uncomment System.out.println in following classes:
+* OrderProcessing
+* KneadingPreparingMachine
+* Proofer
+* DoughManager
+* SchedulerAgent
 
 ## Eclipse
 To use this project with eclipse run
